@@ -1,0 +1,283 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model chemical {
+  id                   Int       @unique @default(autoincrement())
+  code                 String
+  name                 String
+  manufacturer_id      Int
+  category_chemical_id String
+  storage_condition    String
+  min_stock            Int
+  unit_id              Int
+  email_notification   String?
+  status               Boolean?
+  created_on           DateTime? @default(now())
+  created_by           Int?
+  updated_on           DateTime? @updatedAt
+  updated_by           Int?
+}
+
+model user {
+  id               Int       @default(autoincrement())
+  employee_id      String?
+  username         String    @id
+  fullname         String
+  tel              String?
+  email            String
+  company          String?
+  dept_code        String?
+  dept_name        String?
+  user_location_id String? // Defaultdata คือ AY, HM, HCC, QAC AY, QAC HM, Incoming HM, Incoming AY
+  supervisor_code  String?
+  created_on       DateTime? @default(now())
+  updated_on       DateTime? @updatedAt
+}
+
+model user_role {
+  user_id    Int       @id @default(autoincrement())
+  role_id    String
+  created_on DateTime? @default(now())
+}
+
+model location_email {
+  id                 String    @id @db.VarChar(15)
+  user_location_id   Int
+  email_notification String?   @db.VarChar(500)
+  status             Boolean
+  created_on         DateTime? @default(now())
+  created_by         Int?
+  updated_on         DateTime? @updatedAt
+  updated_by         Int?
+}
+
+model equipment_type {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(50)
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int?
+  updated_on DateTime  @updatedAt
+  updated_by Int?
+}
+
+model manufacturer {
+  id                 Int       @id @default(autoincrement())
+  name               String    @db.VarChar(100)
+  is_chemical_stock  Boolean
+  is_equipment_stock Boolean
+  status             Boolean
+  created_on         DateTime? @default(now())
+  created_by         Int?
+  updated_on         DateTime? @updatedAt
+  updated_by         Int?
+}
+
+model StorageUnit {
+  id            Int       @id @default(autoincrement())
+  location_id   Int
+  section_id    Int
+  name          String    @db.VarChar(50)
+  number_of_box Int
+  status        Boolean
+  created_on    DateTime? @default(now())
+  created_by    Int?
+  updated_on    DateTime? @default(now())
+  updated_by    Int?
+}
+
+model section {
+  id            Int       @id @default(autoincrement())
+  location_id   Int
+  name          String    @db.VarChar(50)
+  number_of_box Int
+  status        Boolean
+  created_on    DateTime? @default(now())
+  created_by    Int?
+  updated_on    DateTime? @default(now())
+  updated_by    Int?
+}
+
+model location {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(50)
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int?
+  updated_on DateTime? @default(now())
+  updated_by Int?
+}
+
+model category_edit {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(50)
+  status     Boolean?
+  created_on DateTime? @default(now())
+  created_by Int?
+  updated_on DateTime? @updatedAt
+  updated_by Int?
+}
+
+model unit {
+  id                Int       @id @default(autoincrement())
+  order             Int
+  name              String    @db.VarChar(50)
+  is_sample         Boolean
+  is_chemical       Boolean
+  is_microbiology   Boolean
+  is_chemical_stock Boolean
+  status            Boolean
+  created_on        DateTime? @default(now())
+  created_by        Int?
+  updated_on        DateTime? @updatedAt
+  updated_by        Int?
+}
+
+model line {
+  id         Int       @id @default(autoincrement())
+  code       String    @db.VarChar(10)
+  name       String    @db.VarChar(50)
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int?
+  updated_on DateTime? @updatedAt
+  updated_by Int?
+}
+
+model material_microbiology {
+  id                        Int       @id @default(autoincrement())
+  material_id               Int
+  microbiology_parameter_id Int
+  created_on                DateTime? @default(now())
+  created_by                Int?
+}
+
+model material_chemical {
+  id                    Int       @id @default(autoincrement())
+  material_id           Int
+  chemical_parameter_id Int
+  created_on            DateTime? @default(now())
+  created_by            Int?
+}
+
+model microbiology_parameter {
+  id                   Int       @id @default(autoincrement())
+  order                Int
+  name                 String    @db.VarChar(50)
+  request_min          Decimal?  @db.Decimal
+  unit_id              Int
+  sample_type_id       String
+  spec_type_id         String
+  spec                 String    @db.VarChar(100)
+  spec_min             Decimal?  @db.Decimal
+  spec_max             Decimal?  @db.Decimal
+  warning_min          Decimal?  @db.Decimal
+  warning_max          Decimal?  @db.Decimal
+  is_enter_spec_min    Boolean
+  is_enter_spec_max    Boolean
+  is_enter_warning_min Boolean
+  is_enter_warning_max Boolean
+  status               Boolean
+  created_on           DateTime? @default(now())
+  created_by           Int?
+  updated_on           DateTime? @updatedAt
+  updated_by           Int?
+}
+
+model chemical_parameter {
+  id                   Int       @id @default(autoincrement())
+  order                Int
+  name                 String    @db.VarChar(50)
+  request_min          Decimal?
+  unit_id              Int
+  sample_type_id       String
+  spec_type_id         String
+  spec                 String    @db.VarChar(100)
+  spec_min             Decimal
+  spec_max             Decimal
+  warning_min          Decimal
+  warning_max          Decimal
+  is_enter_spec_min    Boolean
+  is_enter_spec_max    Boolean
+  is_enter_warning_min Boolean
+  is_enter_warning_max Boolean
+  status               Boolean
+  created_on           DateTime? @default(now())
+  created_by           Int?
+  updated_on           DateTime? @updatedAt
+  updated_by           Int?
+}
+
+model material {
+  id               Int       @id @default(autoincrement())
+  name             String    @db.VarChar(100)
+  test_report_name String    @db.VarChar(100)
+  status           Boolean
+  created_on       DateTime? @default(now())
+  created_by       Int?
+  updated_on       DateTime? @updatedAt
+  updated_by       Int?
+}
+
+model sample_retaining {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(50)
+  text_input Boolean
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int?
+  updated_on DateTime? @updatedAt
+  updated_by Int?
+}
+
+model lab_process {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(50)
+  text_input Boolean
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int
+  updated_on DateTime? @updatedAt
+  updated_by Int
+}
+
+model sample_stage {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(50)
+  text_input Boolean
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int
+  updated_on DateTime? @updatedAt
+  updated_by Int
+}
+
+model objective {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(50)
+  text_input Boolean
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int
+  updated_on DateTime? @updatedAt
+  updated_by Int
+}
