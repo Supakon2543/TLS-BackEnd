@@ -26,7 +26,5 @@ export class ChemicalService {
   remove(id: number) {
     return this.prisma.chemical.delete({ where: { id } });
   }
-  create1(data: CreateChemicalDto) {
-    return this.prisma.chemical.create({ data });
-  }
+
 }
