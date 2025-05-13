@@ -14,8 +14,136 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model lab_site {
+  id      String  @id @db.VarChar(5)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model request_type {
+  id      String  @id @db.VarChar(10)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model state {
+  id      String  @id @db.VarChar(10)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model status_request {
+  id        String  @id @db.VarChar(10)
+  order     Int
+  name      String  @db.VarChar(50)
+  state_id  String?
+  status    Boolean
+}
+
+model status_sample {
+  id      String  @id @db.VarChar(10)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model status_retain {
+  id      String  @id @db.VarChar(15)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model status_equipment {
+  id      String  @id @db.VarChar(15)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model sample_type {
+  id      String  @id @db.VarChar(10)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model lab_test {
+  id      String  @id @db.VarChar(10)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model category_chemical {
+  id      String  @id @db.VarChar(5)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model sample_condition {
+  id      String  @id @db.VarChar(10)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model test_report_format {
+  id      String  @id @db.VarChar(15)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model accredited {
+  id      String  @id @db.VarChar(10)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model spec_type {
+  id      String  @id @db.VarChar(10)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model activity_request {
+  id      String  @id @db.VarChar(15)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model activity_equipment {
+  id      String  @id @db.VarChar(15)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model role {
+  id      String  @id @db.VarChar(5)
+  order   Int
+  name    String  @db.VarChar(50)
+  status  Boolean
+}
+
+model user_location {
+  id          String  @id @db.VarChar(5)
+  order       Int
+  name        String  @db.VarChar(50)
+  lab_site_id String?
+  status      Boolean
+}
+
 model chemical {
-  id                   Int       @unique @default(autoincrement())
+  id                  Int       @unique @default(autoincrement())
   code                 String
   name                 String
   manufacturer_id      Int
@@ -32,19 +160,19 @@ model chemical {
 }
 
 model user {
-  id               Int       @default(autoincrement())
-  employee_id      String?
-  username         String    @id
-  fullname         String
-  tel              String?
-  email            String
-  company          String?
-  dept_code        String?
-  dept_name        String?
+  id               Int       @id @default(autoincrement())
+  employee_id      String?   @unique @db.VarChar(10)
+  username         String    @unique @db.VarChar(50)
+  fullname         String    @db.VarChar(100)
+  tel              String?   @db.VarChar(12)
+  email            String    @db.VarChar(100)
+  company          String?   @db.VarChar(100)
+  dept_code        String?   @db.VarChar(10)
+  dept_name        String?   @db.VarChar(100)
   user_location_id String? // Defaultdata คือ AY, HM, HCC, QAC AY, QAC HM, Incoming HM, Incoming AY
-  supervisor_code  String?
-  created_on       DateTime? @default(now())
-  updated_on       DateTime? @updatedAt
+  supervisor_id    String?
+  created_on       DateTime? @default(now()) @db.Timestamptz(3)
+  updated_on       DateTime? @updatedAt @db.Timestamptz(3)
 }
 
 model user_role {

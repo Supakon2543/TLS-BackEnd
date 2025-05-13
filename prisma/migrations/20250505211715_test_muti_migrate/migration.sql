@@ -13,9 +13,9 @@ CREATE TABLE "location_email" (
     "user_location_id" INTEGER NOT NULL,
     "email_notification" VARCHAR(500),
     "status" BOOLEAN NOT NULL,
-    "created_on" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "created_on" TIMESTAMPTZ(3) DEFAULT CURRENT_TIMESTAMP,
     "created_by" INTEGER,
-    "updated_on" TIMESTAMP(3),
+    "updated_on" TIMESTAMPTZ(3),
     "updated_by" INTEGER,
 
     CONSTRAINT "location_email_pkey" PRIMARY KEY ("id")
@@ -27,9 +27,9 @@ CREATE TABLE "equipment_type" (
     "order" INTEGER NOT NULL,
     "name" VARCHAR(50) NOT NULL,
     "status" BOOLEAN NOT NULL,
-    "created_on" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "created_on" TIMESTAMPTZ(3) DEFAULT CURRENT_TIMESTAMP,
     "created_by" INTEGER,
-    "updated_on" TIMESTAMP(3) NOT NULL,
+    "updated_on" TIMESTAMPTZ(3) NOT NULL,
     "updated_by" INTEGER,
 
     CONSTRAINT "equipment_type_pkey" PRIMARY KEY ("id")
@@ -42,9 +42,9 @@ CREATE TABLE "manufacturer" (
     "is_chemical_stock" BOOLEAN NOT NULL,
     "is_equipment_stock" BOOLEAN NOT NULL,
     "status" BOOLEAN NOT NULL,
-    "created_on" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "created_on" TIMESTAMPTZ(3) DEFAULT CURRENT_TIMESTAMP,
     "created_by" INTEGER,
-    "updated_on" TIMESTAMP(3),
+    "updated_on" TIMESTAMPTZ(3),
     "updated_by" INTEGER,
 
     CONSTRAINT "manufacturer_pkey" PRIMARY KEY ("id")
