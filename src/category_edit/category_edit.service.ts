@@ -7,6 +7,14 @@ import { UpdateCategoryEditDto } from './dto/update-category_edit.dto';
 export class CategoryEditService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async createOrUpdate(data: CreateCategoryEditDto) {
+    return this.prisma.category_edit.upsert({
+      where: { id: data.id }, // Use the id from the data object
+      create: { ...data }, // Create a new record with the provided data
+      update: data, // Update the existing record with the provided data
+    });
+  }
+
   async create(data: CreateCategoryEditDto) {
     return this.prisma.category_edit.create({ data });
   }

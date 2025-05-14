@@ -7,6 +7,11 @@ import { UpdateLocationDto } from './dto/update-location.dto';
 export class LocationController {
   constructor(private readonly locationService: LocationService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createLocationDto: CreateLocationDto) {
+    return this.locationService.createOrUpdate(createLocationDto);
+  }
+
   @Post()
   create(@Body() createLocationDto: CreateLocationDto) {
     return this.locationService.create(createLocationDto);
@@ -15,6 +20,11 @@ export class LocationController {
   @Get()
   findAll() {
     return this.locationService.findAll();
+  }
+
+  @Get('get-locations')
+  getLocations(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.locationService.getLocations(params);
   }
 
   @Get(':id')

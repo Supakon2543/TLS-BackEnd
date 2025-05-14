@@ -5,7 +5,6 @@ import { UsersModule } from './users/users.module';
 import { ChemicalModule } from './chemical/chemical.module';
 import { UserRoleModule } from './user_role/user_role.module';
 import { LocationEmailModule } from './location_email/location_email.module';
-import { IsUniqueConstraint } from './is-unique.validator';
 import { EquipmentTypeModule } from './equipment_type/equipment_type.module';
 import { ManufacturerModule } from './manufacturer/manufacturer.module';
 import { StorageUnitModule } from './storage-unit/storage-unit.module';
@@ -23,9 +22,10 @@ import { SampleRetainingModule } from './sample_retaining/sample_retaining.modul
 import { LabProcessModule } from './lab_process/lab_process.module';
 import { SampleStageModule } from './sample_stage/sample_stage.module';
 import { ObjectiveModule } from './objective/objective.module';
+import { BoxModule } from './box/box.module';
 
 @Module({
-  imports: [UsersModule, ChemicalModule, UserRoleModule, LocationEmailModule, EquipmentTypeModule, ManufacturerModule, StorageUnitModule, SectionModule, LocationModule, CategoryEditModule, UnitModule, LineModule, MaterialMicrobiologyModule, MaterialChemicalModule, MicrobiologyParameterModule, ChemicalParameterModule, MaterialModule, SampleRetainingModule, LabProcessModule, SampleStageModule, ObjectiveModule],
+  imports: [UsersModule, ChemicalModule, UserRoleModule, LocationEmailModule, EquipmentTypeModule, ManufacturerModule, StorageUnitModule, SectionModule, LocationModule, CategoryEditModule, UnitModule, LineModule, MaterialMicrobiologyModule, MaterialChemicalModule, MicrobiologyParameterModule, ChemicalParameterModule, MaterialModule, SampleRetainingModule, LabProcessModule, SampleStageModule, ObjectiveModule, BoxModule],
   controllers: [AppController],
   providers: [AppService],
 })

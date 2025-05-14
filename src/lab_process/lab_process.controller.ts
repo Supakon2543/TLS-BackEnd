@@ -7,6 +7,11 @@ import { UpdateLabProcessDto } from './dto/update-lab_process.dto';
 export class LabProcessController {
   constructor(private readonly labProcessService: LabProcessService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createLabProcessDto: CreateLabProcessDto) {
+    return this.labProcessService.createOrUpdate(createLabProcessDto);
+  }
+
   @Post()
   create(@Body() createLabProcessDto: CreateLabProcessDto) {
     return this.labProcessService.create(createLabProcessDto);
@@ -15,6 +20,11 @@ export class LabProcessController {
   @Get()
   findAll() {
     return this.labProcessService.findAll();
+  }
+
+  @Get('get-lab-processes')
+  getLabProcesses(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.labProcessService.getLabProcesses(params);
   }
 
   @Get(':id')

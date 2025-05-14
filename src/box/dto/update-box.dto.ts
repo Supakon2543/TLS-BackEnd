@@ -1,3 +1,7 @@
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateBoxDto } from './create-box.dto';
+
+
 import {
   IsBoolean,
   IsInt,
@@ -6,17 +10,24 @@ import {
   Length,
 } from 'class-validator';
 
-export class CreateMaterialDto {
+export class UpdateBoxDto {
+
   @IsInt()
   id: number;
 
-  @IsString()
-  @Length(1, 100)
-  name: string;
+  
+  @IsInt()
+  location_id: number;
+
+  @IsInt()
+  section_id: number;
 
   @IsString()
-  @Length(1, 100)
-  test_report_name: string;
+  @Length(1, 50)
+  name: string;
+
+  @IsInt()
+  number_of_bottle: number;
 
   @IsBoolean()
   status: boolean;

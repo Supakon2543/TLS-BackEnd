@@ -7,9 +7,39 @@ import { UpdateLabProcessDto } from './dto/update-lab_process.dto';
 export class LabProcessService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Create or update a lab process
+  async createOrUpdate(data: CreateLabProcessDto) {
+    return this.prisma.lab_process.upsert({
+      where: { id: data.id },
+      create: { ...data}, // Create a new record with the provided data
+      update: data, // Update the existing record with the provided data
+    });
+  }
+
   async create(createDto: CreateLabProcessDto) {
     return this.prisma.lab_process.create({
       data: createDto,
+    });
+  }
+
+  async getLabProcesses(params: {
+    id?: number;
+    keyword?: string;
+    status?: number;
+  }) {
+    const { id, keyword, status } = params;
+
+    return this.prisma.lab_process.findMany({
+      where: {
+        ...(id && { id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { order: 'asc' },
     });
   }
 

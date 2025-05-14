@@ -12,9 +12,19 @@ export class ObjectiveController {
     return this.objectiveService.create(createObjectiveDto);
   }
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createObjectiveDto: CreateObjectiveDto) {
+    return this.objectiveService.createOrUpdate(createObjectiveDto);
+  }
+
   @Get()
   findAll() {
     return this.objectiveService.findAll();
+  }
+
+  @Get('get-objectives')
+  getObjectives(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.objectiveService.getObjectives(params);
   }
 
   @Get(':id')

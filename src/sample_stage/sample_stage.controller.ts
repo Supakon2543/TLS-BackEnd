@@ -7,9 +7,19 @@ import { UpdateSampleStageDto } from './dto/update-sample_stage.dto';
 export class SampleStageController {
   constructor(private readonly sampleStageService: SampleStageService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createSampleStageDto: CreateSampleStageDto) {
+    return this.sampleStageService.createOrUpdate(createSampleStageDto);
+  }
+
   @Post()
   create(@Body() createSampleStageDto: CreateSampleStageDto) {
     return this.sampleStageService.create(createSampleStageDto);
+  }
+
+  @Get('get-sample-stages')
+  getSampleStages(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.sampleStageService.getSampleStages(params);
   }
 
   @Get()

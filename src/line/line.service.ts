@@ -7,6 +7,15 @@ import { UpdateLineDto } from './dto/update-line.dto';
 export class LineService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Create or update a line
+  async createOrUpdate(data: CreateLineDto) {
+    return this.prisma.line.upsert({
+      where: { id: data.id },
+      create: { ...data }, // Create a new record with the provided data
+      update: data, // Update the existing record with the provided data
+    });
+  }
+
   // Create a new line
   async create(data: CreateLineDto) {
     return this.prisma.line.create({ data });
@@ -15,6 +24,24 @@ export class LineService {
   // Retrieve all lines
   async findAll() {
     return this.prisma.line.findMany();
+  }
+
+  // Retrieve lines with filters
+  async getLines(params: { id?: number; keyword?: string; status?: number }) {
+    const { id, keyword, status } = params;
+
+    return this.prisma.line.findMany({
+      where: {
+        ...(id && { id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { code: 'asc' },
+    });
   }
 
   // Retrieve a single line by ID

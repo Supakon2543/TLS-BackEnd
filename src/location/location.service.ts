@@ -7,8 +7,33 @@ import { UpdateLocationDto } from './dto/update-location.dto';
 export class LocationService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async createOrUpdate(data: CreateLocationDto) {
+    return this.prisma.location.upsert({
+      where: { id: data.id },
+      create: { ...data }, // Create a new record with the provided data
+      update: data, // Update the existing record with the provided data
+    });
+  }
+  
   async create(data: CreateLocationDto) {
     return this.prisma.location.create({ data });
+  }
+
+  async getLocations(params: { id?: number; keyword?: string; status?: number }) {
+    const { id, keyword, status } = params;
+
+    return this.prisma.location.findMany({
+      where: {
+        ...(id && { id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { name: 'asc' },
+    });
   }
 
   async findAll() {

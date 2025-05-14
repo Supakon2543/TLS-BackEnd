@@ -7,6 +7,11 @@ import { UpdateSampleRetainingDto } from './dto/update-sample_retaining.dto';
 export class SampleRetainingController {
   constructor(private readonly sampleRetainingService: SampleRetainingService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createSampleRetainingDto: CreateSampleRetainingDto) {
+    return this.sampleRetainingService.createOrUpdate(createSampleRetainingDto);
+  }
+
   @Post()
   create(@Body() createSampleRetainingDto: CreateSampleRetainingDto) {
     return this.sampleRetainingService.create(createSampleRetainingDto);
@@ -15,6 +20,11 @@ export class SampleRetainingController {
   @Get()
   findAll() {
     return this.sampleRetainingService.findAll();
+  }
+
+  @Get('get-sample-retainings')
+  getSampleRetainings(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.sampleRetainingService.getSampleRetainings(params);
   }
 
   @Get(':id')

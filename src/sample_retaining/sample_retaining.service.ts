@@ -7,9 +7,38 @@ import { UpdateSampleRetainingDto } from './dto/update-sample_retaining.dto';
 export class SampleRetainingService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async createOrUpdate(data: CreateSampleRetainingDto) {
+    return this.prisma.sample_retaining.upsert({
+      where: { id: data.id },
+      create: { ...data }, // Create a new record with the provided data
+      update: data, // Update the existing record with the provided data
+    });
+  }
+
   async create(createDto: CreateSampleRetainingDto) {
     return this.prisma.sample_retaining.create({
       data: createDto,
+    });
+  }
+
+  async getSampleRetainings(params: {
+    id?: number;
+    keyword?: string;
+    status?: number;
+  }) {
+    const { id, keyword, status } = params;
+
+    return this.prisma.sample_retaining.findMany({
+      where: {
+        ...(id && { id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { order: 'asc' },
     });
   }
 

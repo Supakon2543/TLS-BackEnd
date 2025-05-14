@@ -9,7 +9,7 @@ export class CategoryEditController {
 
   @Post()
   create(@Body() createCategoryEditDto: CreateCategoryEditDto) {
-    return this.categoryEditService.create(createCategoryEditDto);
+    return this.categoryEditService.createOrUpdate(createCategoryEditDto);
   }
 
   @Get()

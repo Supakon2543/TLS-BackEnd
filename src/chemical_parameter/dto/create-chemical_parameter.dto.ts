@@ -6,10 +6,14 @@ import {
   IsString,
   Length,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { Decimal } from 'generated/prisma/runtime/library';
+import { Prisma } from '@prisma/client';
+type Decimal = Prisma.Decimal;
 
 export class CreateChemicalParameterDto {
+
+  @IsInt()
+  id: number;
+  
   @IsInt()
   order: number;
 
@@ -45,6 +49,12 @@ export class CreateChemicalParameterDto {
 
   @IsDecimal()
   warning_max: Decimal;
+
+  @IsString()
+  final_result: string;
+
+  @IsInt()
+  decimal: number;
 
   @IsBoolean()
   is_enter_spec_min: boolean;

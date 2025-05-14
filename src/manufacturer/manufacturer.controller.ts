@@ -7,9 +7,19 @@ import { UpdateManufacturerDto } from './dto/update-manufacturer.dto';
 export class ManufacturerController {
   constructor(private readonly manufacturerService: ManufacturerService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createManufacturerDto: CreateManufacturerDto) {
+    return this.manufacturerService.createOrUpdate(createManufacturerDto);
+  }
+
   @Post()
   create(@Body() createManufacturerDto: CreateManufacturerDto) {
     return this.manufacturerService.create(createManufacturerDto);
+  }
+
+  @Get('get-manufacturers')
+  getManufacturers(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.manufacturerService.getManufacturers(params);
   }
 
   @Get()

@@ -6,26 +6,31 @@ import {
   Length,
 } from 'class-validator';
 
-export class CreateObjectiveDto {
+export class CreateBoxDto {
   @IsInt()
   id: number;
 
   @IsInt()
-  order: number;
+  location_id: number;
+
+  @IsInt()
+  section_id: number;
 
   @IsString()
   @Length(1, 50)
   name: string;
 
-  @IsBoolean()
-  text_input: boolean;
+  @IsInt()
+  number_of_bottle: number;
 
   @IsBoolean()
   status: boolean;
 
+  @IsOptional()
   @IsInt()
-  created_by: number;
+  created_by?: number;
 
+  @IsOptional()
   @IsInt()
-  updated_by: number;
+  updated_by?: number;
 }

@@ -7,6 +7,15 @@ import { UpdateMaterialMicrobiologyDto } from './dto/update-material_microbiolog
 export class MaterialMicrobiologyService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Create or update a record
+  async createOrUpdate(data: CreateMaterialMicrobiologyDto) {
+    return this.prisma.material_microbiology.upsert({
+      where: { id: data.id },
+      create: { ...data }, // Create a new record with the provided data
+      update: data, // Update the existing record with the provided data
+    });
+  }
+
   // Create one record
   async create(data: CreateMaterialMicrobiologyDto) {
     return this.prisma.material_microbiology.create({ data });

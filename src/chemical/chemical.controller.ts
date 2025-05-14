@@ -7,9 +7,19 @@ import { UpdateChemicalDto } from './dto/update-chemical.dto';
 export class ChemicalController {
   constructor(private readonly chemicalService: ChemicalService) {}
 
-  @Post('')
+  @Post()
   create(@Body() createChemicalDto: CreateChemicalDto) {
     return this.chemicalService.create(createChemicalDto);
+  }
+
+  @Post('create-or-update')
+  createOrUpdate(@Body() createChemicalDto: CreateChemicalDto) {
+    return this.chemicalService.createOrUpdate(createChemicalDto);
+  }
+
+  @Get('get-chemicals')
+  getChemicals(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.chemicalService.getChemicals(params);
   }
 
   @Get()
