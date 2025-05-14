@@ -1,25 +1,27 @@
 import {
-    IsString,
-    IsBoolean,
-    IsOptional,
-    IsInt,
-    Length,
-  } from 'class-validator';
-  
-  export class CreateLocationDto {
-    @IsString()
-    @Length(1, 50)
-    name: string;
-  
-    @IsBoolean()
-    status: boolean;
-  
-    @IsOptional()
-    @IsInt()
-    created_by?: number;
+  IsString,
+  IsBoolean,
+  IsOptional,
+  IsInt,
+  Length,
+} from 'class-validator';
 
-    @IsOptional()
-    @IsInt()
-    updated_by?: number;
-  }
-  
+export class CreateLocationDto {
+  @IsInt()
+  id: number;
+
+  @IsString()
+  @Length(1, 50)
+  name: string;
+
+  @IsBoolean()
+  status: boolean;
+
+  @IsOptional()
+  @IsInt()
+  created_by?: number;
+
+  @IsOptional()
+  @IsInt()
+  updated_by?: number;
+}

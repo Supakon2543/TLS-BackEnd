@@ -7,6 +7,14 @@ import { UpdateEquipmentTypeDto } from './dto/update-equipment_type.dto';
 export class EquipmentTypeService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async createOrUpdate(data: CreateEquipmentTypeDto) {
+    return this.prisma.equipment_type.upsert({
+      where: { id: data.id },
+      create: { ...data }, // Create a new record with the provided data
+      update: data, // Update the existing record with the provided data
+    });
+  }
+
   async create(data: CreateEquipmentTypeDto) {
     return this.prisma.equipment_type.create({ data });
   }
@@ -16,8 +24,11 @@ export class EquipmentTypeService {
   }
 
   async findOne(id: number) {
-    const equipmentType = await this.prisma.equipment_type.findUnique({ where: { id } });
-    if (!equipmentType) throw new NotFoundException(`Equipment Type ID ${id} not found`);
+    const equipmentType = await this.prisma.equipment_type.findUnique({
+      where: { id },
+    });
+    if (!equipmentType)
+      throw new NotFoundException(`Equipment Type ID ${id} not found`);
     return equipmentType;
   }
 

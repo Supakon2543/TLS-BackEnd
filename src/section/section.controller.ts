@@ -7,11 +7,19 @@ import { UpdateSectionDto } from './dto/update-section.dto';
 export class SectionController {
   constructor(private readonly sectionService: SectionService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createSectionDto: CreateSectionDto) {
+    return this.sectionService.createOrUpdate(createSectionDto);
+  }
   @Post()
   create(@Body() createSectionDto: CreateSectionDto) {
     return this.sectionService.create(createSectionDto);
   }
-
+  @Get('get-sections')
+  getSections(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.sectionService.getSections(params);
+  }
+  
   @Get()
   findAll() {
     return this.sectionService.findAll();

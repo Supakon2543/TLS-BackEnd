@@ -7,6 +7,15 @@ import { UpdateMaterialChemicalDto } from './dto/update-material_chemical.dto';
 export class MaterialChemicalService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Create or update a record
+  async createOrUpdate(data: CreateMaterialChemicalDto) {
+    return this.prisma.material_chemical.upsert({
+      where: { id: data.id },
+      create: { ...data }, // Create a new record with the provided data
+      update: data, // Update the existing record with the provided data
+    });
+  }
+
   // Create a new record
   async create(data: CreateMaterialChemicalDto) {
     return this.prisma.material_chemical.create({

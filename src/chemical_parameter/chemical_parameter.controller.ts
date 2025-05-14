@@ -7,6 +7,11 @@ import { UpdateChemicalParameterDto } from './dto/update-chemical_parameter.dto'
 export class ChemicalParameterController {
   constructor(private readonly chemicalParameterService: ChemicalParameterService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createChemicalParameterDto: CreateChemicalParameterDto) {
+    return this.chemicalParameterService.createOrUpdate(createChemicalParameterDto.id, createChemicalParameterDto);
+  }
+
   @Post()
   create(@Body() createChemicalParameterDto: CreateChemicalParameterDto) {
     return this.chemicalParameterService.create(createChemicalParameterDto);
@@ -15,6 +20,11 @@ export class ChemicalParameterController {
   @Get()
   findAll() {
     return this.chemicalParameterService.findAll();
+  }
+
+  @Get('get-chemical-parameters')
+  getChemicalParameters(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.chemicalParameterService.getChemicalParameters(params);
   }
 
   @Get(':id')

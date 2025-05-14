@@ -7,8 +7,34 @@ import { UpdateUnitDto } from './dto/update-unit.dto';
 export class UnitService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Create or update a record
+  async createOrUpdate(data: CreateUnitDto) {
+    return this.prisma.unit.upsert({
+      where: { id: data.id },
+      create: { ...data }, // Create a new record with the provided data
+      update: data, // Update the existing record with the provided data
+    });
+  }
+
   async create(data: CreateUnitDto) {
     return this.prisma.unit.create({ data });
+  }
+
+  async getUnits(params: { id?: number; keyword?: string; status?: number }) {
+    const { id, keyword, status } = params;
+
+    return this.prisma.unit.findMany({
+      where: {
+        ...(id && { id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { order: 'asc' },
+    });
   }
 
   async findAll() {

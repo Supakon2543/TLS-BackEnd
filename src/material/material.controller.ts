@@ -7,6 +7,11 @@ import { UpdateMaterialDto } from './dto/update-material.dto';
 export class MaterialController {
   constructor(private readonly materialService: MaterialService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createMaterialDto: CreateMaterialDto) {
+    return this.materialService.createOrUpdate(createMaterialDto);
+  }
+
   @Post()
   create(@Body() createMaterialDto: CreateMaterialDto) {
     return this.materialService.create(createMaterialDto);
@@ -15,6 +20,11 @@ export class MaterialController {
   @Get()
   findAll() {
     return this.materialService.findAll();
+  }
+
+  @Get('get-materials')
+  getMaterials(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.materialService.getMaterials(params);
   }
 
   @Get(':id')

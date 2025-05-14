@@ -19,16 +19,16 @@ export class LocationEmailController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.locationEmailService.findOne(id);
+    return this.locationEmailService.findOne(+id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateLocationEmailDto: UpdateLocationEmailDto) {
-    return this.locationEmailService.update(id, updateLocationEmailDto);
+    return this.locationEmailService.update(+id, updateLocationEmailDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.locationEmailService.remove(id);
+    return this.locationEmailService.remove(+id);
   }
 }

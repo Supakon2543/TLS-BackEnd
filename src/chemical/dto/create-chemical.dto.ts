@@ -8,8 +8,10 @@ import {
 } from 'class-validator';
 
 export class CreateChemicalDto {
+  @IsInt()
+  id: number;
+
   @IsString()
-  
   code: string;
 
   @IsString()

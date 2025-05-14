@@ -2,6 +2,9 @@ import { IsInt, IsOptional } from 'class-validator';
 
 export class CreateMaterialMicrobiologyDto {
   @IsInt()
+  id: number;
+  
+  @IsInt()
   material_id: number;
 
   @IsInt()

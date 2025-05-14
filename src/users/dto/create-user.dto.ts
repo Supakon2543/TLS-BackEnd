@@ -1,7 +1,10 @@
 // src/users/dto/create-user.dto.ts
-import { IsOptional, IsString, IsEmail } from 'class-validator';
+import { IsOptional, IsString, IsEmail, IsInt } from 'class-validator';
 
 export class CreateUserDto {
+  @IsInt()
+  id: number;
+
   @IsOptional()
   @IsString()
   employee_id?: string;

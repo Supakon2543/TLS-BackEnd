@@ -12,6 +12,16 @@ export class MicrobiologyParameterController {
     return this.microbiologyParameterService.create(createMicrobiologyParameterDto);
   }
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto) {
+    return this.microbiologyParameterService.createOrUpdate(createMicrobiologyParameterDto);
+  }
+
+  @Get('get-microbiology-parameters')
+  getMicrobiologyParameters(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.microbiologyParameterService.getMicrobiologyParameters(params);
+  }
+
   @Get()
   findAll() {
     return this.microbiologyParameterService.findAll();

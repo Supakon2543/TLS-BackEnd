@@ -7,6 +7,15 @@ import { UpdateMicrobiologyParameterDto } from './dto/update-microbiology_parame
 export class MicrobiologyParameterService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Create or update a record
+  async createOrUpdate(data: CreateMicrobiologyParameterDto) {
+    return this.prisma.microbiology_parameter.upsert({
+      where: { id: data.id },
+      create: { ...data }, // Create a new record with the provided data
+      update: data, // Update the existing record with the provided data
+    });
+  }
+
   // Create new record
   async create(dto: CreateMicrobiologyParameterDto) {
     return this.prisma.microbiology_parameter.create({
@@ -17,6 +26,28 @@ export class MicrobiologyParameterService {
   // Get all records
   async findAll() {
     return this.prisma.microbiology_parameter.findMany({
+      orderBy: { order: 'asc' },
+    });
+  }
+
+  // Get records with filters
+  async getMicrobiologyParameters(params: {
+    id?: number;
+    keyword?: string;
+    status?: number;
+  }) {
+    const { id, keyword, status } = params;
+
+    return this.prisma.microbiology_parameter.findMany({
+      where: {
+        ...(id && { id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
       orderBy: { order: 'asc' },
     });
   }

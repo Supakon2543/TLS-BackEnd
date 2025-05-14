@@ -7,6 +7,10 @@ import {
   } from 'class-validator';
   
   export class CreateCategoryEditDto {
+    
+    @IsInt()
+    id: number;
+
     @IsInt()
     order: number;
   
