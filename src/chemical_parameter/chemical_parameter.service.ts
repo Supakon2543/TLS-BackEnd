@@ -6,13 +6,12 @@ import { UpdateChemicalParameterDto } from './dto/update-chemical_parameter.dto'
 @Injectable()
 export class ChemicalParameterService {
   constructor(private readonly prisma: PrismaService) {}
-
-  // Create or update a record
+  
   async createOrUpdate(id: number, data: CreateChemicalParameterDto) {
     return this.prisma.chemical_parameter.upsert({
       where: { id: data.id },
-      create: { ...data }, // Create a new record with the provided data
-      update: data, // Update the existing record with the provided data
+      create: { ...data }, 
+      update: data, 
     });
   }
 

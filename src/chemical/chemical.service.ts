@@ -8,14 +8,22 @@ export class ChemicalService {
   constructor(private readonly prisma: PrismaService) {}
 
   createOrUpdate(data: CreateChemicalDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.chemical.create({ data });
+    }
+
     return this.prisma.chemical.upsert({
       where: { id: data.id },
-      create: { ...data }, // Create a new record with the provided data
-      update: data, // Update the existing record with the provided data
+      create: { ...data },
+      update: data,
     });
   }
 
-  async getChemicals(params: { id?: number; keyword?: string; status?: number }) {
+  async getChemicals(params: {
+    id?: number;
+    keyword?: string;
+    status?: number;
+  }) {
     const { id, keyword, status } = params;
 
     return this.prisma.chemical.findMany({
@@ -51,5 +59,4 @@ export class ChemicalService {
   remove(id: number) {
     return this.prisma.chemical.delete({ where: { id } });
   }
-
 }

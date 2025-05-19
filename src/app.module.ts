@@ -25,7 +25,6 @@ import { ActivityEquipmentModule } from './activity_equipment/activity_equipment
 import { RoleModule } from './role/role.module';
 import { UserLocationModule } from './user_location/user_location.module';
 import { ManufacturerModule } from './manufacturer/manufacturer.module';
-import { StorageUnitModule } from './storage-unit/storage-unit.module';
 import { SectionModule } from './section/section.module';
 import { LocationModule } from './location/location.module';
 import { CategoryEditModule } from './category_edit/category_edit.module';
@@ -43,7 +42,7 @@ import { ObjectiveModule } from './objective/objective.module';
 import { BoxModule } from './box/box.module';
 
 @Module({
-  imports: [UsersModule, ChemicalModule, UserRoleModule, LocationEmailModule, EquipmentTypeModule, ManufacturerModule, StorageUnitModule, SectionModule, LocationModule, CategoryEditModule, UnitModule, LineModule, MaterialMicrobiologyModule, MaterialChemicalModule, MicrobiologyParameterModule, ChemicalParameterModule, MaterialModule, SampleRetainingModule, LabProcessModule, SampleStageModule, ObjectiveModule, BoxModule,  LabSiteModule, RequestTypeModule, StateModule, StatusRequestModule, StatusSampleModule, StatusRetainModule, StatusEquipmentModule, SampleTypeModule, LabTestModule, CategoryChemicalModule, SampleConditionModule, TestReportFormatModule, AccreditedModule, SpecTypeModule, ActivityRequestModule, ActivityEquipmentModule, RoleModule, UserLocationModule],
+  imports: [UsersModule, ChemicalModule, UserRoleModule, LocationEmailModule, EquipmentTypeModule, ManufacturerModule, SectionModule, LocationModule, CategoryEditModule, UnitModule, LineModule, MaterialMicrobiologyModule, MaterialChemicalModule, MicrobiologyParameterModule, ChemicalParameterModule, MaterialModule, SampleRetainingModule, LabProcessModule, SampleStageModule, ObjectiveModule, BoxModule],
   controllers: [AppController],
   providers: [AppService],
 })
