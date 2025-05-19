@@ -18,7 +18,7 @@ export class MaterialController {
   }
 
   @Get()
-  getMaterials(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getMaterials(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.materialService.getMaterials(params);
   }
 

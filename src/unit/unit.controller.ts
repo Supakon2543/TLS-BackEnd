@@ -18,7 +18,7 @@ export class UnitController {
   }
 
   @Get()
-  getUnits(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getUnits(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.unitService.getUnits(params);
   }
 

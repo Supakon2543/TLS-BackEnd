@@ -18,7 +18,7 @@ export class LabProcessController {
   }
 
   @Get()
-  getLabProcesses(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getLabProcesses(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.labProcessService.getLabProcesses(params);
   }
 

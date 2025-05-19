@@ -29,7 +29,7 @@ export class SampleRetainingController {
 
   @Get()
   getSampleRetainings(
-    @Body() params: { id?: number; keyword?: string; status?: number },
+    @Param() params: { id?: number; keyword?: string; status?: number },
   ) {
     return this.sampleRetainingService.getSampleRetainings(params);
   }

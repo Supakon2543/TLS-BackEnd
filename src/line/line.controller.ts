@@ -18,7 +18,7 @@ export class LineController {
   }
 
   @Get()
-  getLines(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getLines(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.lineService.getLines(params);
   }
 

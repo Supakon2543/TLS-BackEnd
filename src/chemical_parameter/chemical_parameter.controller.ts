@@ -33,7 +33,7 @@ export class ChemicalParameterController {
 
   @Get()
   getChemicalParameters(
-    @Body() params: { id?: number; keyword?: string; status?: number },
+    @Param() params: { id?: number; keyword?: string; status?: number },
   ) {
     return this.chemicalParameterService.getChemicalParameters(params);
   }

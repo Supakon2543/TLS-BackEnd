@@ -4,7 +4,7 @@ import {
   Post,
   Body,
   Patch,
-  Param,
+  Param,  
   Delete,
   Put,
 } from '@nestjs/common';
@@ -17,7 +17,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  getUsers(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getUsers(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.usersService.getUsers(params);
   }
 

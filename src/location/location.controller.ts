@@ -18,7 +18,7 @@ export class LocationController {
   }
 
   @Get()
-  getLocations(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getLocations(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.locationService.getLocations(params);
   }
 

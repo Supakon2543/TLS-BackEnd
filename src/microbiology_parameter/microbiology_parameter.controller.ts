@@ -18,7 +18,7 @@ export class MicrobiologyParameterController {
   }
 
   @Get()
-  getMicrobiologyParameters(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getMicrobiologyParameters(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.microbiologyParameterService.getMicrobiologyParameters(params);
   }
 

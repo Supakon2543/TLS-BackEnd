@@ -20,8 +20,9 @@ export class BoxController {
     return this.boxService.createOrUpdate(createBoxDto);
   }
 
+
   @Get()
-  getBoxes(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getBoxes(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.boxService.getBoxes(params);
   }
 

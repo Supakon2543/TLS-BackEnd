@@ -14,7 +14,7 @@ export class MaterialChemicalController {
   }
 
   @Get()
-  getMaterialChemicals(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getMaterialChemicals(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.materialChemicalService.getMaterialChemicals(params);
   }
 

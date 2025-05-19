@@ -13,7 +13,7 @@ export class SampleStageController {
   }
 
   @Get()
-  getSampleStages(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getSampleStages(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.sampleStageService.getSampleStages(params);
   }
 

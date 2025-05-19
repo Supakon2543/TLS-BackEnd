@@ -18,7 +18,7 @@ export class ObjectiveController {
   }
 
   @Get()
-  getObjectives(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getObjectives(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.objectiveService.getObjectives(params);
   }
 

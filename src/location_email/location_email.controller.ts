@@ -13,7 +13,7 @@ export class LocationEmailController {
   }
 
   @Get()
-  getLocationEmails(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getLocationEmails(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.locationEmailService.getLocationEmails(params);
   }
 

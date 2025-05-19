@@ -18,7 +18,7 @@ export class ChemicalController {
   }
 
   @Get()
-  getChemicals(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getChemicals(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.chemicalService.getChemicals(params);
   }
 

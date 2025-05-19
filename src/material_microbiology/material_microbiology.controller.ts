@@ -18,7 +18,7 @@ export class MaterialMicrobiologyController {
   }
 
   @Get()
-  getMaterialMicrobiologies(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getMaterialMicrobiologies(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.materialMicrobiologyService.getMaterialMicrobiologies(params);
   }
 

@@ -25,7 +25,7 @@ export class SectionController {
   }
   @Get()
   getSections(
-    @Body() params: { id?: number; keyword?: string; status?: number },
+    @Param() params: { id?: number; keyword?: string; status?: number },
   ) {
     return this.sectionService.getSections(params);
   }

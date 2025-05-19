@@ -21,7 +21,7 @@ export class EquipmentTypeController {
 
   @Get()
   getChemicalParameters(
-    @Body() params: { id?: number; keyword?: string; status?: number },
+    @Param() params: { id?: number; keyword?: string; status?: number },
   ) {
     return this.equipmentTypeService.getEquipmentTypes(params);
   }

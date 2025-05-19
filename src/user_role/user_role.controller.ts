@@ -13,7 +13,7 @@ export class UserRoleController {
   }
 
   @Get()
-  getuser_role(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getuser_role(@Param() params: { id?: number; keyword?: string; status?: number }) {
     return this.userRoleService.getuser_role(params);
   }
 

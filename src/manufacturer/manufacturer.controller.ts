@@ -27,7 +27,7 @@ export class ManufacturerController {
 
   @Get()
   getManufacturers(
-    @Body() params: { id?: number; keyword?: string; status?: number },
+    @Param() params: { id?: number; keyword?: string; status?: number },
   ) {
     return this.manufacturerService.getManufacturers(params);
   }
