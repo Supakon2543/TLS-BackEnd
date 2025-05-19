@@ -7,7 +7,6 @@ import { UserRoleModule } from './user_role/user_role.module';
 import { LocationEmailModule } from './location_email/location_email.module';
 import { EquipmentTypeModule } from './equipment_type/equipment_type.module';
 import { ManufacturerModule } from './manufacturer/manufacturer.module';
-import { StorageUnitModule } from './storage-unit/storage-unit.module';
 import { SectionModule } from './section/section.module';
 import { LocationModule } from './location/location.module';
 import { CategoryEditModule } from './category_edit/category_edit.module';
@@ -25,7 +24,7 @@ import { ObjectiveModule } from './objective/objective.module';
 import { BoxModule } from './box/box.module';
 
 @Module({
-  imports: [UsersModule, ChemicalModule, UserRoleModule, LocationEmailModule, EquipmentTypeModule, ManufacturerModule, StorageUnitModule, SectionModule, LocationModule, CategoryEditModule, UnitModule, LineModule, MaterialMicrobiologyModule, MaterialChemicalModule, MicrobiologyParameterModule, ChemicalParameterModule, MaterialModule, SampleRetainingModule, LabProcessModule, SampleStageModule, ObjectiveModule, BoxModule],
+  imports: [UsersModule, ChemicalModule, UserRoleModule, LocationEmailModule, EquipmentTypeModule, ManufacturerModule, SectionModule, LocationModule, CategoryEditModule, UnitModule, LineModule, MaterialMicrobiologyModule, MaterialChemicalModule, MicrobiologyParameterModule, ChemicalParameterModule, MaterialModule, SampleRetainingModule, LabProcessModule, SampleStageModule, ObjectiveModule, BoxModule],
   controllers: [AppController],
   providers: [AppService],
 })
