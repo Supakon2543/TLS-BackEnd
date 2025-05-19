@@ -21,20 +21,29 @@ export class UsersService {
     });
   }
 
-  async getUsers(params: { id?: number; keyword?: string; status?: number }) {
-    const { id, keyword, status } = params;
+  // get users with filters
+  async getUsers(params: {
+    id?: number | string;
+    keyword?: string;
+    status?: number | string;
+  }) {
+    let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
 
     return this.prisma.user.findMany({
       where: {
         ...(id && { id }),
         ...(typeof status === 'number' && status !== 0
-          ? { is_active: status === 1 }
+          ? { status: status === 1 }
           : {}),
         ...(keyword && {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { id: 'asc' },
+      orderBy: { employee_id: 'asc' },
     });
   }
 

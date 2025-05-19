@@ -20,12 +20,22 @@ export class UnitService {
     });
   }
 
+  
+
   async create(data: CreateUnitDto) {
     return this.prisma.unit.create({ data });
   }
 
-  async getUnits(params: { id?: number; keyword?: string; status?: number }) {
-    const { id, keyword, status } = params;
+  async getUnits(params: {
+    id?: number | string;
+    keyword?: string;
+    status?: number | string;
+  }) {
+    let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
 
     return this.prisma.unit.findMany({
       where: {
@@ -37,7 +47,7 @@ export class UnitService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { order: 'asc' },
+      orderBy: { name: 'asc' },
     });
   }
 

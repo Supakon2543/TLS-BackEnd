@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { ChemicalService } from './chemical.service';
 import { CreateChemicalDto } from './dto/create-chemical.dto';
 import { UpdateChemicalDto } from './dto/update-chemical.dto';
@@ -18,17 +27,17 @@ export class ChemicalController {
   }
 
   @Get()
-  getChemicals(@Param() params: { id?: number; keyword?: string; status?: number }) {
+  getChemicals(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
     return this.chemicalService.getChemicals(params);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.chemicalService.findOne(+id);
-  }
-
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateChemicalDto: UpdateChemicalDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateChemicalDto: UpdateChemicalDto,
+  ) {
     return this.chemicalService.update(+id, updateChemicalDto);
   }
 

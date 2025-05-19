@@ -20,17 +20,26 @@ export class UserRoleService {
     });
   }
 
-  async getuser_role(params: { id?: number; keyword?: string; status?: number }) {
-    const { id, keyword, status } = params;
+  // get user roles with filters
+  async getuser_role(params: {
+    userId?: number | string;
+    keyword?: string;
+    status?: number | string;
+  }) {
+    let { userId, keyword, status } = params;
+
+    // Convert userId and status to numbers if they are strings
+    userId = userId !== undefined ? +userId : undefined;
+    status = status !== undefined ? +status : undefined;
 
     return this.prisma.user_role.findMany({
       where: {
-        ...(id && { user_id: id }),
+        ...(userId && { user_id: userId }), // Use user_id for filtering
         ...(typeof status === 'number' && status !== 0
-          ? { is_active: status === 1 }
+          ? { status: status === 1 }
           : {}),
         ...(keyword && {
-          role_name: { contains: keyword, mode: 'insensitive' },
+          name: { contains: keyword, mode: 'insensitive' },
         }),
       },
       orderBy: { user_id: 'asc' },

@@ -2,15 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { CreateChemicalDto } from './dto/create-chemical.dto';
 import { UpdateChemicalDto } from './dto/update-chemical.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Logger } from '@nestjs/common';
-import * as v8 from 'v8';
-
-
 
 @Injectable()
 export class ChemicalService {
   constructor(private readonly prisma: PrismaService) {}
-
 
   createOrUpdate(data: CreateChemicalDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
@@ -26,11 +21,15 @@ export class ChemicalService {
   }
 
   async getChemicals(params: {
-    id?: number;
+    id?: number | string;
     keyword?: string;
-    status?: number;
+    status?: number | string;
   }) {
-    const { id, keyword, status } = params;
+    let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
 
     return this.prisma.chemical.findMany({
       where: {

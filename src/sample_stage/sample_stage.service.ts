@@ -27,11 +27,15 @@ export class SampleStageService {
   }
 
   async getSampleStages(params: {
-    id?: number;
+    id?: number | string;
     keyword?: string;
-    status?: number;
+    status?: number | string;
   }) {
-    const { id, keyword, status } = params;
+    let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
 
     return this.prisma.sample_stage.findMany({
       where: {
@@ -43,7 +47,7 @@ export class SampleStageService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { order: 'asc' },
+      orderBy: { order: 'asc' }, // Sorting by order or any field as needed
     });
   }
 
