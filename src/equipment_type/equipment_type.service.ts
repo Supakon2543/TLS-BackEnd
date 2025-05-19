@@ -8,6 +8,9 @@ export class EquipmentTypeService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOrUpdate(data: CreateEquipmentTypeDto) {
+     if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.equipment_type.create({ data });
+    }
     return this.prisma.equipment_type.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data

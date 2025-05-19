@@ -9,6 +9,9 @@ export class UnitService {
 
   // Create or update a record
   async createOrUpdate(data: CreateUnitDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.unit.create({ data });
+    }
     return this.prisma.unit.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data

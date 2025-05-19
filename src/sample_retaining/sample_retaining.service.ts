@@ -7,7 +7,11 @@ import { UpdateSampleRetainingDto } from './dto/update-sample_retaining.dto';
 export class SampleRetainingService {
   constructor(private readonly prisma: PrismaService) {}
 
+
   async createOrUpdate(data: CreateSampleRetainingDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.sample_retaining.create({ data });
+    }
     return this.prisma.sample_retaining.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data

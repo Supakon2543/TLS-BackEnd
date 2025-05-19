@@ -26,6 +26,9 @@ export class SectionService {
 
   // Create or update a record
   async createOrUpdate(data: CreateSectionDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.section.create({ data });
+    }
     return this.prisma.section.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data

@@ -26,6 +26,9 @@ export class ManufacturerService {
 }
 
   async createOrUpdate(data: CreateManufacturerDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.manufacturer.create({ data });
+    }
     return this.prisma.manufacturer.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data

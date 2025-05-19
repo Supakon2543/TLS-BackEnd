@@ -7,7 +7,12 @@ import { UpdateChemicalParameterDto } from './dto/update-chemical_parameter.dto'
 export class ChemicalParameterService {
   constructor(private readonly prisma: PrismaService) {}
   
+  
   async createOrUpdate(id: number, data: CreateChemicalParameterDto) {
+
+     if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.chemical_parameter.create({ data });
+    }
     return this.prisma.chemical_parameter.upsert({
       where: { id: data.id },
       create: { ...data }, 

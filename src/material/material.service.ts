@@ -9,6 +9,9 @@ export class MaterialService {
 
   // Create or update a material
   async createOrUpdate(data: CreateMaterialDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.material.create({ data });
+    }
     return this.prisma.material.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data

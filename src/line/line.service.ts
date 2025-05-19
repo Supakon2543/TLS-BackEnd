@@ -9,6 +9,10 @@ export class LineService {
 
   // Create or update a line
   async createOrUpdate(data: CreateLineDto) {
+
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.line.create({ data });
+    }
     return this.prisma.line.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data

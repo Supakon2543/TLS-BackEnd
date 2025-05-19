@@ -9,6 +9,9 @@ export class ObjectiveService {
   
   // Create or update a record
   async createOrUpdate(data: CreateObjectiveDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.objective.create({ data });
+    }
     return this.prisma.objective.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data

@@ -7,6 +7,10 @@ export class BoxService {
   constructor(private prisma: PrismaService) {}
 
   async createOrUpdate(data: CreateBoxDto) {
+
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.box.create({ data });
+    }
     return this.prisma.box.upsert({
       where: { id: data.id },
       create: { ...data}, // Create a new record with the provided data

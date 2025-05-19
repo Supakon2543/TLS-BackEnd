@@ -10,6 +10,9 @@ export class UsersService {
 
   // Create or update a record
   async createOrUpdate(data: CreateUserDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.user.create({ data });
+    }
     return this.prisma.user.upsert({
       where: { id: data.id }, // Use id for the unique constraint
       create: { ...data }, // Create a new record with the provided data

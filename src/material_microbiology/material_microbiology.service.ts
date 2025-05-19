@@ -9,6 +9,9 @@ export class MaterialMicrobiologyService {
 
   // Create or update a record
   async createOrUpdate(data: CreateMaterialMicrobiologyDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.material_microbiology.create({ data });
+    }
     return this.prisma.material_microbiology.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data

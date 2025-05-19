@@ -9,6 +9,9 @@ export class MicrobiologyParameterService {
 
   // Create or update a record
   async createOrUpdate(data: CreateMicrobiologyParameterDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.microbiology_parameter.create({ data });
+    }
     return this.prisma.microbiology_parameter.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data

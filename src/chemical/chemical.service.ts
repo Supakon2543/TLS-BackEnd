@@ -2,10 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { CreateChemicalDto } from './dto/create-chemical.dto';
 import { UpdateChemicalDto } from './dto/update-chemical.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Logger } from '@nestjs/common';
+import * as v8 from 'v8';
+
+
 
 @Injectable()
 export class ChemicalService {
   constructor(private readonly prisma: PrismaService) {}
+
 
   createOrUpdate(data: CreateChemicalDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {

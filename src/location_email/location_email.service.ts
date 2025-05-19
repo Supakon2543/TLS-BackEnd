@@ -8,6 +8,9 @@ export class LocationEmailService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOrUpdate(data: CreateLocationEmailDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.location_email.create({ data });
+    }
   return this.prisma.location_email.upsert({
     where: { id: data.id },
     create: { ...data }, // Create a new record with the provided data

@@ -8,6 +8,9 @@ export class LocationService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOrUpdate(data: CreateLocationDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.location.create({ data });
+    }
     return this.prisma.location.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data

@@ -16,6 +16,7 @@ export class CreateChemicalDto {
   code: string;
 
   @IsString()
+  
   name: string;
 
   @IsInt()
@@ -34,7 +35,7 @@ export class CreateChemicalDto {
   unit_id: number;
 
   @IsOptional()
-  @IsEmail()
+  @IsEmail() 
   email_notification?: string;
 
   @IsOptional()

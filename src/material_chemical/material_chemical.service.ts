@@ -9,6 +9,9 @@ export class MaterialChemicalService {
 
   // Create or update a record
   async createOrUpdate(data: CreateMaterialChemicalDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.material_chemical.create({ data });
+    }
     return this.prisma.material_chemical.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data
