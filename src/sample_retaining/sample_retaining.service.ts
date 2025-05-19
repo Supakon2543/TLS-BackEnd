@@ -10,7 +10,8 @@ export class SampleRetainingService {
 
   async createOrUpdate(data: CreateSampleRetainingDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      return this.prisma.sample_retaining.create({ data });
+      const { id, ...createData } = data; // Destructure to exclude id
+      return this.prisma.sample_retaining.create({ data: createData }); // Create a new record
     }
     return this.prisma.sample_retaining.upsert({
       where: { id: data.id },

@@ -10,7 +10,8 @@ export class ObjectiveService {
   // Create or update a record
   async createOrUpdate(data: CreateObjectiveDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      return this.prisma.objective.create({ data });
+      const { id, ...createData } = data; // Destructure to exclude id
+      return this.prisma.objective.create({ data: createData }); // Create a new record
     }
     return this.prisma.objective.upsert({
       where: { id: data.id },

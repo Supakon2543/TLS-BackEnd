@@ -10,7 +10,8 @@ export class UserRoleService {
   // Create or update a record
   async createOrUpdate(data: CreateUserRoleDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      return this.prisma.user_role.create({ data });
+      const { id, ...createData } = data; // Destructure to exclude id
+      return this.prisma.user_role.create({ data: createData }); // Create a new record
     }
     return this.prisma.user_role.upsert({
       where: { user_id: data.id }, // Use user_id for the unique constraint

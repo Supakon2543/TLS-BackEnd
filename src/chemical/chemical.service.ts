@@ -14,7 +14,8 @@ export class ChemicalService {
 
   createOrUpdate(data: CreateChemicalDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      return this.prisma.chemical.create({ data });
+      const { id, ...createData } = data;
+      return this.prisma.chemical.create({ data: createData });
     }
 
     return this.prisma.chemical.upsert({

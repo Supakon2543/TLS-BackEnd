@@ -9,7 +9,8 @@ export class EquipmentTypeService {
 
   async createOrUpdate(data: CreateEquipmentTypeDto) {
      if (data.id === null || data.id === undefined || data.id === 0) {
-      return this.prisma.equipment_type.create({ data });
+      const { id, ...createData } = data;
+      return this.prisma.equipment_type.create({ data: createData });
     }
     return this.prisma.equipment_type.upsert({
       where: { id: data.id },

@@ -9,7 +9,8 @@ export class BoxService {
   async createOrUpdate(data: CreateBoxDto) {
 
     if (data.id === null || data.id === undefined || data.id === 0) {
-      return this.prisma.box.create({ data });
+      const { id, ...createData } = data;
+      return this.prisma.box.create({ data: createData });
     }
     return this.prisma.box.upsert({
       where: { id: data.id },

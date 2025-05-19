@@ -11,7 +11,8 @@ export class ChemicalParameterService {
   async createOrUpdate(id: number, data: CreateChemicalParameterDto) {
 
      if (data.id === null || data.id === undefined || data.id === 0) {
-      return this.prisma.chemical_parameter.create({ data });
+      const { id, ...createData } = data;
+      return this.prisma.chemical_parameter.create({ data: createData });
     }
     return this.prisma.chemical_parameter.upsert({
       where: { id: data.id },
