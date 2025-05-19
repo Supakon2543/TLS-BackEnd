@@ -1,4 +1,33 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateLocationEmailDto } from './create-location_email.dto';
+import {
+  IsString,
+  IsInt,
+  IsOptional,
+  IsBoolean,
+  Length,
+} from 'class-validator';
 
-export class UpdateLocationEmailDto extends PartialType(CreateLocationEmailDto) {}
+export class UpdateLocationEmailDto {
+  @IsInt()
+  id: number;
+
+  @IsInt()
+  user_location_id: number;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 500)
+  email_notification?: string;
+
+  @IsBoolean()
+  status: boolean;
+
+  @IsOptional()
+  @IsInt()
+  created_by?: number;
+
+  @IsOptional()
+  @IsInt()
+  updated_by?: number;
+  location_id: any;
+  email_id: any;
+}
