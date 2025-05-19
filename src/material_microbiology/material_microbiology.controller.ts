@@ -7,6 +7,11 @@ import { UpdateMaterialMicrobiologyDto } from './dto/update-material_microbiolog
 export class MaterialMicrobiologyController {
   constructor(private readonly materialMicrobiologyService: MaterialMicrobiologyService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createMaterialMicrobiologyDto: CreateMaterialMicrobiologyDto) {
+    return this.materialMicrobiologyService.createOrUpdate(createMaterialMicrobiologyDto);
+  }
+
   @Post()
   create(@Body() createMaterialMicrobiologyDto: CreateMaterialMicrobiologyDto) {
     return this.materialMicrobiologyService.create(createMaterialMicrobiologyDto);

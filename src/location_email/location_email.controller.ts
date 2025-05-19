@@ -7,6 +7,11 @@ import { UpdateLocationEmailDto } from './dto/update-location_email.dto';
 export class LocationEmailController {
   constructor(private readonly locationEmailService: LocationEmailService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createLocationEmailDto: CreateLocationEmailDto) {
+    return this.locationEmailService.createOrUpdate(createLocationEmailDto);
+  }
+
   @Post()
   create(@Body() createLocationEmailDto: CreateLocationEmailDto) {
     return this.locationEmailService.create(createLocationEmailDto);

@@ -8,7 +8,7 @@ export class ChemicalParameterService {
   constructor(private readonly prisma: PrismaService) {}
   
   
-  async createOrUpdate(id: number, data: CreateChemicalParameterDto) {
+  async createOrUpdate(data: CreateChemicalParameterDto) {
 
      if (data.id === null || data.id === undefined || data.id === 0) {
       const { id, ...createData } = data;

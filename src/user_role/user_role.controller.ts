@@ -7,6 +7,11 @@ import { UpdateUserRoleDto } from './dto/update-user_role.dto';
 export class UserRoleController {
   constructor(private readonly userRoleService: UserRoleService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createUserRoleDto: CreateUserRoleDto) {
+    return this.userRoleService.createOrUpdate(createUserRoleDto);
+  }
+
   @Post()
   create(@Body() createUserRoleDto: CreateUserRoleDto) {
     return this.userRoleService.create(createUserRoleDto);

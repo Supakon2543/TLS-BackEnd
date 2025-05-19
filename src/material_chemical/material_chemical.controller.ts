@@ -7,6 +7,11 @@ import { UpdateMaterialChemicalDto } from './dto/update-material_chemical.dto';
 export class MaterialChemicalController {
   constructor(private readonly materialChemicalService: MaterialChemicalService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createMaterialChemicalDto: CreateMaterialChemicalDto) {
+    return this.materialChemicalService.createOrUpdate(createMaterialChemicalDto);
+  }
+
   @Post()
   create(@Body() createMaterialChemicalDto: CreateMaterialChemicalDto) {
     return this.materialChemicalService.create(createMaterialChemicalDto);

@@ -9,7 +9,7 @@ export class ChemicalParameterController {
 
   @Post('create-or-update')
   createOrUpdate(@Body() createChemicalParameterDto: CreateChemicalParameterDto) {
-    return this.chemicalParameterService.createOrUpdate(createChemicalParameterDto.id, createChemicalParameterDto);
+    return this.chemicalParameterService.createOrUpdate(createChemicalParameterDto);
   }
 
   @Post()

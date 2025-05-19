@@ -7,6 +7,11 @@ import { UpdateEquipmentTypeDto } from './dto/update-equipment_type.dto';
 export class EquipmentTypeController {
   constructor(private readonly equipmentTypeService: EquipmentTypeService) {}
 
+  @Post('create-or-update')
+  createOrUpdate(@Body() createEquipmentTypeDto: CreateEquipmentTypeDto) {
+    return this.equipmentTypeService.createOrUpdate(createEquipmentTypeDto);
+  }
+
   @Post()
   create(@Body() createEquipmentTypeDto: CreateEquipmentTypeDto) {
     return this.equipmentTypeService.create(createEquipmentTypeDto);
