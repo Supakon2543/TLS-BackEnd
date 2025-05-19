@@ -7,12 +7,12 @@ import { UpdateManufacturerDto } from './dto/update-manufacturer.dto';
 export class ManufacturerController {
   constructor(private readonly manufacturerService: ManufacturerService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createManufacturerDto: CreateManufacturerDto) {
     return this.manufacturerService.createOrUpdate(createManufacturerDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createManufacturerDto: CreateManufacturerDto) {
     return this.manufacturerService.create(createManufacturerDto);
   }

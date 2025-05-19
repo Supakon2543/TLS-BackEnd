@@ -3,16 +3,16 @@ import { EquipmentTypeService } from './equipment_type.service';
 import { CreateEquipmentTypeDto } from './dto/create-equipment_type.dto';
 import { UpdateEquipmentTypeDto } from './dto/update-equipment_type.dto';
 
-@Controller('equipment-type')
+@Controller('equipment_type')
 export class EquipmentTypeController {
   constructor(private readonly equipmentTypeService: EquipmentTypeService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createEquipmentTypeDto: CreateEquipmentTypeDto) {
     return this.equipmentTypeService.createOrUpdate(createEquipmentTypeDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createEquipmentTypeDto: CreateEquipmentTypeDto) {
     return this.equipmentTypeService.create(createEquipmentTypeDto);
   }

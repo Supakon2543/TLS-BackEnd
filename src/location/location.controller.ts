@@ -7,12 +7,12 @@ import { UpdateLocationDto } from './dto/update-location.dto';
 export class LocationController {
   constructor(private readonly locationService: LocationService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createLocationDto: CreateLocationDto) {
     return this.locationService.createOrUpdate(createLocationDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createLocationDto: CreateLocationDto) {
     return this.locationService.create(createLocationDto);
   }

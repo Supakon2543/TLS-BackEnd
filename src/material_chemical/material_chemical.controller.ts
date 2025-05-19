@@ -3,16 +3,16 @@ import { MaterialChemicalService } from './material_chemical.service';
 import { CreateMaterialChemicalDto } from './dto/create-material_chemical.dto';
 import { UpdateMaterialChemicalDto } from './dto/update-material_chemical.dto';
 
-@Controller('material-chemical')
+@Controller('material_chemical')
 export class MaterialChemicalController {
   constructor(private readonly materialChemicalService: MaterialChemicalService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createMaterialChemicalDto: CreateMaterialChemicalDto) {
     return this.materialChemicalService.createOrUpdate(createMaterialChemicalDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createMaterialChemicalDto: CreateMaterialChemicalDto) {
     return this.materialChemicalService.create(createMaterialChemicalDto);
   }

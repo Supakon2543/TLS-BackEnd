@@ -3,16 +3,16 @@ import { LabProcessService } from './lab_process.service';
 import { CreateLabProcessDto } from './dto/create-lab_process.dto';
 import { UpdateLabProcessDto } from './dto/update-lab_process.dto';
 
-@Controller('lab-process')
+@Controller('lab_process')
 export class LabProcessController {
   constructor(private readonly labProcessService: LabProcessService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createLabProcessDto: CreateLabProcessDto) {
     return this.labProcessService.createOrUpdate(createLabProcessDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createLabProcessDto: CreateLabProcessDto) {
     return this.labProcessService.create(createLabProcessDto);
   }

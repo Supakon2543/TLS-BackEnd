@@ -3,16 +3,16 @@ import { UserRoleService } from './user_role.service';
 import { CreateUserRoleDto } from './dto/create-user_role.dto';
 import { UpdateUserRoleDto } from './dto/update-user_role.dto';
 
-@Controller('user-role')
+@Controller('user_role')
 export class UserRoleController {
   constructor(private readonly userRoleService: UserRoleService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createUserRoleDto: CreateUserRoleDto) {
     return this.userRoleService.createOrUpdate(createUserRoleDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createUserRoleDto: CreateUserRoleDto) {
     return this.userRoleService.create(createUserRoleDto);
   }

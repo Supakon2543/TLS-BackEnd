@@ -7,12 +7,12 @@ import { UpdateUnitDto } from './dto/update-unit.dto';
 export class UnitController {
   constructor(private readonly unitService: UnitService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createUnitDto: CreateUnitDto) {
     return this.unitService.createOrUpdate(createUnitDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createUnitDto: CreateUnitDto) {
     return this.unitService.create(createUnitDto);
   }

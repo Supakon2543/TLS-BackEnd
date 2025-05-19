@@ -3,7 +3,7 @@ import { CategoryEditService } from './category_edit.service';
 import { CreateCategoryEditDto } from './dto/create-category_edit.dto';
 import { UpdateCategoryEditDto } from './dto/update-category_edit.dto';
 
-@Controller('category-edit')
+@Controller('category_edit')
 export class CategoryEditController {
   constructor(private readonly categoryEditService: CategoryEditService) {}
 

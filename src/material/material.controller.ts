@@ -7,12 +7,12 @@ import { UpdateMaterialDto } from './dto/update-material.dto';
 export class MaterialController {
   constructor(private readonly materialService: MaterialService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createMaterialDto: CreateMaterialDto) {
     return this.materialService.createOrUpdate(createMaterialDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createMaterialDto: CreateMaterialDto) {
     return this.materialService.create(createMaterialDto);
   }

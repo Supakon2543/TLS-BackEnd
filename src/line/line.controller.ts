@@ -7,12 +7,12 @@ import { UpdateLineDto } from './dto/update-line.dto';
 export class LineController {
   constructor(private readonly lineService: LineService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createLineDto: CreateLineDto) {
     return this.lineService.createOrUpdate(createLineDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createLineDto: CreateLineDto) {
     return this.lineService.create(createLineDto);
   }

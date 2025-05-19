@@ -3,16 +3,16 @@ import { ChemicalParameterService } from './chemical_parameter.service';
 import { CreateChemicalParameterDto } from './dto/create-chemical_parameter.dto';
 import { UpdateChemicalParameterDto } from './dto/update-chemical_parameter.dto';
 
-@Controller('chemical-parameter')
+@Controller('chemical_parameter')
 export class ChemicalParameterController {
   constructor(private readonly chemicalParameterService: ChemicalParameterService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createChemicalParameterDto: CreateChemicalParameterDto) {
     return this.chemicalParameterService.createOrUpdate(createChemicalParameterDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createChemicalParameterDto: CreateChemicalParameterDto) {
     return this.chemicalParameterService.create(createChemicalParameterDto);
   }

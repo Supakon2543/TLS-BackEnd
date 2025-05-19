@@ -3,11 +3,11 @@ import { SampleStageService } from './sample_stage.service';
 import { CreateSampleStageDto } from './dto/create-sample_stage.dto';
 import { UpdateSampleStageDto } from './dto/update-sample_stage.dto';
 
-@Controller('sample-stage')
+@Controller('sample_stage')
 export class SampleStageController {
   constructor(private readonly sampleStageService: SampleStageService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createSampleStageDto: CreateSampleStageDto) {
     return this.sampleStageService.createOrUpdate(createSampleStageDto);
   }

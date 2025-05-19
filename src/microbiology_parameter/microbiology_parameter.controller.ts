@@ -3,16 +3,16 @@ import { MicrobiologyParameterService } from './microbiology_parameter.service';
 import { CreateMicrobiologyParameterDto } from './dto/create-microbiology_parameter.dto';
 import { UpdateMicrobiologyParameterDto } from './dto/update-microbiology_parameter.dto';
 
-@Controller('microbiology-parameter')
+@Controller('microbiology_parameter')
 export class MicrobiologyParameterController {
   constructor(private readonly microbiologyParameterService: MicrobiologyParameterService) {}
 
-  @Post()
+  @Post('create')
   create(@Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto) {
     return this.microbiologyParameterService.create(createMicrobiologyParameterDto);
   }
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto) {
     return this.microbiologyParameterService.createOrUpdate(createMicrobiologyParameterDto);
   }

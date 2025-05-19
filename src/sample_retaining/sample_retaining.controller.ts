@@ -9,12 +9,12 @@ export class SampleRetainingController {
 
   
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createSampleRetainingDto: CreateSampleRetainingDto) {
     return this.sampleRetainingService.createOrUpdate(createSampleRetainingDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createSampleRetainingDto: CreateSampleRetainingDto) {
     return this.sampleRetainingService.create(createSampleRetainingDto);
   }

@@ -7,7 +7,7 @@ import { UpdateSectionDto } from './dto/update-section.dto';
 export class SectionController {
   constructor(private readonly sectionService: SectionService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createSectionDto: CreateSectionDto) {
     return this.sectionService.createOrUpdate(createSectionDto);
   }

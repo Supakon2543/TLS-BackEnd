@@ -3,16 +3,16 @@ import { LocationEmailService } from './location_email.service';
 import { CreateLocationEmailDto } from './dto/create-location_email.dto';
 import { UpdateLocationEmailDto } from './dto/update-location_email.dto';
 
-@Controller('location-email')
+@Controller('location_email')
 export class LocationEmailController {
   constructor(private readonly locationEmailService: LocationEmailService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createLocationEmailDto: CreateLocationEmailDto) {
     return this.locationEmailService.createOrUpdate(createLocationEmailDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createLocationEmailDto: CreateLocationEmailDto) {
     return this.locationEmailService.create(createLocationEmailDto);
   }
