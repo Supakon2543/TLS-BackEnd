@@ -1,0 +1,44 @@
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { ChemicalParameterService } from './chemical_parameter.service';
+import { CreateChemicalParameterDto } from './dto/create-chemical_parameter.dto';
+import { UpdateChemicalParameterDto } from './dto/update-chemical_parameter.dto';
+
+@Controller('chemical-parameter')
+export class ChemicalParameterController {
+  constructor(private readonly chemicalParameterService: ChemicalParameterService) {}
+
+  @Post('create-or-update')
+  createOrUpdate(@Body() createChemicalParameterDto: CreateChemicalParameterDto) {
+    return this.chemicalParameterService.createOrUpdate(createChemicalParameterDto.id, createChemicalParameterDto);
+  }
+
+  @Post()
+  create(@Body() createChemicalParameterDto: CreateChemicalParameterDto) {
+    return this.chemicalParameterService.create(createChemicalParameterDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.chemicalParameterService.findAll();
+  }
+
+  @Get('get-chemical-parameters')
+  getChemicalParameters(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.chemicalParameterService.getChemicalParameters(params);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.chemicalParameterService.findOne(+id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateChemicalParameterDto: UpdateChemicalParameterDto) {
+    return this.chemicalParameterService.update(+id, updateChemicalParameterDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.chemicalParameterService.remove(+id);
+  }
+}

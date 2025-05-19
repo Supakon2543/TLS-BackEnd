@@ -25,9 +25,12 @@ import { ActivityRequestModule } from './activity_request/activity_request.modul
 import { ActivityEquipmentModule } from './activity_equipment/activity_equipment.module';
 import { RoleModule } from './role/role.module';
 import { UserLocationModule } from './user_location/user_location.module';
+import { MaterialModule } from './material/material.module';
+import { MaterialChemicalModule } from './material_chemical/material_chemical.module';
+import { MaterialMicrobiologyModule } from './material_microbiology/material_microbiology.module';
 
 @Module({
-  imports: [UsersModule, ChemicalModule, UserRoleModule, LocationEmailModule, EquipmentTypeModule, LabSiteModule, RequestTypeModule, StateModule, StatusRequestModule, StatusSampleModule, StatusRetainModule, StatusEquipmentModule, SampleTypeModule, LabTestModule, CategoryChemicalModule, SampleConditionModule, TestReportFormatModule, AccreditedModule, SpecTypeModule, ActivityRequestModule, ActivityEquipmentModule, RoleModule, UserLocationModule],
+  imports: [UsersModule, ChemicalModule, UserRoleModule, LocationEmailModule, EquipmentTypeModule, LabSiteModule, RequestTypeModule, StateModule, StatusRequestModule, StatusSampleModule, StatusRetainModule, StatusEquipmentModule, SampleTypeModule, LabTestModule, CategoryChemicalModule, SampleConditionModule, TestReportFormatModule, AccreditedModule, SpecTypeModule, ActivityRequestModule, ActivityEquipmentModule, RoleModule, UserLocationModule, MaterialModule, MaterialChemicalModule, MaterialMicrobiologyModule],
   controllers: [AppController],
   providers: [AppService],
 })
