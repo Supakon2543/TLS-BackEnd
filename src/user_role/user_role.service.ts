@@ -20,6 +20,23 @@ export class UserRoleService {
     });
   }
 
+  async getuser_role(params: { id?: number; keyword?: string; status?: number }) {
+    const { id, keyword, status } = params;
+
+    return this.prisma.user_role.findMany({
+      where: {
+        ...(id && { user_id: id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { is_active: status === 1 }
+          : {}),
+        ...(keyword && {
+          role_name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { user_id: 'asc' },
+    });
+  }
+
   async create(createUserRoleDto: CreateUserRoleDto) {
     return this.prisma.user_role.create({
       data: createUserRoleDto,

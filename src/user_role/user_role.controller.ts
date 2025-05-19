@@ -12,6 +12,12 @@ export class UserRoleController {
     return this.userRoleService.createOrUpdate(createUserRoleDto);
   }
 
+  @Get()
+  getuser_role(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.userRoleService.getuser_role(params);
+  }
+
+
   @Post('create')
   create(@Body() createUserRoleDto: CreateUserRoleDto) {
     return this.userRoleService.create(createUserRoleDto);

@@ -19,6 +19,28 @@ export class MaterialChemicalService {
     });
   }
 
+  // Get records with filters
+  async getMaterialChemicals(params: {
+    id?: number;
+    keyword?: string;
+    status?: number;
+  }) {
+    const { id, keyword, status } = params;
+
+    return this.prisma.material_chemical.findMany({
+      where: {
+        ...(id && { id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { id: 'asc' },
+    });
+  }
+
   // Create a new record
   async create(data: CreateMaterialChemicalDto) {
     return this.prisma.material_chemical.create({

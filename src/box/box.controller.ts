@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { BoxService } from './box.service';
 import { CreateBoxDto } from './dto/create-box.dto';
 import { UpdateBoxDto } from './dto/update-box.dto';
@@ -8,23 +16,13 @@ export class BoxController {
   constructor(private readonly boxService: BoxService) {}
 
   @Post()
-
   createOrUpdate(@Body() createBoxDto: CreateBoxDto) {
     return this.boxService.createOrUpdate(createBoxDto);
   }
 
-  create(@Body() createBoxDto: CreateBoxDto) {
-    return this.boxService.create(createBoxDto);
-  }
-
-  @Get('get-boxes')
+  @Get()
   getBoxes(@Body() params: { id?: number; keyword?: string; status?: number }) {
     return this.boxService.getBoxes(params);
-  }
-
-  @Get()
-  findAll() {
-    return this.boxService.findAll();
   }
 
   @Get(':id')

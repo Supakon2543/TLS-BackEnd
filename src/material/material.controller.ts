@@ -18,11 +18,6 @@ export class MaterialController {
   }
 
   @Get()
-  findAll() {
-    return this.materialService.findAll();
-  }
-
-  @Get('get-materials')
   getMaterials(@Body() params: { id?: number; keyword?: string; status?: number }) {
     return this.materialService.getMaterials(params);
   }

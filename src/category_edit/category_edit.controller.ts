@@ -13,6 +13,13 @@ export class CategoryEditController {
   }
 
   @Get()
+  getBoxes(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.categoryEditService.getcategory_edit(params);
+  }
+
+  
+
+  @Get()
   findAll() {
     return this.categoryEditService.findAll();
   }

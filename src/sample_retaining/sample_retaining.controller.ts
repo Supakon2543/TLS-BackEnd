@@ -1,13 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { SampleRetainingService } from './sample_retaining.service';
 import { CreateSampleRetainingDto } from './dto/create-sample_retaining.dto';
 import { UpdateSampleRetainingDto } from './dto/update-sample_retaining.dto';
 
 @Controller('sample-retaining')
 export class SampleRetainingController {
-  constructor(private readonly sampleRetainingService: SampleRetainingService) {}
-
-  
+  constructor(
+    private readonly sampleRetainingService: SampleRetainingService,
+  ) {}
 
   @Post()
   createOrUpdate(@Body() createSampleRetainingDto: CreateSampleRetainingDto) {
@@ -20,12 +28,9 @@ export class SampleRetainingController {
   }
 
   @Get()
-  findAll() {
-    return this.sampleRetainingService.findAll();
-  }
-
-  @Get('get-sample-retainings')
-  getSampleRetainings(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getSampleRetainings(
+    @Body() params: { id?: number; keyword?: string; status?: number },
+  ) {
     return this.sampleRetainingService.getSampleRetainings(params);
   }
 
@@ -35,7 +40,10 @@ export class SampleRetainingController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSampleRetainingDto: UpdateSampleRetainingDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateSampleRetainingDto: UpdateSampleRetainingDto,
+  ) {
     return this.sampleRetainingService.update(+id, updateSampleRetainingDto);
   }
 

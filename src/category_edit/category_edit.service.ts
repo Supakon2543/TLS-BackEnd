@@ -20,6 +20,27 @@ export class CategoryEditService {
     });
   }
 
+  async getcategory_edit(params: {
+    id?: number;
+    keyword?: string;
+    status?: number;
+  }) {
+    const { id, keyword, status } = params;
+
+    return this.prisma.category_edit.findMany({
+      where: {
+        ...(id && { id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   async create(data: CreateCategoryEditDto) {
     return this.prisma.category_edit.create({ data });
   }

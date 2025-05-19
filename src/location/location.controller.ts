@@ -18,11 +18,6 @@ export class LocationController {
   }
 
   @Get()
-  findAll() {
-    return this.locationService.findAll();
-  }
-
-  @Get('get-locations')
   getLocations(@Body() params: { id?: number; keyword?: string; status?: number }) {
     return this.locationService.getLocations(params);
   }

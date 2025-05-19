@@ -7,20 +7,17 @@ import { UpdateMaterialChemicalDto } from './dto/update-material_chemical.dto';
 export class MaterialChemicalController {
   constructor(private readonly materialChemicalService: MaterialChemicalService) {}
 
-  @Post()
-  createOrUpdate(@Body() createMaterialChemicalDto: CreateMaterialChemicalDto) {
-    return this.materialChemicalService.createOrUpdate(createMaterialChemicalDto);
-  }
 
-  @Post('create')
+  @Post()
   create(@Body() createMaterialChemicalDto: CreateMaterialChemicalDto) {
     return this.materialChemicalService.create(createMaterialChemicalDto);
   }
 
   @Get()
-  findAll() {
-    return this.materialChemicalService.findAll();
+  getMaterialChemicals(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.materialChemicalService.getMaterialChemicals(params);
   }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {

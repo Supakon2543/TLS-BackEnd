@@ -17,14 +17,9 @@ export class UnitController {
     return this.unitService.create(createUnitDto);
   }
 
-  @Get('get-units')
+  @Get()
   getUnits(@Body() params: { id?: number; keyword?: string; status?: number }) {
     return this.unitService.getUnits(params);
-  }
-
-  @Get()
-  findAll() {
-    return this.unitService.findAll();
   }
 
   @Get(':id')

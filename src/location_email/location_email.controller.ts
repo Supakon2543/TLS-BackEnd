@@ -12,6 +12,11 @@ export class LocationEmailController {
     return this.locationEmailService.createOrUpdate(createLocationEmailDto);
   }
 
+  @Get()
+  getLocationEmails(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.locationEmailService.getLocationEmails(params);
+  }
+
   @Post('create')
   create(@Body() createLocationEmailDto: CreateLocationEmailDto) {
     return this.locationEmailService.create(createLocationEmailDto);

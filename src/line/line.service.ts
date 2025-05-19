@@ -21,17 +21,7 @@ export class LineService {
     });
   }
 
-  // Create a new line
-  async create(data: CreateLineDto) {
-    return this.prisma.line.create({ data });
-  }
-
-  // Retrieve all lines
-  async findAll() {
-    return this.prisma.line.findMany();
-  }
-
-  // Retrieve lines with filters
+   // Retrieve lines with filters
   async getLines(params: { id?: number; keyword?: string; status?: number }) {
     const { id, keyword, status } = params;
 
@@ -47,6 +37,16 @@ export class LineService {
       },
       orderBy: { code: 'asc' },
     });
+  }
+
+  // Create a new line
+  async create(data: CreateLineDto) {
+    return this.prisma.line.create({ data });
+  }
+
+  // Retrieve all lines
+  async findAll() {
+    return this.prisma.line.findMany();
   }
 
   // Retrieve a single line by ID

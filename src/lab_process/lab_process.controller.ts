@@ -18,11 +18,6 @@ export class LabProcessController {
   }
 
   @Get()
-  findAll() {
-    return this.labProcessService.findAll();
-  }
-
-  @Get('get-lab-processes')
   getLabProcesses(@Body() params: { id?: number; keyword?: string; status?: number }) {
     return this.labProcessService.getLabProcesses(params);
   }

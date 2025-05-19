@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { EquipmentTypeService } from './equipment_type.service';
 import { CreateEquipmentTypeDto } from './dto/create-equipment_type.dto';
 import { UpdateEquipmentTypeDto } from './dto/update-equipment_type.dto';
+import { get } from 'http';
 
 @Controller('equipment_type')
 export class EquipmentTypeController {
@@ -12,14 +13,17 @@ export class EquipmentTypeController {
     return this.equipmentTypeService.createOrUpdate(createEquipmentTypeDto);
   }
 
+
   @Post('create')
   create(@Body() createEquipmentTypeDto: CreateEquipmentTypeDto) {
     return this.equipmentTypeService.create(createEquipmentTypeDto);
   }
 
   @Get()
-  findAll() {
-    return this.equipmentTypeService.findAll();
+  getChemicalParameters(
+    @Body() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.equipmentTypeService.getEquipmentTypes(params);
   }
 
   @Get(':id')

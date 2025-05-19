@@ -17,14 +17,9 @@ export class ChemicalController {
     return this.chemicalService.createOrUpdate(createChemicalDto);
   }
 
-  @Get('get-chemicals')
+  @Get()
   getChemicals(@Body() params: { id?: number; keyword?: string; status?: number }) {
     return this.chemicalService.getChemicals(params);
-  }
-
-  @Get()
-  findAll() {
-    return this.chemicalService.findAll();
   }
 
   @Get(':id')

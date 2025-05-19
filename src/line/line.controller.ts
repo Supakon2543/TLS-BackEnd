@@ -18,11 +18,6 @@ export class LineController {
   }
 
   @Get()
-  findAll() {
-    return this.lineService.findAll();
-  }
-
-  @Get('get-lines')
   getLines(@Body() params: { id?: number; keyword?: string; status?: number }) {
     return this.lineService.getLines(params);
   }

@@ -21,6 +21,7 @@ export class ChemicalParameterService {
     });
   }
 
+
   // Create new record
   async create(dto: CreateChemicalParameterDto) {
     return this.prisma.chemical_parameter.create({

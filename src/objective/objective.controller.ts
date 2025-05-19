@@ -18,11 +18,6 @@ export class ObjectiveController {
   }
 
   @Get()
-  findAll() {
-    return this.objectiveService.findAll();
-  }
-
-  @Get('get-objectives')
   getObjectives(@Body() params: { id?: number; keyword?: string; status?: number }) {
     return this.objectiveService.getObjectives(params);
   }

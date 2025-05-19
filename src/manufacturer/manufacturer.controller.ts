@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ManufacturerService } from './manufacturer.service';
 import { CreateManufacturerDto } from './dto/create-manufacturer.dto';
 import { UpdateManufacturerDto } from './dto/update-manufacturer.dto';
@@ -17,14 +25,11 @@ export class ManufacturerController {
     return this.manufacturerService.create(createManufacturerDto);
   }
 
-  @Get('get-manufacturers')
-  getManufacturers(@Body() params: { id?: number; keyword?: string; status?: number }) {
-    return this.manufacturerService.getManufacturers(params);
-  }
-
   @Get()
-  findAll() {
-    return this.manufacturerService.findAll();
+  getManufacturers(
+    @Body() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.manufacturerService.getManufacturers(params);
   }
 
   @Get(':id')
@@ -33,7 +38,10 @@ export class ManufacturerController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateManufacturerDto: UpdateManufacturerDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateManufacturerDto: UpdateManufacturerDto,
+  ) {
     return this.manufacturerService.update(+id, updateManufacturerDto);
   }
 

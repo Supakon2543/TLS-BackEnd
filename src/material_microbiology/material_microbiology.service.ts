@@ -20,6 +20,28 @@ export class MaterialMicrobiologyService {
     });
   }
 
+  // Get records with filters
+  async getMaterialMicrobiologies(params: {
+    id?: number;
+    keyword?: string;
+    status?: number;
+  }) {
+    const { id, keyword, status } = params;
+
+    return this.prisma.material_microbiology.findMany({
+      where: {
+        ...(id && { id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { id: 'asc' },
+    });
+  }
+
   // Create one record
   async create(data: CreateMaterialMicrobiologyDto) {
     return this.prisma.material_microbiology.create({ data });

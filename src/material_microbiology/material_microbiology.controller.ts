@@ -18,8 +18,8 @@ export class MaterialMicrobiologyController {
   }
 
   @Get()
-  findAll() {
-    return this.materialMicrobiologyService.findAll();
+  getMaterialMicrobiologies(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.materialMicrobiologyService.getMaterialMicrobiologies(params);
   }
 
   @Get(':id')

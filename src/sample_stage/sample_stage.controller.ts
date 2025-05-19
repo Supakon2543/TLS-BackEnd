@@ -12,19 +12,9 @@ export class SampleStageController {
     return this.sampleStageService.createOrUpdate(createSampleStageDto);
   }
 
-  @Post()
-  create(@Body() createSampleStageDto: CreateSampleStageDto) {
-    return this.sampleStageService.create(createSampleStageDto);
-  }
-
-  @Get('get-sample-stages')
+  @Get()
   getSampleStages(@Body() params: { id?: number; keyword?: string; status?: number }) {
     return this.sampleStageService.getSampleStages(params);
-  }
-
-  @Get()
-  findAll() {
-    return this.sampleStageService.findAll();
   }
 
   @Get(':id')
