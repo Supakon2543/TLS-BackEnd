@@ -146,7 +146,7 @@ model chemical {
   id                  Int       @unique @default(autoincrement())
   code                 String
   name                 String
-  manufacturer_id      Int
+  manufacturer_id      Int  
   category_chemical_id String
   storage_condition    String
   min_stock            Int
@@ -182,7 +182,7 @@ model user_role {
 }
 
 model location_email {
-  id                 String    @id @db.VarChar(15)
+  id                 Int    @id @default(autoincrement())
   user_location_id   Int
   email_notification String?   @db.VarChar(500)
   status             Boolean
@@ -340,6 +340,8 @@ model chemical_parameter {
   spec_max             Decimal
   warning_min          Decimal
   warning_max          Decimal
+  final_result         String
+  decimal              Int    
   is_enter_spec_min    Boolean
   is_enter_spec_max    Boolean
   is_enter_warning_min Boolean
@@ -409,3 +411,19 @@ model objective {
   updated_on DateTime? @updatedAt
   updated_by Int
 }
+
+model box {
+  id               Int       @id @default(autoincrement())
+  location_id      Int
+  section_id       Int
+  name             String    @db.VarChar(50)
+  number_of_bottle Int
+  status           Boolean
+  created_on       DateTime? @default(now())
+  created_by       Int?
+  updated_on       DateTime? @updatedAt
+  updated_by       Int?
+
+}
+
+

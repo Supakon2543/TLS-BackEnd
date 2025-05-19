@@ -5,7 +5,6 @@ import { UsersModule } from './users/users.module';
 import { ChemicalModule } from './chemical/chemical.module';
 import { UserRoleModule } from './user_role/user_role.module';
 import { LocationEmailModule } from './location_email/location_email.module';
-import { IsUniqueConstraint } from './is-unique.validator';
 import { EquipmentTypeModule } from './equipment_type/equipment_type.module';
 import { LabSiteModule } from './lab_site/lab_site.module';
 import { RequestTypeModule } from './request_type/request_type.module';

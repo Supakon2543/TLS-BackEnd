@@ -6,69 +6,43 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService){}
-  async create(createUserDto: CreateUserDto) {
-    return await this.prisma.user.create({
-      data: createUserDto,
-      select: {
-        email: true,
-        id: true,
-        username: true,
-        fullname: true,
-        created_on :true,
-        updated_on : true
-      },
-    });
+  constructor(private prisma: PrismaService) {}
 
-    
+  // Create or update a record
+  async createOrUpdate(data: CreateUserDto) {
+    return this.prisma.user.upsert({
+      where: { id: data.id }, // Use id for the unique constraint
+      create: { ...data }, // Create a new record with the provided data
+      update: data, // Update the existing record with the provided data
+    });
   }
 
-  findAll() {
-    return this.prisma.user.findMany({
-      orderBy: { created_on: 'desc' },
+  async create(CreateUserDto: CreateUserDto) {
+    return this.prisma.user.create({
+      data: CreateUserDto,
+    });
+  }
+
+  async findAll() {
+    return this.prisma.user.findMany();
+  }
+
+  async findOne(userId: number) {
+    return this.prisma.user.findUnique({
+      where: { id: userId }, // Use user_id instead of userId
     });
   }
   
-
-  async findOne(id: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-
-    return user;
-  }
-
-  async update(id: number, updateUserDto: UpdateUserDto) {
-
-    const existingUser = await this.prisma.user.findUnique({ where: { id } });
-
-    if (!existingUser) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-
+  async update(userId: number, updateUserRoleDto: CreateUserDto) {
     return this.prisma.user.update({
-      where: { id },
-      data: updateUserDto,
+      where: { id: userId }, // Use user_id here as well
+      data: updateUserRoleDto,
     });
   }
-
-  async remove(id: number){
-    // Check if user exists before deleting
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-
-    // Perform the delete operation
+  
+  async remove(userId: number) {
     return this.prisma.user.delete({
-      where: { id },
+      where: { id: userId }, // Again, use user_id here
     });
   }
 }

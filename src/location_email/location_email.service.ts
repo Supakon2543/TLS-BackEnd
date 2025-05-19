@@ -1,26 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateLocationEmailDto } from './dto/create-location_email.dto';
 import { UpdateLocationEmailDto } from './dto/update-location_email.dto';
 
 @Injectable()
 export class LocationEmailService {
-  create(createLocationEmailDto: CreateLocationEmailDto) {
-    return 'This action adds a new locationEmail';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async createOrUpdate(data: CreateLocationEmailDto) {
+  return this.prisma.location_email.upsert({
+    where: { id: data.id },
+    create: { ...data }, // Create a new record with the provided data
+    update: data, // Update the existing record with the provided data
+  });
+}
+
+  async create(data: CreateLocationEmailDto) {
+    return this.prisma.location_email.create({ data });
   }
 
-  findAll() {
-    return `This action returns all locationEmail`;
+  async findAll() {
+    return this.prisma.location_email.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} locationEmail`;
+  async findOne(id: number) {
+    const record = await this.prisma.location_email.findUnique({ where: { id } });
+    if (!record) throw new NotFoundException(`LocationEmail ID ${id} not found`);
+    return record;
   }
 
-  update(id: number, updateLocationEmailDto: UpdateLocationEmailDto) {
-    return `This action updates a #${id} locationEmail`;
+  async update(id: number, data: UpdateLocationEmailDto) {
+    await this.findOne(id);
+    return this.prisma.location_email.update({ where: { id }, data });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} locationEmail`;
+  async remove(id: number) {
+    await this.findOne(id);
+    return this.prisma.location_email.delete({ where: { id } });
   }
 }
+

@@ -1,0 +1,44 @@
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { LineService } from './line.service';
+import { CreateLineDto } from './dto/create-line.dto';
+import { UpdateLineDto } from './dto/update-line.dto';
+
+@Controller('line')
+export class LineController {
+  constructor(private readonly lineService: LineService) {}
+
+  @Post('create-or-update')
+  createOrUpdate(@Body() createLineDto: CreateLineDto) {
+    return this.lineService.createOrUpdate(createLineDto);
+  }
+
+  @Post()
+  create(@Body() createLineDto: CreateLineDto) {
+    return this.lineService.create(createLineDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.lineService.findAll();
+  }
+
+  @Get('get-lines')
+  getLines(@Body() params: { id?: number; keyword?: string; status?: number }) {
+    return this.lineService.getLines(params);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.lineService.findOne(+id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateLineDto: UpdateLineDto) {
+    return this.lineService.update(+id, updateLineDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.lineService.remove(+id);
+  }
+}

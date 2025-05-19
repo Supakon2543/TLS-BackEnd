@@ -6,6 +6,15 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class UserRoleService {
   constructor(private prisma: PrismaService) {}
+  
+  // Create or update a record
+  async createOrUpdate(data: CreateUserRoleDto) {
+    return this.prisma.user_role.upsert({
+      where: { user_id: data.id }, // Use user_id for the unique constraint
+      create: { ...data }, // Create a new record with the provided data
+      update: data, // Update the existing record with the provided data
+    });
+  }
 
   async create(createUserRoleDto: CreateUserRoleDto) {
     return this.prisma.user_role.create({
