@@ -9,13 +9,11 @@ import {
   IsString,
   Length,
 } from 'class-validator';
-import { Prisma } from '@prisma/client';
-type Decimal = Prisma.Decimal;
 
 export class UpdateChemicalParameterDto {
+
   @IsInt()
   id: number;
-
   
   @IsInt()
   order: number;
@@ -26,7 +24,7 @@ export class UpdateChemicalParameterDto {
 
   @IsOptional()
   @IsDecimal()
-  request_min?: Decimal;
+  request_min?: number;
 
   @IsInt()
   unit_id: number;
@@ -42,22 +40,22 @@ export class UpdateChemicalParameterDto {
   spec: string;
 
   @IsDecimal()
-  spec_min: Decimal;
+  spec_min: number;
 
   @IsDecimal()
-  spec_max: Decimal;
+  spec_max: number;
+
+  @IsDecimal()
+  warning_min: number;
+
+  @IsDecimal()
+  warning_max: number;
 
   @IsString()
   final_result: string;
 
   @IsInt()
   decimal: number;
-
-  @IsDecimal()
-  warning_min: Decimal;
-
-  @IsDecimal()
-  warning_max: Decimal;
 
   @IsBoolean()
   is_enter_spec_min: boolean;
