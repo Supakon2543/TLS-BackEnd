@@ -7,6 +7,7 @@ import {
   Length,
 } from 'class-validator';
 import { Prisma } from '@prisma/client';
+
 type Decimal = Prisma.Decimal;
 
 export class CreateChemicalParameterDto {
