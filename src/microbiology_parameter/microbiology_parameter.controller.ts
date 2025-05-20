@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { MicrobiologyParameterService } from './microbiology_parameter.service';
 import { CreateMicrobiologyParameterDto } from './dto/create-microbiology_parameter.dto';
 import { UpdateMicrobiologyParameterDto } from './dto/update-microbiology_parameter.dto';
@@ -18,7 +18,9 @@ export class MicrobiologyParameterController {
   }
 
   @Get()
-  getMicrobiologyParameters(@Param() params: { id?: number; keyword?: string; status?: number }) {
+  getMicrobiologyParameters(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
     return this.microbiologyParameterService.getMicrobiologyParameters(params);
   }
 

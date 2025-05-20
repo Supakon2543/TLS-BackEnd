@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { SectionService } from './section.service';
 import { CreateSectionDto } from './dto/create-section.dto';
@@ -25,7 +26,7 @@ export class SectionController {
   }
   @Get()
   getSections(
-    @Param() params: { id?: number; keyword?: string; status?: number },
+    @Query() params: { id?: number; keyword?: string; status?: number },
   ) {
     return this.sectionService.getSections(params);
   }

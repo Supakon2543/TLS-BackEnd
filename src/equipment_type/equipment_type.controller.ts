@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { EquipmentTypeService } from './equipment_type.service';
 import { CreateEquipmentTypeDto } from './dto/create-equipment_type.dto';
 import { UpdateEquipmentTypeDto } from './dto/update-equipment_type.dto';
@@ -21,7 +21,7 @@ export class EquipmentTypeController {
 
   @Get()
   getChemicalParameters(
-    @Param() params: { id?: number; keyword?: string; status?: number },
+    @Query() params: { id?: number; keyword?: string; status?: number },
   ) {
     return this.equipmentTypeService.getEquipmentTypes(params);
   }

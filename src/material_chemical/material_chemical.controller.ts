@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { MaterialChemicalService } from './material_chemical.service';
 import { CreateMaterialChemicalDto } from './dto/create-material_chemical.dto';
 import { UpdateMaterialChemicalDto } from './dto/update-material_chemical.dto';
@@ -14,7 +14,7 @@ export class MaterialChemicalController {
   }
 
   @Get()
-  getMaterialChemicals(@Param() params: { id?: number; keyword?: string; status?: number }) {
+  getMaterialChemicals(@Query() params: { id?: number; keyword?: string; status?: number }) {
     return this.materialChemicalService.getMaterialChemicals(params);
   }
 

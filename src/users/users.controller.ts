@@ -7,6 +7,7 @@ import {
   Param,  
   Delete,
   Put,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -17,7 +18,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  getUsers(@Param() params: { id?: number; keyword?: string; status?: number }) {
+  getUsers(@Query() params: { id?: number; keyword?: string; status?: number }) {
     return this.usersService.getUsers(params);
   }
 

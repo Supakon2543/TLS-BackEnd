@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { SampleStageService } from './sample_stage.service';
 import { CreateSampleStageDto } from './dto/create-sample_stage.dto';
 import { UpdateSampleStageDto } from './dto/update-sample_stage.dto';
@@ -13,7 +13,7 @@ export class SampleStageController {
   }
 
   @Get()
-  getSampleStages(@Param() params: { id?: number; keyword?: string; status?: number }) {
+  getSampleStages(@Query() params: { id?: number; keyword?: string; status?: number }) {
     return this.sampleStageService.getSampleStages(params);
   }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
@@ -18,7 +18,7 @@ export class UnitController {
   }
 
   @Get()
-  getUnits(@Param() params: { id?: number; keyword?: string; status?: number }) {
+  getUnits(@Query() params: { id?: number; keyword?: string; status?: number }) {
     return this.unitService.getUnits(params);
   }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ObjectiveService } from './objective.service';
 import { CreateObjectiveDto } from './dto/create-objective.dto';
 import { UpdateObjectiveDto } from './dto/update-objective.dto';
@@ -18,7 +18,7 @@ export class ObjectiveController {
   }
 
   @Get()
-  getObjectives(@Param() params: { id?: number; keyword?: string; status?: number }) {
+  getObjectives(@Query() params: { id?: number; keyword?: string; status?: number }) {
     return this.objectiveService.getObjectives(params);
   }
 

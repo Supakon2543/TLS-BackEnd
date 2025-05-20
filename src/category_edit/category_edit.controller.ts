@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CategoryEditService } from './category_edit.service';
 import { CreateCategoryEditDto } from './dto/create-category_edit.dto';
 import { UpdateCategoryEditDto } from './dto/update-category_edit.dto';
@@ -13,7 +13,7 @@ export class CategoryEditController {
   }
 
   @Get()
-  getBoxes(@Param() params: { id?: number; keyword?: string; status?: number }) {
+  getBoxes(@Query() params: { id?: number; keyword?: string; status?: number }) {
     return this.categoryEditService.getcategory_edit(params);
   }
 

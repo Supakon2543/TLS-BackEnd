@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { SampleRetainingService } from './sample_retaining.service';
 import { CreateSampleRetainingDto } from './dto/create-sample_retaining.dto';
@@ -29,7 +30,7 @@ export class SampleRetainingController {
 
   @Get()
   getSampleRetainings(
-    @Param() params: { id?: number; keyword?: string; status?: number },
+    @Query() params: { id?: number; keyword?: string; status?: number },
   ) {
     return this.sampleRetainingService.getSampleRetainings(params);
   }

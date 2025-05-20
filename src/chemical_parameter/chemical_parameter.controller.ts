@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ChemicalParameterService } from './chemical_parameter.service';
 import { CreateChemicalParameterDto } from './dto/create-chemical_parameter.dto';
@@ -33,7 +34,7 @@ export class ChemicalParameterController {
 
   @Get()
   getChemicalParameters(
-    @Param() params: { id?: number; keyword?: string; status?: number },
+    @Query() params: { id?: number; keyword?: string; status?: number },
   ) {
     return this.chemicalParameterService.getChemicalParameters(params);
   }

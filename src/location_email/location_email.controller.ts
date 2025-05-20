@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { LocationEmailService } from './location_email.service';
 import { CreateLocationEmailDto } from './dto/create-location_email.dto';
 import { UpdateLocationEmailDto } from './dto/update-location_email.dto';
@@ -13,7 +13,7 @@ export class LocationEmailController {
   }
 
   @Get()
-  getLocationEmails(@Param() params: { id?: number; keyword?: string; status?: number }) {
+  getLocationEmails(@Query() params: { id?: number; keyword?: string; status?: number }) {
     return this.locationEmailService.getLocationEmails(params);
   }
 

@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { BoxService } from './box.service';
 import { CreateBoxDto } from './dto/create-box.dto';
@@ -22,7 +23,7 @@ export class BoxController {
 
 
   @Get()
-  getBoxes(@Param() params: { id?: number; keyword?: string; status?: number }) {
+  getBoxes(@Query() params: { id?: number; keyword?: string; status?: number }) {
     return this.boxService.getBoxes(params);
   }
 

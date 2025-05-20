@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { LabProcessService } from './lab_process.service';
 import { CreateLabProcessDto } from './dto/create-lab_process.dto';
 import { UpdateLabProcessDto } from './dto/update-lab_process.dto';
@@ -18,7 +18,7 @@ export class LabProcessController {
   }
 
   @Get()
-  getLabProcesses(@Param() params: { id?: number; keyword?: string; status?: number }) {
+  getLabProcesses(@Query() params: { id?: number; keyword?: string; status?: number }) {
     return this.labProcessService.getLabProcesses(params);
   }
 

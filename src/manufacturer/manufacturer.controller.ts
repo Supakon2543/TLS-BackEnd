@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ManufacturerService } from './manufacturer.service';
 import { CreateManufacturerDto } from './dto/create-manufacturer.dto';
@@ -27,7 +28,7 @@ export class ManufacturerController {
 
   @Get()
   getManufacturers(
-    @Param() params: { id?: number; keyword?: string; status?: number },
+    @Query() params: { id?: number; keyword?: string; status?: number },
   ) {
     return this.manufacturerService.getManufacturers(params);
   }
