@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateLocationEmailDto } from './dto/create-location_email.dto';
 import { UpdateLocationEmailDto } from './dto/update-location_email.dto';
+import { map } from 'rxjs';
 
 @Injectable()
 export class LocationEmailService {
@@ -31,7 +32,7 @@ export class LocationEmailService {
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
-    return this.prisma.location_email.findMany({
+     const locationEmail = await this.prisma.location_email.findMany({
       where: {
         ...(id && { id }),
         ...(typeof status === 'number' && status !== 0
@@ -42,7 +43,18 @@ export class LocationEmailService {
         }),
       },
       orderBy: { email_notification: 'asc' },
+      include: {
+        user_location: {
+          select: { name: true },
+        },
+      },
     });
+    
+    return locationEmail.map(s => ({
+      ...s,
+      user_location_name: s.user_location?.name ?? null,
+      user_location: undefined, // Optionally remove the nested object
+    }));
   }
 
   async create(data: CreateLocationEmailDto) {

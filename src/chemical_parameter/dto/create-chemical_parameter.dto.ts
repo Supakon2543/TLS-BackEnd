@@ -3,6 +3,7 @@ import {
   IsBoolean,
   IsDecimal,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   Length,
@@ -24,7 +25,7 @@ export class CreateChemicalParameterDto {
 
   @ApiPropertyOptional({ example: 0.5 })
   @IsOptional()
-  @IsDecimal()
+  @IsNumber()
   request_min?: number;
 
   @ApiProperty({ example: 2 })
@@ -45,19 +46,19 @@ export class CreateChemicalParameterDto {
   spec: string;
 
   @ApiProperty({ example: 6.5 })
-  @IsDecimal()
+  @IsNumber()
   spec_min: number;
 
   @ApiProperty({ example: 7.5 })
-  @IsDecimal()
+  @IsNumber()
   spec_max: number;
 
   @ApiProperty({ example: 6.0 })
-  @IsDecimal()
+  @IsNumber()
   warning_min: number;
 
   @ApiProperty({ example: 8.0 })
-  @IsDecimal()
+  @IsNumber()
   warning_max: number;
 
   @ApiProperty({ example: 'finalResultValue' })

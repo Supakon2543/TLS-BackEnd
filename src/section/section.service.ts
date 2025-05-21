@@ -19,7 +19,7 @@ export class SectionService {
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
-    return this.prisma.section.findMany({
+     const section = await this.prisma.section.findMany({
       where: {
         ...(id && { id }),
         ...(typeof status === 'number' && status !== 0
@@ -30,7 +30,19 @@ export class SectionService {
         }),
       },
       orderBy: { name: 'asc' },
+      include: {
+        location: {
+          select: { name: true },
+        },
+      },
     });
+
+    return section.map(s => ({
+      ...s,
+      location_name: s.location?.name ?? null,
+      location: undefined, // Optionally remove the nested object
+    })); 
+
   }
 
   // Create or update a record

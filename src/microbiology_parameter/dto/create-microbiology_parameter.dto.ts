@@ -5,6 +5,7 @@ import {
   IsString,
   IsNumberString,
   Length,
+  IsNumber,
 } from 'class-validator';
 
 export class CreateMicrobiologyParameterDto {
@@ -19,8 +20,8 @@ export class CreateMicrobiologyParameterDto {
   name: string;
 
   @IsOptional()
-  @IsNumberString()
-  request_min?: string;
+  @IsNumber()
+  request_min?: number;
 
   @IsInt()
   unit_id: number;
@@ -36,20 +37,20 @@ export class CreateMicrobiologyParameterDto {
   spec: string;
 
   @IsOptional()
-  @IsNumberString()
-  spec_min?: string;
+  @IsNumber()
+  spec_min?: number;
 
   @IsOptional()
-  @IsNumberString()
-  spec_max?: string;
+  @IsNumber()
+  spec_max?: number;
 
   @IsOptional()
-  @IsNumberString()
-  warning_min?: string;
+  @IsNumber()
+  warning_min?: number;
 
   @IsOptional()
-  @IsNumberString()
-  warning_max?: string;
+  @IsNumber()
+  warning_max?: number;
 
   @IsBoolean()
   is_enter_spec_min: boolean;

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateBoxDto } from './dto/create-box.dto';
+import { map } from 'rxjs';
 
 @Injectable()
 export class BoxService {
   constructor(private prisma: PrismaService) {}
 
   async createOrUpdate(data: CreateBoxDto) {
-
     if (data.id === null || data.id === undefined || data.id === 0) {
       const { id, ...createData } = data;
       return this.prisma.box.create({ data: createData });
@@ -15,7 +15,7 @@ export class BoxService {
     return this.prisma.box.upsert({
       where: { id: data.id },
       create: { ...data}, // Create a new record with the provided data
-      update: data, // Update the existing record with the provided data
+      update: { ...data }, // Update the existing record with the provided data
     });
   }
 
@@ -36,7 +36,7 @@ export class BoxService {
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
-    return this.prisma.box.findMany({
+    const box = await this.prisma.box.findMany({
       where: {
         ...(id && { id }),
         ...(typeof status === 'number' && status !== 0
@@ -47,7 +47,25 @@ export class BoxService {
         }),
       },
       orderBy: { name: 'asc' },
+      include: {
+        location: {
+          select: { name: true },
+        },
+        section: {
+          select: { name: true },
+        },
+      },
     });
+    
+    
+    return box.map((box) => ({
+      ...box,
+      location_name: box.location?.name,
+      section_name: box.section?.name,
+      location: undefined,
+      section: undefined,
+    }));
+
   }
 
   async findAll() {
