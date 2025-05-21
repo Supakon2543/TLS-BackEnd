@@ -23,7 +23,7 @@ export class MaterialChemicalController {
 
   @Post()
   create(@Body() createMaterialChemicalDto: CreateMaterialChemicalDto) {
-    return this.materialChemicalService.create(createMaterialChemicalDto);
+    return this.materialChemicalService.createOrUpdate(createMaterialChemicalDto);
   }
 
   @Get()
