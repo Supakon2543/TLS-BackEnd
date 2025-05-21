@@ -15,7 +15,7 @@ import { UpdateSampleRetainingDto } from './dto/update-sample_retaining.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(AuthGuard('jwt'))
-@Controller('sample-retaining')
+@Controller('sample_retaining')
 export class SampleRetainingController {
   constructor(
     private readonly sampleRetainingService: SampleRetainingService,

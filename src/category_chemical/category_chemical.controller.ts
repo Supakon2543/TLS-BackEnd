@@ -3,7 +3,7 @@ import { CategoryChemicalService } from './category_chemical.service';
 import { CreateCategoryChemicalDto } from './dto/create-category_chemical.dto';
 import { UpdateCategoryChemicalDto } from './dto/update-category_chemical.dto';
 
-@Controller('category-chemical')
+@Controller('category_chemical')
 export class CategoryChemicalController {
   constructor(private readonly categoryChemicalService: CategoryChemicalService) {}
 

@@ -47,7 +47,7 @@ export class UnitService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { name: 'asc' },
+      orderBy: { order: 'asc' },
     });
   }
 

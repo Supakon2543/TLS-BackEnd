@@ -25,7 +25,7 @@ import { Decimal } from 'generated/prisma/runtime/library';
     @IsOptional()
     @Transform(({ value }) => parseFloat(value))
     @IsDecimal()
-    request_min?: Decimal;
+    request_min?: number;
   
     @IsInt()
     unit_id: number;
@@ -41,16 +41,16 @@ import { Decimal } from 'generated/prisma/runtime/library';
     spec: string;
   
     @IsDecimal()
-    spec_min: Decimal;
+    spec_min: number;
   
     @IsDecimal()
-    spec_max: Decimal;
+    spec_max: number;
   
     @IsDecimal()
-    warning_min: Decimal;
+    warning_min: number;
   
     @IsDecimal()
-    warning_max: Decimal;
+    warning_max: number;
   
     @IsBoolean()
     is_enter_spec_min: boolean;

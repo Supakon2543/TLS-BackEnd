@@ -30,7 +30,7 @@ export class ChemicalParameterService {
   }
 
   // Get records with filters
-  async getChemicalParameters(params: {
+    async getChemicalParameters(params: {
     id?: number | string;
     keyword?: string;
     status?: number | string;
@@ -41,7 +41,7 @@ export class ChemicalParameterService {
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
-    return this.prisma.chemical_parameter.findMany({
+    const results = await this.prisma.chemical_parameter.findMany({
       where: {
         ...(id && { id }),
         ...(typeof status === 'number' && status !== 0
@@ -53,6 +53,15 @@ export class ChemicalParameterService {
       },
       orderBy: { order: 'asc' },
     });
+
+    // Ensure spec_min is returned as a number (not a string)
+    return results.map(item => ({
+      ...item,
+      spec_min:
+        typeof item.spec_min === 'string'
+          ? parseFloat(item.spec_min)
+          : item.spec_min,
+    }));
   }
 
   // Get all records

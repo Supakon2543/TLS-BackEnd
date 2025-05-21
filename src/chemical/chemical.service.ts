@@ -45,17 +45,22 @@ export class ChemicalService {
     include: {
       manufacturer: {
         select: { name: true }
-      }
+      },
+      category_chemical: {
+          select: { name: true }
+        }
     }
   });
 
   // Map to add manufacturer_name at the top level
   return chemicals.map(c => ({
-    ...c,
-    manufacturer_name: c.manufacturer?.name ?? null,
-    manufacturer: undefined // Optionally remove the nested object
-  }));
-}
+      ...c,
+      manufacturer_name: c.manufacturer?.name ?? null,
+      category_chemical_name: c.category_chemical?.name ?? null,
+      manufacturer: undefined, // Optionally remove the nested object
+      category_chemical: undefined // Optionally remove the nested object
+    }));
+  }
 
   create(data: CreateChemicalDto) {
     return this.prisma.chemical.create({ data });

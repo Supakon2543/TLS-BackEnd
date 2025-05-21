@@ -12,7 +12,7 @@ export class CreateLocationEmailDto {
   @IsInt()
   id: number;
 
-  @ApiProperty({ type: Number, example: "AY001" })
+  @ApiProperty({example: "AY001" })
   @IsString()
   user_location_id: string;
 

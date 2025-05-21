@@ -41,7 +41,7 @@ export class CategoryEditService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { name: 'asc' },
+      orderBy: { order: 'asc' },
     });
   }
   async create(data: CreateCategoryEditDto) {
