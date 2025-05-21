@@ -12,9 +12,9 @@ export class UpdateLocationEmailDto {
   @IsInt()
   id: number;
 
-  @ApiProperty({ example: 10 })
-  @IsInt()
-  user_location_id: number;
+  @ApiProperty({ example: "AY001" })
+  @IsString()
+  user_location_id: string;
 
   @ApiPropertyOptional({ maxLength: 500, example: 'user@example.com' })
   @IsOptional()
