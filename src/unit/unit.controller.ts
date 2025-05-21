@@ -1,30 +1,39 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('unit')
 export class UnitController {
   constructor(private readonly unitService: UnitService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createUnitDto: CreateUnitDto) {
     return this.unitService.createOrUpdate(createUnitDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createUnitDto: CreateUnitDto) {
     return this.unitService.create(createUnitDto);
   }
 
-  @Get('get-units')
-  getUnits(@Body() params: { id?: number; keyword?: string; status?: number }) {
-    return this.unitService.getUnits(params);
-  }
-
   @Get()
-  findAll() {
-    return this.unitService.findAll();
+  getUnits(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.unitService.getUnits(params);
   }
 
   @Get(':id')

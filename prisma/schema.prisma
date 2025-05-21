@@ -157,6 +157,8 @@ model chemical {
   created_by           Int?
   updated_on           DateTime? @updatedAt
   updated_by           Int?
+
+  manufacturer    manufacturer? @relation(fields: [manufacturer_id], references: [id])
 }
 
 model user {
@@ -213,6 +215,8 @@ model manufacturer {
   created_by         Int?
   updated_on         DateTime? @updatedAt
   updated_by         Int?
+
+  chemicals chemical[]
 }
 
 model StorageUnit {
@@ -301,6 +305,7 @@ model material_chemical {
   chemical_parameter_id Int
   created_on            DateTime? @default(now())
   created_by            Int?
+  
 }
 
 model microbiology_parameter {

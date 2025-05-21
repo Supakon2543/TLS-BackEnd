@@ -7,25 +7,38 @@ import { UpdateSectionDto } from './dto/update-section.dto';
 export class SectionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getSections(params: { id?: number; keyword?: string; status?: number }) {
-  const { id, keyword, status } = params;
+  // Retrieve sections with filters
+  async getSections(params: {
+    id?: number | string;
+    keyword?: string;
+    status?: number | string;
+  }) {
+    let { id, keyword, status } = params;
 
-  return this.prisma.section.findMany({
-    where: {
-      ...(id && { id }),
-      ...(typeof status === 'number' && status !== 0
-        ? { status: status === 1 }
-        : {}),
-      ...(keyword && {
-        name: { contains: keyword, mode: 'insensitive' }
-      }),
-    },
-    orderBy: { name: 'asc' },
-  });
-}
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
+
+    return this.prisma.section.findMany({
+      where: {
+        ...(id && { id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
 
   // Create or update a record
   async createOrUpdate(data: CreateSectionDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      const { id, ...createData } = data; // Destructure to exclude id
+      return this.prisma.section.create({ data: createData }); // Create a new record
+    }
     return this.prisma.section.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data

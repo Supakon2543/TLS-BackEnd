@@ -7,6 +7,11 @@ export class BoxService {
   constructor(private prisma: PrismaService) {}
 
   async createOrUpdate(data: CreateBoxDto) {
+
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      const { id, ...createData } = data;
+      return this.prisma.box.create({ data: createData });
+    }
     return this.prisma.box.upsert({
       where: { id: data.id },
       create: { ...data}, // Create a new record with the provided data
@@ -20,8 +25,16 @@ export class BoxService {
     });
   }
 
-  async getBoxes(params: { id?: number; keyword?: string; status?: number }) {
-    const { id, keyword, status } = params;
+  async getBoxes(params: {
+    id?: number | string;
+    keyword?: string;
+    status?: number | string;
+  }) {
+    let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
 
     return this.prisma.box.findMany({
       where: {

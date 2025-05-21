@@ -7,13 +7,20 @@ import { UpdateChemicalParameterDto } from './dto/update-chemical_parameter.dto'
 export class ChemicalParameterService {
   constructor(private readonly prisma: PrismaService) {}
   
-  async createOrUpdate(id: number, data: CreateChemicalParameterDto) {
+  
+  async createOrUpdate(data: CreateChemicalParameterDto) {
+
+     if (data.id === null || data.id === undefined || data.id === 0) {
+      const { id, ...createData } = data;
+      return this.prisma.chemical_parameter.create({ data: createData });
+    }
     return this.prisma.chemical_parameter.upsert({
       where: { id: data.id },
       create: { ...data }, 
       update: data, 
     });
   }
+
 
   // Create new record
   async create(dto: CreateChemicalParameterDto) {
@@ -24,11 +31,15 @@ export class ChemicalParameterService {
 
   // Get records with filters
   async getChemicalParameters(params: {
-    id?: number;
+    id?: number | string;
     keyword?: string;
-    status?: number;
+    status?: number | string;
   }) {
-    const { id, keyword, status } = params;
+    let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
 
     return this.prisma.chemical_parameter.findMany({
       where: {

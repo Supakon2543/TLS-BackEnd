@@ -1,30 +1,49 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { MicrobiologyParameterService } from './microbiology_parameter.service';
 import { CreateMicrobiologyParameterDto } from './dto/create-microbiology_parameter.dto';
 import { UpdateMicrobiologyParameterDto } from './dto/update-microbiology_parameter.dto';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('microbiology-parameter')
+@UseGuards(AuthGuard('jwt'))
+@Controller('microbiology_parameter')
 export class MicrobiologyParameterController {
-  constructor(private readonly microbiologyParameterService: MicrobiologyParameterService) {}
+  constructor(
+    private readonly microbiologyParameterService: MicrobiologyParameterService,
+  ) {}
+
+  @Post('create')
+  create(
+    @Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto,
+  ) {
+    return this.microbiologyParameterService.create(
+      createMicrobiologyParameterDto,
+    );
+  }
 
   @Post()
-  create(@Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto) {
-    return this.microbiologyParameterService.create(createMicrobiologyParameterDto);
-  }
-
-  @Post('create-or-update')
-  createOrUpdate(@Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto) {
-    return this.microbiologyParameterService.createOrUpdate(createMicrobiologyParameterDto);
-  }
-
-  @Get('get-microbiology-parameters')
-  getMicrobiologyParameters(@Body() params: { id?: number; keyword?: string; status?: number }) {
-    return this.microbiologyParameterService.getMicrobiologyParameters(params);
+  createOrUpdate(
+    @Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto,
+  ) {
+    return this.microbiologyParameterService.createOrUpdate(
+      createMicrobiologyParameterDto,
+    );
   }
 
   @Get()
-  findAll() {
-    return this.microbiologyParameterService.findAll();
+  getMicrobiologyParameters(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.microbiologyParameterService.getMicrobiologyParameters(params);
   }
 
   @Get(':id')
@@ -33,8 +52,14 @@ export class MicrobiologyParameterController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMicrobiologyParameterDto: UpdateMicrobiologyParameterDto) {
-    return this.microbiologyParameterService.update(+id, updateMicrobiologyParameterDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateMicrobiologyParameterDto: UpdateMicrobiologyParameterDto,
+  ) {
+    return this.microbiologyParameterService.update(
+      +id,
+      updateMicrobiologyParameterDto,
+    );
   }
 
   @Delete(':id')

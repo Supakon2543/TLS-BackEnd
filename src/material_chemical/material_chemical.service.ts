@@ -9,10 +9,39 @@ export class MaterialChemicalService {
 
   // Create or update a record
   async createOrUpdate(data: CreateMaterialChemicalDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      return this.prisma.material_chemical.create({ data });
+    }
     return this.prisma.material_chemical.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data
       update: data, // Update the existing record with the provided data
+    });
+  }
+
+  // Get records with filters
+  async getMaterialChemicals(params: {
+    id?: number | string;
+    keyword?: string;
+    status?: number | string;
+  }) {
+    let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
+
+    return this.prisma.material_chemical.findMany({
+      where: {
+        ...(id && { id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { id: 'asc' }, // Sorting by name or any field as needed
     });
   }
 

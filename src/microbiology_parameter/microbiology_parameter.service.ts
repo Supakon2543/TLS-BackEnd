@@ -9,6 +9,10 @@ export class MicrobiologyParameterService {
 
   // Create or update a record
   async createOrUpdate(data: CreateMicrobiologyParameterDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      const { id, ...createData } = data; // Destructure to exclude id
+      return this.prisma.microbiology_parameter.create({ data: createData }); // Create a new record
+    }
     return this.prisma.microbiology_parameter.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data
@@ -32,11 +36,15 @@ export class MicrobiologyParameterService {
 
   // Get records with filters
   async getMicrobiologyParameters(params: {
-    id?: number;
+    id?: number | string;
     keyword?: string;
-    status?: number;
+    status?: number | string;
   }) {
-    const { id, keyword, status } = params;
+    let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
 
     return this.prisma.microbiology_parameter.findMany({
       where: {
@@ -48,7 +56,7 @@ export class MicrobiologyParameterService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { order: 'asc' },
+      orderBy: { order: 'asc' }, // Sorting by order or any field as needed
     });
   }
 

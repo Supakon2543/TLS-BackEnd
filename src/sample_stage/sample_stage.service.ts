@@ -9,6 +9,10 @@ export class SampleStageService {
 
   // Create or update a record
   async createOrUpdate(data: CreateSampleStageDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      const { id, ...createData } = data; // Destructure to exclude id
+      return this.prisma.sample_stage.create({ data: createData }); // Create a new record
+    }
     return this.prisma.sample_stage.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data
@@ -23,11 +27,15 @@ export class SampleStageService {
   }
 
   async getSampleStages(params: {
-    id?: number;
+    id?: number | string;
     keyword?: string;
-    status?: number;
+    status?: number | string;
   }) {
-    const { id, keyword, status } = params;
+    let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
 
     return this.prisma.sample_stage.findMany({
       where: {
@@ -39,7 +47,7 @@ export class SampleStageService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { order: 'asc' },
+      orderBy: { order: 'asc' }, // Sorting by order or any field as needed
     });
   }
 

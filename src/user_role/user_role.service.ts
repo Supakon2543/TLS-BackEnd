@@ -9,10 +9,40 @@ export class UserRoleService {
   
   // Create or update a record
   async createOrUpdate(data: CreateUserRoleDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      const { id, ...createData } = data; // Destructure to exclude id
+      return this.prisma.user_role.create({ data: createData }); // Create a new record
+    }
     return this.prisma.user_role.upsert({
       where: { user_id: data.id }, // Use user_id for the unique constraint
       create: { ...data }, // Create a new record with the provided data
       update: data, // Update the existing record with the provided data
+    });
+  }
+
+  // get user roles with filters
+  async getuser_role(params: {
+    userId?: number | string;
+    keyword?: string;
+    status?: number | string;
+  }) {
+    let { userId, keyword, status } = params;
+
+    // Convert userId and status to numbers if they are strings
+    userId = userId !== undefined ? +userId : undefined;
+    status = status !== undefined ? +status : undefined;
+
+    return this.prisma.user_role.findMany({
+      where: {
+        ...(userId && { user_id: userId }), // Use user_id for filtering
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { user_id: 'asc' },
     });
   }
 

@@ -8,19 +8,31 @@ export class LocationService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOrUpdate(data: CreateLocationDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      const { id, ...createData } = data; // Destructure to exclude id
+      return this.prisma.location.create({ data: createData }); // Create a new record
+    }
     return this.prisma.location.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data
       update: data, // Update the existing record with the provided data
     });
   }
-  
+
   async create(data: CreateLocationDto) {
     return this.prisma.location.create({ data });
   }
 
-  async getLocations(params: { id?: number; keyword?: string; status?: number }) {
-    const { id, keyword, status } = params;
+  async getLocations(params: {
+    id?: number | string;
+    keyword?: string;
+    status?: number | string;
+  }) {
+    let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
 
     return this.prisma.location.findMany({
       where: {

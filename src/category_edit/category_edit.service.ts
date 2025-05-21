@@ -8,6 +8,11 @@ export class CategoryEditService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOrUpdate(data: CreateCategoryEditDto) {
+
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      const { id, ...createData } = data;
+      return this.prisma.category_edit.create({ data: createData });
+    }
     return this.prisma.category_edit.upsert({
       where: { id: data.id }, // Use the id from the data object
       create: { ...data }, // Create a new record with the provided data
@@ -15,6 +20,30 @@ export class CategoryEditService {
     });
   }
 
+  async getcategory_edit(params: {
+    id?: number | string;
+    keyword?: string;
+    status?: number | string;
+  }) {
+    let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
+
+    return this.prisma.category_edit.findMany({
+      where: {
+        ...(id && { id }),
+        ...(typeof status === 'number' && status !== 0
+          ? { status: status === 1 }
+          : {}),
+        ...(keyword && {
+          name: { contains: keyword, mode: 'insensitive' },
+        }),
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
   async create(data: CreateCategoryEditDto) {
     return this.prisma.category_edit.create({ data });
   }
