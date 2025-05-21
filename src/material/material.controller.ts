@@ -29,6 +29,16 @@ export class MaterialController {
     return this.materialService.create(createMaterialDto);
   }
 
+  @Post('insert')
+  test(@Body() payload: { id: number, name: string, test_report_name: string, status: boolean }) {
+    return this.materialService.insert_material(payload);
+  }
+
+  @Get('get')
+  get_test(@Body() payload: { id: number, keyword: string, status: number }) {
+    return this.materialService.get_material(payload);
+  }
+
   @Get()
   getMaterials(
     @Query() params: { id?: number; keyword?: string; status?: number },

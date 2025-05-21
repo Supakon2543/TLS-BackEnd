@@ -1,10 +1,4 @@
-import {
-  IsBoolean,
-  IsInt,
-  IsOptional,
-  IsString,
-  Length,
-} from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, Length } from "class-validator";
 
 export class CreateMaterialDto {
   @IsInt()

@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service'; // Adjust the path based on your folder structure
+import { Body, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class MaterialService {
@@ -90,5 +90,18 @@ export class MaterialService {
     return this.prisma.material.delete({
       where: { id },
     });
+  }
+
+  async insert_material(@Body() payload: { id: number, name: string, test_report_name: string, status: boolean }) {
+    
+    return await this.prisma.$executeRaw`
+      CALL insert_material(${payload.id}, ${payload.name}, ${payload.test_report_name}, ${payload.status})
+    ;`
+  }
+
+  async get_material(@Body() payload: { id: number, keyword: string, status: number }) {
+    return await this.prisma.$queryRaw`
+      SELECT * FROM get_material(${payload.id})
+    ;`
   }
 }
