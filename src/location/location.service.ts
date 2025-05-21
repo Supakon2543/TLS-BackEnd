@@ -18,7 +18,7 @@ export class LocationService {
       update: data, // Update the existing record with the provided data
     });
   }
-  
+
   async create(data: CreateLocationDto) {
     return this.prisma.location.create({ data });
   }

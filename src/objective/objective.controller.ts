@@ -1,8 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ObjectiveService } from './objective.service';
 import { CreateObjectiveDto } from './dto/create-objective.dto';
 import { UpdateObjectiveDto } from './dto/update-objective.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('objective')
 export class ObjectiveController {
   constructor(private readonly objectiveService: ObjectiveService) {}
@@ -18,7 +30,9 @@ export class ObjectiveController {
   }
 
   @Get()
-  getObjectives(@Query() params: { id?: number; keyword?: string; status?: number }) {
+  getObjectives(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
     return this.objectiveService.getObjectives(params);
   }
 
@@ -28,7 +42,10 @@ export class ObjectiveController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateObjectiveDto: UpdateObjectiveDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateObjectiveDto: UpdateObjectiveDto,
+  ) {
     return this.objectiveService.update(+id, updateObjectiveDto);
   }
 

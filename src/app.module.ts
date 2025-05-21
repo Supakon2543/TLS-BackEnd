@@ -22,9 +22,10 @@ import { LabProcessModule } from './lab_process/lab_process.module';
 import { SampleStageModule } from './sample_stage/sample_stage.module';
 import { ObjectiveModule } from './objective/objective.module';
 import { BoxModule } from './box/box.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [UsersModule, ChemicalModule, UserRoleModule, LocationEmailModule, EquipmentTypeModule, ManufacturerModule, SectionModule, LocationModule, CategoryEditModule, UnitModule, LineModule, MaterialMicrobiologyModule, MaterialChemicalModule, MicrobiologyParameterModule, ChemicalParameterModule, MaterialModule, SampleRetainingModule, LabProcessModule, SampleStageModule, ObjectiveModule, BoxModule],
+  imports: [UsersModule, ChemicalModule, UserRoleModule, LocationEmailModule, EquipmentTypeModule, ManufacturerModule, SectionModule, LocationModule, CategoryEditModule, UnitModule, LineModule, MaterialMicrobiologyModule, MaterialChemicalModule, MicrobiologyParameterModule, ChemicalParameterModule, MaterialModule, SampleRetainingModule, LabProcessModule, SampleStageModule, ObjectiveModule, BoxModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })

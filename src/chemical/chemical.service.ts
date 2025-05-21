@@ -21,29 +21,41 @@ export class ChemicalService {
   }
 
   async getChemicals(params: {
-    id?: number | string;
-    keyword?: string;
-    status?: number | string;
-  }) {
-    let { id, keyword, status } = params;
+  id?: number | string;
+  keyword?: string;
+  status?: number | string;
+}) {
+  let { id, keyword, status } = params;
 
-    // Convert id and status to numbers if they are strings
-    id = id !== undefined ? +id : undefined;
-    status = status !== undefined ? +status : undefined;
+  // Convert id and status to numbers if they are strings
+  id = id !== undefined ? +id : undefined;
+  status = status !== undefined ? +status : undefined;
 
-    return this.prisma.chemical.findMany({
-      where: {
-        ...(id && { id }),
-        ...(typeof status === 'number' && status !== 0
-          ? { status: status === 1 }
-          : {}),
-        ...(keyword && {
-          name: { contains: keyword, mode: 'insensitive' },
-        }),
-      },
-      orderBy: { name: 'asc' },
-    });
-  }
+  const chemicals = await this.prisma.chemical.findMany({
+    where: {
+      ...(id && { id }),
+      ...(typeof status === 'number' && status !== 0
+        ? { status: status === 1 }
+        : {}),
+      ...(keyword && {
+        name: { contains: keyword, mode: 'insensitive' },
+      }),
+    },
+    orderBy: { name: 'asc' },
+    include: {
+      manufacturer: {
+        select: { name: true }
+      }
+    }
+  });
+
+  // Map to add manufacturer_name at the top level
+  return chemicals.map(c => ({
+    ...c,
+    manufacturer_name: c.manufacturer?.name ?? null,
+    manufacturer: undefined // Optionally remove the nested object
+  }));
+}
 
   create(data: CreateChemicalDto) {
     return this.prisma.chemical.create({ data });

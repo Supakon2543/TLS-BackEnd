@@ -1,8 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('unit')
 export class UnitController {
   constructor(private readonly unitService: UnitService) {}
@@ -18,7 +30,9 @@ export class UnitController {
   }
 
   @Get()
-  getUnits(@Query() params: { id?: number; keyword?: string; status?: number }) {
+  getUnits(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
     return this.unitService.getUnits(params);
   }
 

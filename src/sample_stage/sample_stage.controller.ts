@@ -1,8 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { SampleStageService } from './sample_stage.service';
 import { CreateSampleStageDto } from './dto/create-sample_stage.dto';
 import { UpdateSampleStageDto } from './dto/update-sample_stage.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('sample_stage')
 export class SampleStageController {
   constructor(private readonly sampleStageService: SampleStageService) {}
@@ -13,7 +25,9 @@ export class SampleStageController {
   }
 
   @Get()
-  getSampleStages(@Query() params: { id?: number; keyword?: string; status?: number }) {
+  getSampleStages(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
     return this.sampleStageService.getSampleStages(params);
   }
 
@@ -23,7 +37,10 @@ export class SampleStageController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSampleStageDto: UpdateSampleStageDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateSampleStageDto: UpdateSampleStageDto,
+  ) {
     return this.sampleStageService.update(+id, updateSampleStageDto);
   }
 

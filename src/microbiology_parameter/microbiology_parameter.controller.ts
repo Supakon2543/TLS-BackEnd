@@ -1,20 +1,42 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { MicrobiologyParameterService } from './microbiology_parameter.service';
 import { CreateMicrobiologyParameterDto } from './dto/create-microbiology_parameter.dto';
 import { UpdateMicrobiologyParameterDto } from './dto/update-microbiology_parameter.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('microbiology_parameter')
 export class MicrobiologyParameterController {
-  constructor(private readonly microbiologyParameterService: MicrobiologyParameterService) {}
+  constructor(
+    private readonly microbiologyParameterService: MicrobiologyParameterService,
+  ) {}
 
   @Post('create')
-  create(@Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto) {
-    return this.microbiologyParameterService.create(createMicrobiologyParameterDto);
+  create(
+    @Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto,
+  ) {
+    return this.microbiologyParameterService.create(
+      createMicrobiologyParameterDto,
+    );
   }
 
   @Post()
-  createOrUpdate(@Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto) {
-    return this.microbiologyParameterService.createOrUpdate(createMicrobiologyParameterDto);
+  createOrUpdate(
+    @Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto,
+  ) {
+    return this.microbiologyParameterService.createOrUpdate(
+      createMicrobiologyParameterDto,
+    );
   }
 
   @Get()
@@ -30,8 +52,14 @@ export class MicrobiologyParameterController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMicrobiologyParameterDto: UpdateMicrobiologyParameterDto) {
-    return this.microbiologyParameterService.update(+id, updateMicrobiologyParameterDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateMicrobiologyParameterDto: UpdateMicrobiologyParameterDto,
+  ) {
+    return this.microbiologyParameterService.update(
+      +id,
+      updateMicrobiologyParameterDto,
+    );
   }
 
   @Delete(':id')
