@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { AccreditedService } from './accredited.service';
 import { CreateAccreditedDto } from './dto/create-accredited.dto';
 import { UpdateAccreditedDto } from './dto/update-accredited.dto';
@@ -18,7 +18,7 @@ export class AccreditedController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.accreditedService.find(payload/*req, res*/);
     }
   

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ActivityRequestService } from './activity_request.service';
 import { CreateActivityRequestDto } from './dto/create-activity_request.dto';
 import { UpdateActivityRequestDto } from './dto/update-activity_request.dto';
@@ -18,7 +18,7 @@ export class ActivityRequestController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.activityRequestService.find(payload/*req, res*/);
     }
   

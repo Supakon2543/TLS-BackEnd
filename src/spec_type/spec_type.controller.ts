@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { SpecTypeService } from './spec_type.service';
 import { CreateSpecTypeDto } from './dto/create-spec_type.dto';
 import { UpdateSpecTypeDto } from './dto/update-spec_type.dto';
@@ -18,7 +18,7 @@ export class SpecTypeController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.specTypeService.find(payload/*req, res*/);
     }
   

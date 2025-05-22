@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { UserLocationService } from './user_location.service';
 import { CreateUserLocationDto } from './dto/create-user_location.dto';
 import { UpdateUserLocationDto } from './dto/update-user_location.dto';
@@ -18,7 +18,7 @@ export class UserLocationController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.userLocationService.find(payload/*req, res*/);
     }
   
