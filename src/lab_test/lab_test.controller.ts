@@ -3,7 +3,7 @@ import { LabTestService } from './lab_test.service';
 import { CreateLabTestDto } from './dto/create-lab_test.dto';
 import { UpdateLabTestDto } from './dto/update-lab_test.dto';
 
-@Controller('lab-test')
+@Controller('lab_test')
 export class LabTestController {
   constructor(private readonly labTestService: LabTestService) {}
 

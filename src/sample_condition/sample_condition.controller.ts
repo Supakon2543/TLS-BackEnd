@@ -3,7 +3,7 @@ import { SampleConditionService } from './sample_condition.service';
 import { CreateSampleConditionDto } from './dto/create-sample_condition.dto';
 import { UpdateSampleConditionDto } from './dto/update-sample_condition.dto';
 
-@Controller('sample-condition')
+@Controller('sample_condition')
 export class SampleConditionController {
   constructor(private readonly sampleConditionService: SampleConditionService) {}
 

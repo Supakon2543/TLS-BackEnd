@@ -3,7 +3,7 @@ import { ActivityEquipmentService } from './activity_equipment.service';
 import { CreateActivityEquipmentDto } from './dto/create-activity_equipment.dto';
 import { UpdateActivityEquipmentDto } from './dto/update-activity_equipment.dto';
 
-@Controller('activity-equipment')
+@Controller('activity_equipment')
 export class ActivityEquipmentController {
   constructor(private readonly activityEquipmentService: ActivityEquipmentService) {}
 

@@ -23,6 +23,10 @@ export class MaterialController {
   createOrUpdate(@Body() createMaterialDto: CreateMaterialDto) {
     return this.materialService.createOrUpdate(createMaterialDto);
   }
+  @Post('test')
+  upsertMaterialWithChildren(@Body() data: any) {
+    return this.materialService.upsertMaterialWithChildren(data);
+  }
 
   @Post('create')
   create(@Body() createMaterialDto: CreateMaterialDto) {

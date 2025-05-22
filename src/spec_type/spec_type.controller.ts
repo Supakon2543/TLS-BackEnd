@@ -3,7 +3,7 @@ import { SpecTypeService } from './spec_type.service';
 import { CreateSpecTypeDto } from './dto/create-spec_type.dto';
 import { UpdateSpecTypeDto } from './dto/update-spec_type.dto';
 
-@Controller('spec-type')
+@Controller('spec_type')
 export class SpecTypeController {
   constructor(private readonly specTypeService: SpecTypeService) {}
 

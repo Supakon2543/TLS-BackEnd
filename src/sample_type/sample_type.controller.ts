@@ -3,7 +3,7 @@ import { SampleTypeService } from './sample_type.service';
 import { CreateSampleTypeDto } from './dto/create-sample_type.dto';
 import { UpdateSampleTypeDto } from './dto/update-sample_type.dto';
 
-@Controller('sample-type')
+@Controller('sample_type')
 export class SampleTypeController {
   constructor(private readonly sampleTypeService: SampleTypeService) {}
 

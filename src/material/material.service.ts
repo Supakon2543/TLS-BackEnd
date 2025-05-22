@@ -19,6 +19,90 @@ export class MaterialService {
       update: data, // Update the existing record with the provided data
     });
   }
+  async upsertMaterialWithChildren(data: any) {
+    const material = data;
+
+    // 1. Upsert the main material
+    await this.prisma.material.upsert({
+      where: { id: material.id },
+      update: {
+        name: material.name,
+        status: material.status,
+        updated_on: new Date(material.updated_on),
+        updated_by: material.updated_by,
+      },
+      create: {
+        id: material.id,
+        name: material.name,
+        test_report_name: material.test_report_name,
+        status: material.status,
+        created_on: new Date(material.created_on),
+        created_by: material.created_by,
+        updated_on: new Date(material.updated_on),
+        updated_by: material.updated_by,
+      },
+    });
+
+    // 2. Sync material_chemical
+    const chemicalIds = material.material_chemical.map((chem: any) => chem.id);
+
+    // Delete ones NOT in the new list
+    await this.prisma.material_chemical.deleteMany({
+      where: {
+        material_id: material.id,
+        id: {
+          notIn: chemicalIds,
+        },
+      },
+    });
+
+    // Upsert the current ones
+    for (const chem of material.material_chemical) {
+      await this.prisma.material_chemical.upsert({
+        where: { id: chem.id },
+        update: {
+          chemical_parameter_id: chem.chemical_parameter_id,
+        },
+        create: {
+          id: chem.id,
+          material_id: chem.material_id,
+          chemical_parameter_id: chem.chemical_parameter_id,
+          created_on: new Date(chem.created_on),
+          created_by: chem.created_by,
+        },
+      });
+    }
+
+    // 3. Sync material_microbiology
+    const microIds = material.material_microbiology.map((micro: any) => micro.id);
+
+    await this.prisma.material_microbiology.deleteMany({
+      where: {
+        material_id: material.id,
+        id: {
+          notIn: microIds,
+        },
+      },
+    });
+
+    for (const micro of material.material_microbiology) {
+      await this.prisma.material_microbiology.upsert({
+        where: { id: micro.id },
+        update: {
+          microbiology_parameter_id: micro.microbiology_parameter_id,
+        },
+        create: {
+          id: micro.id,
+          material_id: micro.material_id,
+          microbiology_parameter_id: micro.microbiology_parameter_id,
+          created_on: new Date(micro.created_on),
+          created_by: micro.created_by,
+        },
+      });
+    }
+
+    return { message: 'Upsert and cleanup successful' };
+  }
 
   // Create a new material
   async create(createDto: CreateMaterialDto) {

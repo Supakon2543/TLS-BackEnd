@@ -3,7 +3,7 @@ import { StatusSampleService } from './status_sample.service';
 import { CreateStatusSampleDto } from './dto/create-status_sample.dto';
 import { UpdateStatusSampleDto } from './dto/update-status_sample.dto';
 
-@Controller('status-sample')
+@Controller('status_sample')
 export class StatusSampleController {
   constructor(private readonly statusSampleService: StatusSampleService) {}
 

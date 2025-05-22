@@ -3,7 +3,7 @@ import { UserLocationService } from './user_location.service';
 import { CreateUserLocationDto } from './dto/create-user_location.dto';
 import { UpdateUserLocationDto } from './dto/update-user_location.dto';
 
-@Controller('user-location')
+@Controller('user_location')
 export class UserLocationController {
   constructor(private readonly userLocationService: UserLocationService) {}
 
