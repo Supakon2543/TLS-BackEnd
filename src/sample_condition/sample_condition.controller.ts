@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { SampleConditionService } from './sample_condition.service';
 import { CreateSampleConditionDto } from './dto/create-sample_condition.dto';
 import { UpdateSampleConditionDto } from './dto/update-sample_condition.dto';
@@ -18,7 +18,7 @@ export class SampleConditionController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.sampleConditionService.find(payload/*req, res*/);
     }
   

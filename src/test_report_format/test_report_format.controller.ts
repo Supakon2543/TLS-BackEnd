@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { TestReportFormatService } from './test_report_format.service';
 import { CreateTestReportFormatDto } from './dto/create-test_report_format.dto';
 import { UpdateTestReportFormatDto } from './dto/update-test_report_format.dto';
@@ -18,7 +18,7 @@ export class TestReportFormatController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.testReportFormatService.find(payload/*req, res*/);
     }
   

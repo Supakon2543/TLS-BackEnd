@@ -1,4 +1,4 @@
-import { Body, Injectable, NotFoundException, Param } from '@nestjs/common';
+import { Body, Injectable, NotFoundException, Param, Query } from '@nestjs/common';
 import { CreateStatusRequestDto } from './dto/create-status_request.dto';
 import { UpdateStatusRequestDto } from './dto/update-status_request.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -93,7 +93,7 @@ export class StatusRequestService {
       });
     }
 
-    async find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    async find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       const id = payload.id
       const status = payload.status
       if (id == "") {

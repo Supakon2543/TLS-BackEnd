@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CategoryChemicalService } from './category_chemical.service';
 import { CreateCategoryChemicalDto } from './dto/create-category_chemical.dto';
 import { UpdateCategoryChemicalDto } from './dto/update-category_chemical.dto';
@@ -18,7 +18,7 @@ export class CategoryChemicalController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.categoryChemicalService.find(payload/*req, res*/);
     }
   

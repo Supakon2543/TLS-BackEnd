@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { StatusRequestService } from './status_request.service';
 import { CreateStatusRequestDto } from './dto/create-status_request.dto';
 import { UpdateStatusRequestDto } from './dto/update-status_request.dto';
@@ -18,7 +18,7 @@ export class StatusRequestController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.statusRequestService.find(payload/*req, res*/);
     }
   
