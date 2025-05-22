@@ -35,7 +35,7 @@ export class MaterialService {
   }) {
     let { id, keyword, status } = params;
 
-    // Convert id and status to numbers if they are strings
+    // Convert id and status to numbers if they are strings 
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
