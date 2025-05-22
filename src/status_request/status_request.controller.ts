@@ -3,7 +3,7 @@ import { StatusRequestService } from './status_request.service';
 import { CreateStatusRequestDto } from './dto/create-status_request.dto';
 import { UpdateStatusRequestDto } from './dto/update-status_request.dto';
 
-@Controller('status-request')
+@Controller('status_request')
 export class StatusRequestController {
   constructor(private readonly statusRequestService: StatusRequestService) {}
 

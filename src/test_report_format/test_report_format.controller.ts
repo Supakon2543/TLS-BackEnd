@@ -3,7 +3,7 @@ import { TestReportFormatService } from './test_report_format.service';
 import { CreateTestReportFormatDto } from './dto/create-test_report_format.dto';
 import { UpdateTestReportFormatDto } from './dto/update-test_report_format.dto';
 
-@Controller('test-report-format')
+@Controller('test_report_format')
 export class TestReportFormatController {
   constructor(private readonly testReportFormatService: TestReportFormatService) {}
 

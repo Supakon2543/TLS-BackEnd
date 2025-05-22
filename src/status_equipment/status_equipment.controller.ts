@@ -3,7 +3,7 @@ import { StatusEquipmentService } from './status_equipment.service';
 import { CreateStatusEquipmentDto } from './dto/create-status_equipment.dto';
 import { UpdateStatusEquipmentDto } from './dto/update-status_equipment.dto';
 
-@Controller('status-equipment')
+@Controller('status_equipment')
 export class StatusEquipmentController {
   constructor(private readonly statusEquipmentService: StatusEquipmentService) {}
 

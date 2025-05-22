@@ -3,7 +3,7 @@ import { StatusRetainService } from './status_retain.service';
 import { CreateStatusRetainDto } from './dto/create-status_retain.dto';
 import { UpdateStatusRetainDto } from './dto/update-status_retain.dto';
 
-@Controller('status-retain')
+@Controller('status_retain')
 export class StatusRetainController {
   constructor(private readonly statusRetainService: StatusRetainService) {}
 
