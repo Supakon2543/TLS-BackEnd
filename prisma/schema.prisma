@@ -130,14 +130,14 @@ model activity_equipment {
 }
 
 model role {
-  id     String  @id @db.VarChar(5)
+  id     String  @id @db.VarChar(10)
   order  Int
   name   String  @db.VarChar(50)
   status Boolean
 }
 
 model user_location {
-  id          String  @id @db.VarChar(5)
+  id          String  @id @db.VarChar(10)
   order       Int
   name        String  @db.VarChar(50)
   lab_site_id String?

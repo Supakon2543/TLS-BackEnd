@@ -4,7 +4,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm"
 @Entity('user_location')
 export class UserLocation {
 
-    @PrimaryColumn({ length: 15 })
+    @PrimaryColumn({ length: 10 })
     id: string
 
     @Column()
