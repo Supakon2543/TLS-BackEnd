@@ -62,7 +62,6 @@ export class MaterialService {
           chemical_parameter_id: chem.chemical_parameter_id,
         },
         create: {
-          id: chem.id,
           material_id: chem.material_id,
           chemical_parameter_id: chem.chemical_parameter_id,
           created_by: chem.created_by,
@@ -89,7 +88,6 @@ export class MaterialService {
           microbiology_parameter_id: micro.microbiology_parameter_id,
         },
         create: {
-          id: micro.id,
           material_id: micro.material_id,
           microbiology_parameter_id: micro.microbiology_parameter_id,
           created_by: micro.created_by,

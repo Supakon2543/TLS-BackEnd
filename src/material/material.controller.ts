@@ -20,16 +20,16 @@ import { UpsertMaterialDto } from './dto/upsert-material.dto';
 export class MaterialController {
   constructor(private readonly materialService: MaterialService) {}
 
-  @Post()
+  @Post('create_update')
   createOrUpdate(@Body() createMaterialDto: CreateMaterialDto) {
     return this.materialService.createOrUpdate(createMaterialDto);
   }
-  @Post('test')
+  @Post('')
   async upsertMaterialWithChildren(@Body() datas: UpsertMaterialDto[]) {
     for (const data of datas) {
       await this.materialService.upsertMaterialWithChildren(data);
     }
-    return { message: "Completed" };
+    return { code: 200, message: "Success" };
   }
 
   @Post('create')
