@@ -11,7 +11,7 @@ export class LineService {
   async createOrUpdate(data: CreateLineDto) {
 
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data; // Destructure to exclude id
+      const { id,created_on,updated_on, ...createData } = data; // Destructure to exclude id
       return this.prisma.line.create({ data: createData }); // Create a new record
     }
     return this.prisma.line.upsert({
