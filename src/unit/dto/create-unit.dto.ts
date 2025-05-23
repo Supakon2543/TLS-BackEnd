@@ -33,6 +33,19 @@ export class CreateUnitDto {
   status: boolean;
 
   @IsOptional()
+  @IsString()
+  created_on?: string;
+
+  @IsOptional()
   @IsInt()
   created_by?: number;
+
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
+  
+  @IsOptional()
+  @IsInt()
+  updated_by?: number;
+  
 }

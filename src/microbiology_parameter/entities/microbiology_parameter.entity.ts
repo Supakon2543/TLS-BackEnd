@@ -21,6 +21,9 @@ export class MicrobiologyParameter {
   @Length(1, 50)
   name: string;
 
+  @IsString()
+  name_abb: string;
+
   @IsOptional()
   @IsNumberString()
   request_min?: string;

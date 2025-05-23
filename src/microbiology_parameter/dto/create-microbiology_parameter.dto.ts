@@ -19,6 +19,9 @@ export class CreateMicrobiologyParameterDto {
   @Length(1, 50)
   name: string;
 
+  @IsString()
+  name_abb: string;
+
   @IsOptional()
   @IsNumber()
   request_min?: number;

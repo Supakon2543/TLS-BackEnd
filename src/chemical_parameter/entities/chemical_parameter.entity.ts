@@ -21,6 +21,10 @@ import { Decimal } from 'generated/prisma/runtime/library';
     @IsString()
     @Length(1, 50)
     name: string;
+
+    @IsString()
+    @Length(1, 50)
+    name_abb: string;
   
     @IsOptional()
     @Transform(({ value }) => parseFloat(value))
