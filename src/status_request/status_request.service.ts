@@ -107,7 +107,8 @@ export class StatusRequestService {
             },
             select: {
               id: true,
-              name: true
+              name: true,
+              state_id: true
             }
           })
         }
@@ -121,7 +122,8 @@ export class StatusRequestService {
             },
             select: {
               id: true,
-              name: true
+              name: true,
+              state_id: true
             }
           })
         }
@@ -132,7 +134,8 @@ export class StatusRequestService {
             },
             select: {
               id: true,
-              name: true
+              name: true,
+              state_id: true
             }
           })
         }
@@ -145,7 +148,8 @@ export class StatusRequestService {
           },
           select: {
             id: true,
-            name: true
+            name: true,
+            state_id: true
           }
         })
       }
