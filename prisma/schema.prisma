@@ -330,7 +330,7 @@ model microbiology_parameter {
   id                   Int       @id @default(autoincrement())
   order                Int
   name                 String    @db.VarChar(50)
-  name_abb             String    
+  name_abb             String    @default("")
   request_min          Decimal?  @db.Decimal
   unit_id              Int
   sample_type_id       String
@@ -357,7 +357,7 @@ model chemical_parameter {
   id                   Int       @id @default(autoincrement())
   order                Int
   name                 String    @db.VarChar(50)
-  name_abb             String
+  name_abb             String    @default("")
   request_min          Decimal?
   unit_id              Int
   sample_type_id       String
