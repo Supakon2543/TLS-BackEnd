@@ -22,6 +22,23 @@ interface RetainingRow
   updated_by?: number;
 }
 
+interface StaticRow {
+  id: string;
+  order: number;
+  name: string;
+  status: boolean | 'TRUE' | 'FALSE' | 'true' | 'false';
+}
+
+interface StatusRequestRow
+  extends StaticRow {
+  state_id?: string;
+}
+
+interface UserLocationRow
+  extends StaticRow {
+  lab_site_id?: string;
+}
+
 /** Convert TRUE/FALSE strings to boolean and numbers to number */
 const toBool = (v: unknown): boolean =>
   v === true ||
@@ -103,6 +120,296 @@ async function seedSampleRetaining() {
   console.log('✅ sample_retaining seeded');
 }
 
+async function seedLabSite() {
+  const rows = readExcel<StaticRow>('lab_site.xlsx');
+
+  for (const r of rows) {
+    await prisma.lab_site.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ lab_site seeded');
+}
+
+async function seedRequestType() {
+  const rows = readExcel<StaticRow>('request_type.xlsx');
+
+  for (const r of rows) {
+    await prisma.request_type.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ request_type seeded');
+}
+
+async function seedState() {
+  const rows = readExcel<StaticRow>('state.xlsx');
+
+  for (const r of rows) {
+    await prisma.state.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ state seeded');
+}
+
+async function seedStatusRequest() {
+  const rows = readExcel<StatusRequestRow>('status_request.xlsx');
+
+  for (const r of rows) {
+    await prisma.status_request.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        state_id: r.state_id,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ status_request seeded');
+}
+
+async function seedStatusSample() {
+  const rows = readExcel<StaticRow>('status_sample.xlsx');
+
+  for (const r of rows) {
+    await prisma.status_sample.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ status_sample seeded');
+}
+
+async function seedStatusRetain() {
+  const rows = readExcel<StaticRow>('status_retain.xlsx');
+
+  for (const r of rows) {
+    await prisma.status_retain.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ status_retain seeded');
+}
+
+async function seedStatusEquipment() {
+  const rows = readExcel<StaticRow>('status_equipment.xlsx');
+
+  for (const r of rows) {
+    await prisma.status_equipment.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ status_equipment seeded');
+}
+
+async function seedSampleType() {
+  const rows = readExcel<StaticRow>('sample_type.xlsx');
+
+  for (const r of rows) {
+    await prisma.sample_type.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ sample_type seeded');
+}
+
+async function seedLabTest() {
+  const rows = readExcel<StaticRow>('lab_test.xlsx');
+
+  for (const r of rows) {
+    await prisma.lab_test.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ lab_test seeded');
+}
+
+async function seedCategoryChemical() {
+  const rows = readExcel<StaticRow>('category_chemical.xlsx');
+
+  for (const r of rows) {
+    await prisma.category_chemical.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ category_chemical seeded');
+}
+
+async function seedSampleCondition() {
+  const rows = readExcel<StaticRow>('sample_condition.xlsx');
+
+  for (const r of rows) {
+    await prisma.sample_condition.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ sample_condition seeded');
+}
+
+async function seedTestReportFormat() {
+  const rows = readExcel<StaticRow>('test_report_format.xlsx');
+
+  for (const r of rows) {
+    await prisma.test_report_format.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ test_report_format seeded');
+}
+
+async function seedAccredited() {
+  const rows = readExcel<StaticRow>('accredited.xlsx');
+
+  for (const r of rows) {
+    await prisma.accredited.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ accredited seeded');
+}
+
+async function seedSpecType() {
+  const rows = readExcel<StaticRow>('spec_type.xlsx');
+
+  for (const r of rows) {
+    await prisma.spec_type.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ spec_type seeded');
+}
+
+async function seedActivityRequest() {
+  const rows = readExcel<StaticRow>('activity_request.xlsx');
+
+  for (const r of rows) {
+    await prisma.activity_request.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ activity_request seeded');
+}
+
+async function seedActivityEquipment() {
+  const rows = readExcel<StaticRow>('activity_equipment.xlsx');
+
+  for (const r of rows) {
+    await prisma.activity_equipment.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ activity_equipment seeded');
+}
+
+async function seedRole() {
+  const rows = readExcel<StaticRow>('role.xlsx');
+
+  for (const r of rows) {
+    await prisma.role.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ role seeded');
+}
+
+async function seedUserLocation() {
+  const rows = readExcel<UserLocationRow>('user_location.xlsx');
+
+  for (const r of rows) {
+    await prisma.user_location.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        lab_site_id: r.lab_site_id,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ user_location seeded');
+}
+
 /* ---------- main runner ---------- */
 
 async function main() {
@@ -110,6 +417,24 @@ async function main() {
   await seedLabProcess();
   await seedSampleStage();
   await seedSampleRetaining();
+  await seedLabSite();
+  await seedRequestType();
+  await seedState();
+  await seedStatusRequest();
+  await seedStatusSample();
+  await seedStatusRetain();
+  await seedStatusEquipment();
+  await seedSampleType();
+  await seedLabTest();
+  await seedCategoryChemical();
+  await seedSampleCondition();
+  await seedTestReportFormat();
+  await seedAccredited();
+  await seedSpecType();
+  await seedActivityRequest();
+  await seedActivityEquipment();
+  await seedRole();
+  await seedUserLocation();
 }
 
 main()

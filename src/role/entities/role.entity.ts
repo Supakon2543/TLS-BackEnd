@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryColumn } from "typeorm"
 @Entity('role')
 export class Role {
 
-    @PrimaryColumn({ length: 5 })
+    @PrimaryColumn({ length: 10 })
     id: string
 
     @Column()

@@ -3,7 +3,7 @@ import { IsBoolean, IsNumber, IsOptional, IsString, MaxLength } from "class-vali
 export class CreateUserLocationDto {
 
     @IsString()
-    @MaxLength(5)
+    @MaxLength(10)
     id: string
 
     @IsNumber()
