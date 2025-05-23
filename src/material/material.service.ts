@@ -2,6 +2,7 @@ import { Body, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UpsertMaterialDto } from './dto/upsert-material.dto';
 
 @Injectable()
 export class MaterialService {
@@ -19,29 +20,26 @@ export class MaterialService {
       update: data, // Update the existing record with the provided data
     });
   }
-  async upsertMaterialWithChildren(data: any) {
+  async upsertMaterialWithChildren(@Body() data: UpsertMaterialDto) {
     const material = data;
 
     // 1. Upsert the main material
-    await this.prisma.material.upsert({
-      where: { id: material.id },
-      update: {
-        name: material.name,
-        status: material.status,
-        updated_on: new Date(material.updated_on),
-        updated_by: material.updated_by,
-      },
-      create: {
-        id: material.id,
-        name: material.name,
-        test_report_name: material.test_report_name,
-        status: material.status,
-        created_on: new Date(material.created_on),
-        created_by: material.created_by,
-        updated_on: new Date(material.updated_on),
-        updated_by: material.updated_by,
-      },
-    });
+    // await this.prisma.material.upsert({
+    //   where: { id: material.id },
+    //   update: {
+    //     name: material.name,
+    //     status: material.status,
+    //     updated_by: material.updated_by,
+    //   },
+    //   create: {
+    //     id: material.id,
+    //     name: material.name,
+    //     test_report_name: material.test_report_name,
+    //     status: material.status,
+    //     created_by: material.created_by,
+    //     updated_by: material.updated_by,
+    //   },
+    // });
 
     // 2. Sync material_chemical
     const chemicalIds = material.material_chemical.map((chem: any) => chem.id);
@@ -67,7 +65,6 @@ export class MaterialService {
           id: chem.id,
           material_id: chem.material_id,
           chemical_parameter_id: chem.chemical_parameter_id,
-          created_on: new Date(chem.created_on),
           created_by: chem.created_by,
         },
       });
@@ -95,7 +92,6 @@ export class MaterialService {
           id: micro.id,
           material_id: micro.material_id,
           microbiology_parameter_id: micro.microbiology_parameter_id,
-          created_on: new Date(micro.created_on),
           created_by: micro.created_by,
         },
       });

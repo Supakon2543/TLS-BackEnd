@@ -13,6 +13,7 @@ import { MaterialService } from './material.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { UpsertMaterialDto } from './dto/upsert-material.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('material')
@@ -24,8 +25,11 @@ export class MaterialController {
     return this.materialService.createOrUpdate(createMaterialDto);
   }
   @Post('test')
-  upsertMaterialWithChildren(@Body() data: any) {
-    return this.materialService.upsertMaterialWithChildren(data);
+  async upsertMaterialWithChildren(@Body() datas: UpsertMaterialDto[]) {
+    for (const data of datas) {
+      await this.materialService.upsertMaterialWithChildren(data);
+    }
+    return { message: "Completed" };
   }
 
   @Post('create')

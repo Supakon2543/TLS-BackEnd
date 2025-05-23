@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ActivityEquipmentService } from './activity_equipment.service';
 import { CreateActivityEquipmentDto } from './dto/create-activity_equipment.dto';
 import { UpdateActivityEquipmentDto } from './dto/update-activity_equipment.dto';
@@ -18,7 +18,7 @@ export class ActivityEquipmentController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.activityEquipmentService.find(payload/*req, res*/);
     }
   

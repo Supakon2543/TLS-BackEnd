@@ -107,7 +107,8 @@ export class UserLocationService {
             },
             select: {
               id: true,
-              name: true
+              name: true,
+              lab_site_id: true
             }
           })
         }
@@ -121,7 +122,8 @@ export class UserLocationService {
             },
             select: {
               id: true,
-              name: true
+              name: true,
+              lab_site_id: true
             }
           })
         }
@@ -132,7 +134,8 @@ export class UserLocationService {
             },
             select: {
               id: true,
-              name: true
+              name: true,
+              lab_site_id: true
             }
           })
         }
@@ -145,7 +148,8 @@ export class UserLocationService {
           },
           select: {
             id: true,
-            name: true
+            name: true,
+            lab_site_id: true
           }
         })
       }
