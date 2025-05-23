@@ -29,7 +29,7 @@ export class MaterialController {
     for (const data of datas) {
       await this.materialService.upsertMaterialWithChildren(data);
     }
-    return { message: "Completed" };
+    return { code: 200, message: "Success" };
   }
 
   @Post('create')
