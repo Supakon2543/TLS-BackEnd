@@ -9,7 +9,7 @@ export class LocationService {
 
   async createOrUpdate(data: CreateLocationDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data; // Destructure to exclude id
+      const { id, created_on, updated_on, ...createData } = data; // Destructure to exclude id
       return this.prisma.location.create({ data: createData }); // Create a new record
     }
     return this.prisma.location.upsert({

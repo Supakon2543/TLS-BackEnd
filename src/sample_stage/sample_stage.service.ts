@@ -10,7 +10,7 @@ export class SampleStageService {
   // Create or update a record
   async createOrUpdate(data: CreateSampleStageDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data; // Destructure to exclude id
+      const { id, created_on, updated_on, ...createData } = data; 
       return this.prisma.sample_stage.create({ data: createData }); // Create a new record
     }
     return this.prisma.sample_stage.upsert({

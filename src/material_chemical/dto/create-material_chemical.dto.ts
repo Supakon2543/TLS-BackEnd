@@ -12,4 +12,13 @@ export class CreateMaterialChemicalDto {
 
   @IsOptional()
   created_by?: number;
+
+  @IsOptional()
+  updated_by?: number;
+
+  @IsOptional()
+  created_on?: string;
+
+  @IsOptional()
+  updated_on?: string;
 }

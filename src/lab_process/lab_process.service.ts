@@ -10,7 +10,7 @@ export class LabProcessService {
   // Create or update a lab process
   async createOrUpdate(data: CreateLabProcessDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data; // Destructure to exclude id
+      const { id, created_on, updated_on, ...createData } = data; // Destructure to exclude id
       return this.prisma.lab_process.create({ data: createData }); // Create a new record
     }
     return this.prisma.lab_process.upsert({

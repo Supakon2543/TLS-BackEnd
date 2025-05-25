@@ -30,8 +30,18 @@ export class CreateEquipmentTypeDto {
   @IsInt()
   created_by?: number;
 
+  @ApiPropertyOptional({ example: new Date().toISOString(), description: 'Timestamp when the equipment type was created' })
+  @IsOptional()
+  @IsString()
+  created_on?: string;
+
   @ApiPropertyOptional({ example: 2, description: 'ID of the user who last updated the equipment type' })
   @IsOptional()
   @IsInt()
   updated_by?: number;
+
+  @ApiPropertyOptional({ example: new Date().toISOString(), description: 'Timestamp when the equipment type was last updated' })
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
 }

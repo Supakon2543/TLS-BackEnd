@@ -1,4 +1,4 @@
-import { IsInt, IsOptional } from 'class-validator';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CreateMaterialMicrobiologyDto {
   @IsInt()
@@ -13,4 +13,16 @@ export class CreateMaterialMicrobiologyDto {
   @IsOptional()
   @IsInt()
   created_by?: number;
+
+  @IsOptional()
+  @IsInt()
+  updated_by?: number;
+
+  @IsOptional()
+  @IsString()
+  created_on?: string;
+
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
 }

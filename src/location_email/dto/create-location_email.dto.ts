@@ -31,6 +31,16 @@ export class CreateLocationEmailDto {
   @IsInt()
   created_by?: number;
 
+  @ApiPropertyOptional({ type: String, example: '2023-10-01T12:00:00Z' })
+  @IsOptional()
+  @IsString()
+  created_on?: string;
+
+  @ApiPropertyOptional({ type: String, example: '2023-10-02T12:00:00Z' })
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
+
   @ApiPropertyOptional({ type: Number, example: 6 })
   @IsOptional()
   @IsInt()

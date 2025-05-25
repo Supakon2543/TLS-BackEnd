@@ -75,6 +75,14 @@ export class CreateMicrobiologyParameterDto {
   created_by?: number;
 
   @IsOptional()
+  @IsString()
+  created_on?: string;
+
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
+
+  @IsOptional()
   @IsInt()
   updated_by?: number;
 }

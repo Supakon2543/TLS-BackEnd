@@ -34,6 +34,16 @@ export class CreateManufacturerDto {
   @IsInt()
   created_by?: number;
 
+  @ApiPropertyOptional({ type: String })
+  @IsOptional()
+  @IsString()
+  created_on?: string;
+
+  @ApiPropertyOptional({ type: String })
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
+
   @ApiPropertyOptional({ type: Number })
   @IsOptional()
   @IsInt()

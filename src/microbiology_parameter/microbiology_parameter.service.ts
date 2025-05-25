@@ -10,7 +10,7 @@ export class MicrobiologyParameterService {
   // Create or update a record
   async createOrUpdate(data: CreateMicrobiologyParameterDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data; // Destructure to exclude id
+      const { id, created_on, updated_on, ...createData } = data; // Destructure to exclude id
       return this.prisma.microbiology_parameter.create({ data: createData }); // Create a new record
     }
     return this.prisma.microbiology_parameter.upsert({
@@ -35,6 +35,8 @@ export class MicrobiologyParameterService {
   }
 
   // Get records with filters
+  // ...existing code...
+
   async getMicrobiologyParameters(params: {
     id?: number | string;
     keyword?: string;
@@ -46,7 +48,7 @@ export class MicrobiologyParameterService {
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
-    return this.prisma.microbiology_parameter.findMany({
+    const results = await this.prisma.microbiology_parameter.findMany({
       where: {
         ...(id && { id }),
         ...(typeof status === 'number' && status !== 0
@@ -56,9 +58,17 @@ export class MicrobiologyParameterService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { order: 'asc' }, // Sorting by order or any field as needed
+      orderBy: { order: 'asc' },
     });
+
+    // Ensure spec_min is always a number in the output
+    return results.map(item => ({
+      ...item,
+      spec_min: item.spec_min !== null && item.spec_min !== undefined ? Number(item.spec_min) : null,
+    }));
   }
+
+// ...existing code...
 
   // Get one record by ID
   async findOne(id: number) {

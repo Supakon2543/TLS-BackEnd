@@ -6,11 +6,11 @@ import { UpdateObjectiveDto } from './dto/update-objective.dto';
 @Injectable()
 export class ObjectiveService {
   constructor(private readonly prisma: PrismaService) {}
-  
+
   // Create or update a record
   async createOrUpdate(data: CreateObjectiveDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data; // Destructure to exclude id
+      const { id, created_on, updated_on, ...createData } = data; // Destructure to exclude id
       return this.prisma.objective.create({ data: createData }); // Create a new record
     }
     return this.prisma.objective.upsert({
@@ -26,7 +26,6 @@ export class ObjectiveService {
     });
   }
 
-  
   async getObjectives(params: {
     id?: number | string;
     keyword?: string;
