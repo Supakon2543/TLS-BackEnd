@@ -64,7 +64,11 @@ export class MicrobiologyParameterService {
     // Ensure spec_min is always a number in the output
     return results.map(item => ({
       ...item,
+      request_min: item.request_min !== null && item.request_min !== undefined ? Number(item.request_min) : null,
       spec_min: item.spec_min !== null && item.spec_min !== undefined ? Number(item.spec_min) : null,
+      spec_max: item.spec_max !== null && item.spec_max !== undefined ? Number(item.spec_max) : null,
+      warning_max: item.warning_max !== null && item.warning_max !== undefined ? Number(item.warning_max) : null,
+      warning_min: item.warning_min !== null && item.warning_min !== undefined ? Number(item.warning_min) : null,
     }));
   }
 
