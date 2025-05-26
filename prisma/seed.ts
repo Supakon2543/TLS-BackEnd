@@ -2,6 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as xlsx from 'xlsx';
 import * as path from 'path';
+import * as fs from 'fs';
 
 const prisma = new PrismaClient();
 
@@ -50,6 +51,13 @@ const toBool = (v: unknown): boolean =>
 /** Read an excel file under prisma/staticfile/ and return typed JSON rows */
 function readExcel<T>(fileName: string): T[] {
   const filePath = path.join(__dirname, 'staticfile', fileName);
+  const wb = xlsx.readFile(filePath);
+  const sheet = wb.SheetNames[0];
+  return xlsx.utils.sheet_to_json<T>(wb.Sheets[sheet], { defval: null });
+}
+
+function readExcelFromNew<T>(fileName: string): T[] {
+  const filePath = path.join(__dirname, 'staticfile', 'new', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
   return xlsx.utils.sheet_to_json<T>(wb.Sheets[sheet], { defval: null });
@@ -410,6 +418,46 @@ async function seedUserLocation() {
   console.log('✅ user_location seeded');
 }
 
+async function seedAllFromNew() {
+  const newDir = path.join(__dirname, 'staticfile', 'new');
+  const files = fs.readdirSync(newDir).filter(f => f.endsWith('.xlsx'));
+
+  for (const file of files) {
+    const tableName = file.replace('.xlsx', '');
+    const rows = readExcelFromNew<any>(file);
+
+    if (!rows.length) {
+      console.log(`⚠️  No data in ${file}, skipping.`);
+      continue;
+    }
+
+    // Try to insert each row
+    for (const r of rows) {
+      // Prepare data: convert booleans and numbers if needed
+      const data: any = {};
+      for (const [key, value] of Object.entries(r)) {
+        if (typeof value === 'string' && (value === 'TRUE' || value === 'FALSE' || value === 'true' || value === 'false')) {
+          data[key] = toBool(value);
+        } else if (typeof value === 'string' && !isNaN(Number(value)) && value.trim() !== '') {
+          // Convert numeric strings to numbers
+          data[key] = Number(value);
+        } else {
+          data[key] = value;
+        }
+      }
+
+      // Insert into the corresponding table
+      try {
+        // @ts-ignore
+        await prisma[tableName].create({ data });
+      } catch (e) {
+        console.error(`❌ Failed to insert into ${tableName}:`, data, e.message);
+      }
+    }
+    console.log(`✅ ${tableName} (from new) seeded`);
+  }
+}
+
 /* ---------- main runner ---------- */
 
 async function main() {
@@ -435,6 +483,7 @@ async function main() {
   await seedActivityEquipment();
   await seedRole();
   await seedUserLocation();
+  await seedAllFromNew();
 }
 
 main()

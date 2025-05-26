@@ -33,13 +33,17 @@ export class ObjectiveService {
   }) {
     let { id, keyword, status } = params;
     
-    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
-      return [];
-    }
+    
 
     // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
+
+    
+
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      return [];
+    }
 
     return this.prisma.objective.findMany({
       where: {

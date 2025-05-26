@@ -15,7 +15,7 @@ datasource db {
 }
 
 model lab_site {
-  id     String  @id @db.VarChar(5)
+  id     String  @id @db.VarChar(10)
   order  Int
   name   String  @db.VarChar(50)
   status Boolean
