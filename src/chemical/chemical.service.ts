@@ -52,6 +52,13 @@ export class ChemicalService {
             },
           },
         });
+        return chemicals.map((c) => ({
+      ...c,
+      manufacturer_name: c.manufacturer?.name ?? null,
+      category_chemical_name: c.category_chemical?.name ?? null,
+      manufacturer: undefined, // Optionally remove the nested object
+      category_chemical: undefined, // Optionally remove the nested object
+    }));
       }
       return [];
     }
