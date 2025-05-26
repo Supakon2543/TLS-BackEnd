@@ -55,6 +55,12 @@ export class CreateMicrobiologyParameterDto {
   @IsNumber()
   warning_max?: number;
 
+  @IsString()
+  final_result: string;
+
+  @IsInt()
+  decimal: number;
+
   @IsBoolean()
   is_enter_spec_min: boolean;
 
@@ -66,6 +72,9 @@ export class CreateMicrobiologyParameterDto {
 
   @IsBoolean()
   is_enter_warning_max: boolean;
+
+  @IsBoolean()
+  is_enter_decimal: boolean;
 
   @IsBoolean()
   status: boolean;

@@ -48,6 +48,10 @@ export class MicrobiologyParameterService {
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      return [];
+    }
+
     const results = await this.prisma.microbiology_parameter.findMany({
       where: {
         ...(id && { id }),

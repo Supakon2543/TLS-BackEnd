@@ -10,7 +10,7 @@ export class UnitService {
   // Create or update a record
   async createOrUpdate(data: CreateUnitDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id,created_on,updated_on, ...createData } = data;
+      const { id, created_on, updated_on, ...createData } = data;
       return this.prisma.unit.create({ data: createData });
     }
     return this.prisma.unit.upsert({
@@ -20,14 +20,12 @@ export class UnitService {
     });
   }
 
-  
-
   async create(data: CreateUnitDto) {
     return this.prisma.unit.create({ data });
   }
 
   async getUnits(params: {
-    id?: number | string;
+    id?: number;
     keyword?: string;
     status?: number | string;
   }) {
@@ -36,6 +34,10 @@ export class UnitService {
     // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
+
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      return [];
+    }
 
     return this.prisma.unit.findMany({
       where: {

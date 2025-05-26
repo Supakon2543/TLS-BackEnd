@@ -10,7 +10,7 @@ export class CategoryEditService {
   async createOrUpdate(data: CreateCategoryEditDto) {
 
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data;
+      const { id, created_on, updated_on, ...createData } = data; // Destructure to exclude id
       return this.prisma.category_edit.create({ data: createData });
     }
     return this.prisma.category_edit.upsert({

@@ -9,7 +9,7 @@ export class SectionService {
 
   // Retrieve sections with filters
   async getSections(params: {
-    id?: number | string;
+    id?: number;
     keyword?: string;
     status?: number | string;
   }) {
@@ -18,6 +18,10 @@ export class SectionService {
     // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
+
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      return [];
+    }
 
      const section = await this.prisma.section.findMany({
       where: {

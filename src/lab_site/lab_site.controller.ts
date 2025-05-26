@@ -1,12 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Response, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Response, Request, UseGuards } from '@nestjs/common';
 import { LabSiteService } from './lab_site.service';
 import { CreateLabSiteDto } from './dto/create-lab_site.dto';
 import { UpdateLabSiteDto } from './dto/update-lab_site.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('lab_site')
 export class LabSiteController {
   constructor(private readonly labSiteService: LabSiteService) {}
 
+  @UseGuards(AuthGuard('jwt'))
   @Post('create')
   create(/*@Request() req: Request, */@Body() payload: CreateLabSiteDto/*, @Response() res: Response*/) {
     return this.labSiteService.create(/*req, */payload/*, res*/);

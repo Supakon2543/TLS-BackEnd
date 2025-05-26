@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { LabTestService } from './lab_test.service';
 import { CreateLabTestDto } from './dto/create-lab_test.dto';
 import { UpdateLabTestDto } from './dto/update-lab_test.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('lab_test')
 export class LabTestController {
   constructor(private readonly labTestService: LabTestService) {}

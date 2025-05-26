@@ -21,41 +21,51 @@ export class LocationEmailService {
 }
 
   //getLocationsEmail
-  async getLocationEmails(params: {
-    id?: number | string;
-    keyword?: string;
-    status?: number | string;
-  }) {
-    let { id, keyword, status } = params;
+ async getLocationEmails(params: {
+  id?: number | string;
+  keyword?: string;
+  status?: number | string;
+}) {
+  let { id, keyword, status } = params;
 
-    // Convert id and status to numbers if they are strings
-    id = id !== undefined ? +id : undefined;
-    status = status !== undefined ? +status : undefined;
+  // Convert id to string if present (user_location.id is string)
+  const userLocationId = id !== undefined && id !== null ? String(id) : undefined;
+  status = status !== undefined ? +status : undefined;
 
-     const locationEmail = await this.prisma.location_email.findMany({
-      where: {
-        ...(id && { id }),
-        ...(typeof status === 'number' && status !== 0
-          ? { status: status === 1 }
-          : {}),
-        ...(keyword && {
-          name: { contains: keyword, mode: 'insensitive' },
-        }),
+  const locationEmail = await this.prisma.location_email.findMany({
+    where: {
+      ...(typeof status === 'number' && status !== 0
+        ? { status: status === 1 }
+        : {}),
+      user_location: {
+        ...(userLocationId && { id: userLocationId }),
+        ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
       },
-      orderBy: { email_notification: 'asc' },
-      include: {
-        user_location: {
-          select: { name: true },
+    },
+    orderBy: { email_notification: 'asc' },
+    include: {
+      user_location: {
+        select: {
+          id: true,
+          name: true,
         },
       },
-    });
-    
-    return locationEmail.map(s => ({
-      ...s,
-      user_location_name: s.user_location?.name ?? null,
-      user_location: undefined, // Optionally remove the nested object
-    }));
-  }
+    },
+  });
+
+  return locationEmail.map(s => ({
+    id: s.user_location?.id ?? null,
+    user_location_id: s.user_location?.id ?? null,
+    user_location_name: s.user_location?.name ?? null,
+    email_notification: s.email_notification,
+    status: s.status,
+    created_on: s.created_on,
+    created_by: s.created_by,
+    updated_on: s.updated_on,
+    updated_by: s.updated_by,
+    user_location: undefined,
+  }));
+}
 
   async create(data: CreateLocationEmailDto) {
     return this.prisma.location_email.create({ data });

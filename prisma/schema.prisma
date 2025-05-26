@@ -198,7 +198,7 @@ model location_email {
   updated_on         DateTime? @updatedAt
   updated_by         Int?
 
-  user_location      user_location? @relation(fields: [user_location_id], references: [id])
+  user_location user_location? @relation(fields: [user_location_id], references: [id])
 }
 
 model equipment_type {
@@ -311,8 +311,8 @@ model material_microbiology {
   created_on                DateTime? @default(now())
   created_by                Int?
 
-  material material @relation(fields: [material_id], references: [id])
-  microbiology_parameter   microbiology_parameter @relation(fields: [microbiology_parameter_id], references: [id])
+  material               material               @relation(fields: [material_id], references: [id])
+  microbiology_parameter microbiology_parameter @relation(fields: [microbiology_parameter_id], references: [id])
 }
 
 model material_chemical {
@@ -322,8 +322,8 @@ model material_chemical {
   created_on            DateTime? @default(now())
   created_by            Int?
 
-  material material @relation(fields: [material_id], references: [id])
-  chemical_parameter   chemical_parameter  @relation(fields: [chemical_parameter_id], references: [id])
+  material           material           @relation(fields: [material_id], references: [id])
+  chemical_parameter chemical_parameter @relation(fields: [chemical_parameter_id], references: [id])
 }
 
 model microbiology_parameter {
@@ -340,10 +340,13 @@ model microbiology_parameter {
   spec_max             Decimal?  @db.Decimal
   warning_min          Decimal?  @db.Decimal
   warning_max          Decimal?  @db.Decimal
+  final_result         String
+  decimal              Int
   is_enter_spec_min    Boolean
   is_enter_spec_max    Boolean
   is_enter_warning_min Boolean
   is_enter_warning_max Boolean
+  is_enter_decimal     Boolean
   status               Boolean
   created_on           DateTime? @default(now())
   created_by           Int?
@@ -373,13 +376,14 @@ model chemical_parameter {
   is_enter_spec_max    Boolean
   is_enter_warning_min Boolean
   is_enter_warning_max Boolean
+  is_enter_decimal     Boolean
   status               Boolean
   created_on           DateTime? @default(now())
   created_by           Int?
   updated_on           DateTime? @updatedAt
   updated_by           Int?
 
-  material_chemical    material_chemical[] 
+  material_chemical material_chemical[]
 }
 
 model material {

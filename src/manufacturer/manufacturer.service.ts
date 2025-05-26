@@ -20,7 +20,7 @@ export class ManufacturerService {
   }
 
   async getManufacturers(params: {
-    id?: number | string;
+    id?: number ;
     keyword?: string;
     status?: number | string;
   }) {
@@ -29,6 +29,10 @@ export class ManufacturerService {
     // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
+
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      return [];
+    }
 
     return this.prisma.manufacturer.findMany({
       where: {

@@ -59,13 +59,13 @@ export class CreateChemicalDto {
 
   @ApiPropertyOptional({ type: Date, description: 'Created on date (optional)' })
   @IsOptional()
-  @IsDate()
-  created_on?: Date;
+  @IsString()
+  created_on?: string;
 
   @ApiPropertyOptional({ type: Date, description: 'Updated on date (optional)' })
   @IsOptional()
-  @IsDate()
-  updated_on?: Date;
+  @IsString()
+  updated_on?: string;
 
   @ApiPropertyOptional({ type: Number, description: 'Updated by user ID (optional)' })
   @IsOptional()

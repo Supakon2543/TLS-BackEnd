@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { StatusSampleService } from './status_sample.service';
 import { CreateStatusSampleDto } from './dto/create-status_sample.dto';
 import { UpdateStatusSampleDto } from './dto/update-status_sample.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('status_sample')
 export class StatusSampleController {
   constructor(private readonly statusSampleService: StatusSampleService) {}

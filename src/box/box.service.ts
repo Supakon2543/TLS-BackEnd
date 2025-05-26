@@ -36,6 +36,10 @@ export class BoxService {
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      return [];
+    }
+
     const box = await this.prisma.box.findMany({
       where: {
         ...(id && { id }),

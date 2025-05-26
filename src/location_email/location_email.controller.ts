@@ -27,7 +27,7 @@ export class LocationEmailController {
 
   @Get()
   getLocationEmails(
-    @Query() params: { id?: number; keyword?: string; status?: number },
+    @Query() params: { id?: string; keyword?: string; status?: number },
   ) {
     return this.locationEmailService.getLocationEmails(params);
   }

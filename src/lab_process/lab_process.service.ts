@@ -15,7 +15,7 @@ export class LabProcessService {
     }
     return this.prisma.lab_process.upsert({
       where: { id: data.id },
-      create: { ...data}, // Create a new record with the provided data
+      create: { ...data }, // Create a new record with the provided data
       update: data, // Update the existing record with the provided data
     });
   }
@@ -36,6 +36,10 @@ export class LabProcessService {
     // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
+
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      return [];
+    }
 
     return this.prisma.lab_process.findMany({
       where: {

@@ -91,6 +91,10 @@ export class CreateChemicalParameterDto {
 
   @ApiProperty({ example: true })
   @IsBoolean()
+  is_enter_decimal: boolean;
+
+  @ApiProperty({ example: true })
+  @IsBoolean()
   status: boolean;
 
   @ApiPropertyOptional({ example: new Date() })
