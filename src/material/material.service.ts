@@ -117,6 +117,67 @@ export class MaterialService {
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      if (keyword || status) {
+        const materials = await this.prisma.material.findMany({
+          where: {
+            ...(id && { id }),
+            ...(typeof status === 'number' && status !== 0
+              ? { status: status === 1 }
+              : {}),
+            ...(keyword && {
+              name: { contains: keyword, mode: 'insensitive' },
+            }),
+          },
+          orderBy: { name: 'asc' },
+          include: {
+            material_chemical: {
+              include: {
+                chemical_parameter: {
+                  select: { name: true }
+                }
+              }
+            },
+            material_microbiology: {
+              include: {
+                microbiology_parameter: {
+                  select: { name: true }
+                }
+              }
+            }
+          }
+        });
+        return materials.map(material => ({
+          id: material.id,
+          name: material.name,
+          test_report_name: material.test_report_name,
+          status: material.status,
+          created_on: material.created_on,
+          created_by: material.created_by,
+          updated_on: material.updated_on,
+          updated_by: material.updated_by,
+          material_chemical: material.material_chemical.map(mc => ({
+            id: mc.id,
+            material_id: mc.material_id,
+            chemical_parameter_id: mc.chemical_parameter_id,
+            chemical_parameter_name: mc.chemical_parameter?.name ?? null,
+            created_on: mc.created_on,
+            created_by: mc.created_by,
+          })),
+          material_microbiology: material.material_microbiology.map(mm => ({
+            id: mm.id,
+            material_id: mm.material_id,
+            microbiology_parameter_id: mm.microbiology_parameter_id,
+            microbiology_parameter_name:
+              mm.microbiology_parameter?.name ?? null,
+            created_on: mm.created_on,
+            created_by: mm.created_by,
+          })),
+        }));
+      }
+      return [];
+    }
+
     const materials = await this.prisma.material.findMany({
       where: {
         ...(id && { id }),

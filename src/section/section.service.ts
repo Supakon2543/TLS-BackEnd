@@ -20,6 +20,25 @@ export class SectionService {
     status = status !== undefined ? +status : undefined;
 
     if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      if (keyword || status) {
+        return this.prisma.section.findMany({
+          where: {
+            ...(id && { id }),
+            ...(typeof status === 'number' && status !== 0
+              ? { status: status === 1 }
+              : {}),
+            ...(keyword && {
+              name: { contains: keyword, mode: 'insensitive' },
+            }),
+          },
+          orderBy: { name: 'asc' },
+          include: {
+            location: {
+              select: { name: true },
+            },
+          },
+        });
+      }
       return [];
     }
 

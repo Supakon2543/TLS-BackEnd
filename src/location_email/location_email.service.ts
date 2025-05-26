@@ -31,7 +31,7 @@ export class LocationEmailService {
   // Convert id to string if present (user_location.id is string)
   const userLocationId = id !== undefined && id !== null ? String(id) : undefined;
   status = status !== undefined ? +status : undefined;
-
+  
   const locationEmail = await this.prisma.location_email.findMany({
     where: {
       ...(typeof status === 'number' && status !== 0

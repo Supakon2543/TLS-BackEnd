@@ -31,6 +31,19 @@ export class ManufacturerService {
     status = status !== undefined ? +status : undefined;
 
     if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      if (keyword || status) {
+        return this.prisma.manufacturer.findMany({
+          where: {
+            ...(typeof status === 'number' && status !== 0
+              ? { status: status === 1 }
+              : {}),
+            ...(keyword && {
+              name: { contains: keyword, mode: 'insensitive' },
+            }),
+          },
+          orderBy: { name: 'asc' }, // Sorting by name or any field as needed
+        });
+      }
       return [];
     }
 

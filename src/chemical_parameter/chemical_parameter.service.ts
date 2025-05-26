@@ -42,6 +42,19 @@ export class ChemicalParameterService {
     status = status !== undefined ? +status : undefined;
 
     if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      if (keyword || status) {
+        return this.prisma.chemical_parameter.findMany({
+          where: {
+            ...(typeof status === 'number' && status !== 0
+              ? { status: status === 1 }
+              : {}),
+            ...(keyword && {
+              name: { contains: keyword, mode: 'insensitive' },
+            }),
+          },
+          orderBy: { order: 'asc' }, // Sorting by order or any field as needed
+        });
+      }
       return [];
     }
 
