@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { StatusEquipmentService } from './status_equipment.service';
 import { CreateStatusEquipmentDto } from './dto/create-status_equipment.dto';
 import { UpdateStatusEquipmentDto } from './dto/update-status_equipment.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('status_equipment')
 export class StatusEquipmentController {
   constructor(private readonly statusEquipmentService: StatusEquipmentService) {}

@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { ActivityEquipmentService } from './activity_equipment.service';
 import { CreateActivityEquipmentDto } from './dto/create-activity_equipment.dto';
 import { UpdateActivityEquipmentDto } from './dto/update-activity_equipment.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('activity_equipment')
 export class ActivityEquipmentController {
   constructor(private readonly activityEquipmentService: ActivityEquipmentService) {}

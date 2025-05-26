@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { StatusRetainService } from './status_retain.service';
 import { CreateStatusRetainDto } from './dto/create-status_retain.dto';
 import { UpdateStatusRetainDto } from './dto/update-status_retain.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('status_retain')
 export class StatusRetainController {
   constructor(private readonly statusRetainService: StatusRetainService) {}

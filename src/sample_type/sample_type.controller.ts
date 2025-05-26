@@ -1,8 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { SampleTypeService } from './sample_type.service';
 import { CreateSampleTypeDto } from './dto/create-sample_type.dto';
 import { UpdateSampleTypeDto } from './dto/update-sample_type.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+
+@UseGuards(AuthGuard('jwt'))
 @Controller('sample_type')
 export class SampleTypeController {
   constructor(private readonly sampleTypeService: SampleTypeService) {}

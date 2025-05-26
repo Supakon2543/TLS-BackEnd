@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { SpecTypeService } from './spec_type.service';
 import { CreateSpecTypeDto } from './dto/create-spec_type.dto';
 import { UpdateSpecTypeDto } from './dto/update-spec_type.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('spec_type')
 export class SpecTypeController {
   constructor(private readonly specTypeService: SpecTypeService) {}

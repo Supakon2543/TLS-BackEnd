@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { TestReportFormatService } from './test_report_format.service';
 import { CreateTestReportFormatDto } from './dto/create-test_report_format.dto';
 import { UpdateTestReportFormatDto } from './dto/update-test_report_format.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('test_report_format')
 export class TestReportFormatController {
   constructor(private readonly testReportFormatService: TestReportFormatService) {}
