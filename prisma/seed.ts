@@ -699,7 +699,7 @@ async function seedChemicalParameterFromNew() {
 
 // Microbiology_Parameter
 async function seedMicrobiologyParameterFromNew() {
-  const fileName = 'microbiology_parameter.xlsx';
+  const fileName = 'Microbiology_parameter.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
