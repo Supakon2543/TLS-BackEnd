@@ -54,7 +54,7 @@ export class LocationEmailService {
   });
 
   return locationEmail.map(s => ({
-    id: s.user_location?.id ?? null,
+    id: s.id ?? null,
     user_location_id: s.user_location?.id ?? null,
     user_location_name: s.user_location?.name ?? null,
     email_notification: s.email_notification,
