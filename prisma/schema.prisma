@@ -330,11 +330,11 @@ model microbiology_parameter {
   id                   Int       @id @default(autoincrement())
   order                Int
   name                 String    @db.VarChar(50)
-  name_abb             String    @default("")
+  name_abb             String?    @default("")
   request_min          Decimal?  @db.Decimal
-  unit_id              Int
-  sample_type_id       String
-  spec_type_id         String
+  unit_id              Int?
+  sample_type_id       String?
+  spec_type_id         String?
   spec                 String    @db.VarChar(100)
   spec_min             Decimal?  @db.Decimal
   spec_max             Decimal?  @db.Decimal
@@ -362,22 +362,22 @@ model chemical_parameter {
   name                 String    @db.VarChar(50)
   name_abb             String    @default("")
   request_min          Decimal?
-  unit_id              Int
-  sample_type_id       String
-  spec_type_id         String
-  spec                 String    @db.VarChar(100)
-  spec_min             Decimal
-  spec_max             Decimal
-  warning_min          Decimal
-  warning_max          Decimal
-  final_result         String
-  decimal              Int
-  is_enter_spec_min    Boolean
-  is_enter_spec_max    Boolean
-  is_enter_warning_min Boolean
-  is_enter_warning_max Boolean
-  is_enter_decimal     Boolean
-  status               Boolean
+  unit_id              Int?
+  sample_type_id       String?
+  spec_type_id         String?
+  spec                 String?    @db.VarChar(100)
+  spec_min             Decimal?
+  spec_max             Decimal?
+  warning_min          Decimal?
+  warning_max          Decimal?
+  final_result         String?
+  decimal              Int?
+  is_enter_spec_min    Boolean?
+  is_enter_spec_max    Boolean?
+  is_enter_warning_min Boolean?
+  is_enter_warning_max Boolean?
+  is_enter_decimal     Boolean?
+  status               Boolean?
   created_on           DateTime? @default(now())
   created_by           Int?
   updated_on           DateTime? @updatedAt
