@@ -438,7 +438,7 @@ async function seedUserLocation() {
 }
 
 async function seedObjectiveFromNew() {
-  const fileName = 'Objective.xlsx';
+  const fileName = 'objective.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -478,7 +478,7 @@ async function seedObjectiveFromNew() {
 // Sample State
 
 async function seedSampleStateFromNew() {
-  const fileName = 'Sample_State.xlsx';
+  const fileName = 'sample_state.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -554,7 +554,7 @@ async function seedLineFromNew() {
 //unit
 
 async function seedUnitFromNew() {
-  const fileName = 'Unit.xlsx';
+  const fileName = 'unit.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -699,7 +699,7 @@ async function seedChemicalParameterFromNew() {
 
 // Microbiology_Parameter
 async function seedMicrobiologyParameterFromNew() {
-  const fileName = 'Microbiology_Parameter.xlsx';
+  const fileName = 'microbiology_parameter.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -848,7 +848,7 @@ async function seedMaterialFromNew() {
 // MaterialChemicalParameter
 
 async function seedMaterialChemicalParameterFromNew() {
-  const fileName = 'Material_ChemicalParameter.xlsx';
+  const fileName = 'material_chemicalparameter.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -894,7 +894,7 @@ async function seedMaterialChemicalParameterFromNew() {
 // MaterialMicrobiologyParameter
 
 async function seedMaterialMicrobiologyParameterFromNew() {
-  const fileName = 'Material_MicrobiologyParameter.xlsx';
+  const fileName = 'material_microbiologyparameter.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
