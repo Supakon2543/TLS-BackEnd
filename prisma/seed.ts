@@ -438,7 +438,7 @@ async function seedUserLocation() {
 }
 
 async function seedObjectiveFromNew() {
-  const fileName = 'objective.xlsx';
+  const fileName = 'Objective.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -478,7 +478,7 @@ async function seedObjectiveFromNew() {
 // Sample State
 
 async function seedSampleStateFromNew() {
-  const fileName = 'sample_state.xlsx';
+  const fileName = 'Sample_State.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -554,7 +554,7 @@ async function seedLineFromNew() {
 //unit
 
 async function seedUnitFromNew() {
-  const fileName = 'unit.xlsx';
+  const fileName = 'Unit.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -699,7 +699,7 @@ async function seedChemicalParameterFromNew() {
 
 // Microbiology_Parameter
 async function seedMicrobiologyParameterFromNew() {
-  const fileName = 'microbiology_parameter.xlsx';
+  const fileName = 'Microbiology_Parameter.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -848,7 +848,7 @@ async function seedMaterialFromNew() {
 // MaterialChemicalParameter
 
 async function seedMaterialChemicalParameterFromNew() {
-  const fileName = 'material_chemicalparameter.xlsx';
+  const fileName = 'Material_ChemicalParameter.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -894,7 +894,7 @@ async function seedMaterialChemicalParameterFromNew() {
 // MaterialMicrobiologyParameter
 
 async function seedMaterialMicrobiologyParameterFromNew() {
-  const fileName = 'material_microbiologyparameter.xlsx';
+  const fileName = 'Material_MicrobiologyParameter.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -937,7 +937,7 @@ async function seedMaterialMicrobiologyParameterFromNew() {
 }
 
 async function seedEditCategoryFromNew() {
-  const fileName = 'edit_category.xlsx';
+  const fileName = 'Edit_Category.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -965,7 +965,7 @@ async function seedEditCategoryFromNew() {
 }
 
 async function seedLocationFromNew() {
-  const fileName = 'location.xlsx';
+  const fileName = 'Location.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -997,7 +997,7 @@ async function seedLocationFromNew() {
 }
 
 async function seedSectionFromNew() {
-  const fileName = 'section.xlsx';
+  const fileName = 'Section.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
@@ -1055,7 +1055,7 @@ async function seedSectionFromNew() {
 
 //
 async function seedBoxFromNew() {
-  const fileName = 'box.xlsx';
+  const fileName = 'Box.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
