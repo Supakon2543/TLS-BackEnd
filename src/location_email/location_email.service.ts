@@ -28,7 +28,6 @@ export class LocationEmailService {
 }) {
   let { id, keyword, status } = params;
 
-  // Build filter
   const where: any = {};
   if (id !== undefined && id !== null) where.id = String(id);
   if (keyword) where.name = { contains: keyword, mode: 'insensitive' };
@@ -37,13 +36,12 @@ export class LocationEmailService {
 
   const userLocations = await this.prisma.user_location.findMany({
     where,
-    orderBy: { name: 'asc' },
+    orderBy: { order: 'asc' },
     include: {
       location_emails: true,
     },
   });
 
-  // Always return all user_location, with location_email fields or null if none
   const result: any[] = [];
   userLocations.forEach(u => {
     if (u.location_emails.length === 0) {
