@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
+  IsDate,
   IsEmail,
   IsInt,
   IsOptional,
@@ -55,6 +56,16 @@ export class CreateChemicalDto {
   @IsOptional()
   @IsInt()
   created_by?: number;
+
+  @ApiPropertyOptional({ type: Date, description: 'Created on date (optional)' })
+  @IsOptional()
+  @IsString()
+  created_on?: string;
+
+  @ApiPropertyOptional({ type: Date, description: 'Updated on date (optional)' })
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
 
   @ApiPropertyOptional({ type: Number, description: 'Updated by user ID (optional)' })
   @IsOptional()

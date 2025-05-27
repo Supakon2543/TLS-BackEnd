@@ -25,4 +25,20 @@ export class CreateLineDto {
   @IsOptional()
   @IsInt()
   created_by?: number;
+
+  @ApiPropertyOptional({ example: new Date(), description: 'Date when the line was created' })
+  @IsOptional()
+  @IsString()
+  created_on?: string;
+
+  @ApiPropertyOptional({ example: 200, description: 'ID of the user who last updated the line' })
+  @IsOptional()
+  @IsInt()
+  updated_by?: number;
+
+  @ApiPropertyOptional({ example: new Date(), description: 'Date when the line was last updated' })
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
+  
 }

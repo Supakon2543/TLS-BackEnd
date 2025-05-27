@@ -11,7 +11,7 @@ const secret = process.env.JWTSECRET || '515b400cc9024b3a97fc25aceebb71e3';
     PassportModule,
     JwtModule.register({
       secret: secret, // Use env variable in production!
-      signOptions: { expiresIn: '1d' },
+      signOptions: { expiresIn: '3h' },
     }),
   ],
   providers: [AuthService, JwtStrategy],

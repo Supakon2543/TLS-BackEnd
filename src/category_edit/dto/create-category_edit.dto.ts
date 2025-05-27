@@ -30,4 +30,19 @@ export class CreateCategoryEditDto {
   @IsOptional()
   @IsInt()
   created_by?: number;
+
+  @ApiProperty({ example: new Date() })
+  @IsOptional()
+  @IsString()
+  created_on?: string;
+
+  @ApiProperty({ example: 1002 })
+  @IsOptional()
+  @IsInt()
+  updated_by?: number;
+
+  @ApiProperty({ example: new Date() })
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
 }

@@ -77,12 +77,26 @@ export class UpdateChemicalParameterDto {
 
   @ApiProperty({ example: true })
   @IsBoolean()
+  is_enter_decimal: boolean;
+
+  @ApiProperty({ example: true })
+  @IsBoolean()
   status: boolean;
+
+  @ApiProperty({ required: false, example: new Date() })
+  @IsOptional()
+  @IsString()
+  created_on?: string;
 
   @ApiProperty({ required: false, example: 1 })
   @IsOptional()
   @IsInt()
   created_by?: number;
+
+  @ApiProperty({ required: false, example: new Date() })
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
 
   @ApiProperty({ required: false, example: 2 })
   @IsOptional()

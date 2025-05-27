@@ -10,7 +10,7 @@ export class SampleStageService {
   // Create or update a record
   async createOrUpdate(data: CreateSampleStageDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data; // Destructure to exclude id
+      const { id, created_on, updated_on, ...createData } = data;
       return this.prisma.sample_stage.create({ data: createData }); // Create a new record
     }
     return this.prisma.sample_stage.upsert({
@@ -36,6 +36,23 @@ export class SampleStageService {
     // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
+
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      if (keyword || status) {
+        return this.prisma.sample_stage.findMany({
+          where: {
+            ...(typeof status === 'number' && status !== 0
+              ? { status: status === 1 }
+              : {}),
+            ...(keyword && {
+              name: { contains: keyword, mode: 'insensitive' },
+            }),
+          },
+          orderBy: { order: 'asc' }, // Sorting by order or any field as needed
+        });
+      }
+      return [];
+    }
 
     return this.prisma.sample_stage.findMany({
       where: {

@@ -19,6 +19,9 @@ export class CreateMicrobiologyParameterDto {
   @Length(1, 50)
   name: string;
 
+  @IsString()
+  name_abb: string;
+
   @IsOptional()
   @IsNumber()
   request_min?: number;
@@ -52,6 +55,12 @@ export class CreateMicrobiologyParameterDto {
   @IsNumber()
   warning_max?: number;
 
+  @IsString()
+  final_result: string;
+
+  @IsInt()
+  decimal: number;
+
   @IsBoolean()
   is_enter_spec_min: boolean;
 
@@ -65,11 +74,22 @@ export class CreateMicrobiologyParameterDto {
   is_enter_warning_max: boolean;
 
   @IsBoolean()
+  is_enter_decimal: boolean;
+
+  @IsBoolean()
   status: boolean;
 
   @IsOptional()
   @IsInt()
   created_by?: number;
+
+  @IsOptional()
+  @IsString()
+  created_on?: string;
+
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
 
   @IsOptional()
   @IsInt()

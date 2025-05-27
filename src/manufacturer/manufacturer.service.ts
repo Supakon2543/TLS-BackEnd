@@ -9,7 +9,7 @@ export class ManufacturerService {
 
   async createOrUpdate(data: CreateManufacturerDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data; // Destructure to exclude id
+      const { id, created_on, updated_on, ...createData } = data; // Destructure to exclude id
       return this.prisma.manufacturer.create({ data: createData }); // Create a new record
     }
     return this.prisma.manufacturer.upsert({
@@ -20,7 +20,7 @@ export class ManufacturerService {
   }
 
   async getManufacturers(params: {
-    id?: number | string;
+    id?: number ;
     keyword?: string;
     status?: number | string;
   }) {
@@ -29,6 +29,23 @@ export class ManufacturerService {
     // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
+
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      if (keyword || status) {
+        return this.prisma.manufacturer.findMany({
+          where: {
+            ...(typeof status === 'number' && status !== 0
+              ? { status: status === 1 }
+              : {}),
+            ...(keyword && {
+              name: { contains: keyword, mode: 'insensitive' },
+            }),
+          },
+          orderBy: { name: 'asc' }, // Sorting by name or any field as needed
+        });
+      }
+      return [];
+    }
 
     return this.prisma.manufacturer.findMany({
       where: {

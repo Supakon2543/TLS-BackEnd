@@ -27,6 +27,14 @@ export class CreateLabProcessDto {
   @IsInt()
   created_by: number;
 
+  @ApiProperty({ example: '2023-10-01T12:00:00Z', description: 'Timestamp when the process was created' })
+  @IsString()
+  created_on: string;
+
+  @ApiProperty({ example: '2023-10-02T12:00:00Z', description: 'Timestamp when the process was last updated' })
+  @IsString()
+  updated_on: string;
+
   @ApiProperty({ example: 1002, description: 'ID of the user who last updated the process' })
   @IsInt()
   updated_by: number;

@@ -1,4 +1,4 @@
-import { Body, Injectable, NotFoundException, Param } from '@nestjs/common';
+import { Body, Injectable, NotFoundException, Param, Query } from '@nestjs/common';
 import { CreateRequestTypeDto } from './dto/create-request_type.dto';
 import { UpdateRequestTypeDto } from './dto/update-request_type.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -93,10 +93,10 @@ export class RequestTypeService {
       });
     }
 
-    async find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    async find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       const id = payload.id
       const status = payload.status
-      if (id == "") {
+      if (id == "" || id == null || id == undefined) {
         if (status == 1){
           return await this.prisma.request_type.findMany({
             where: {
@@ -109,7 +109,7 @@ export class RequestTypeService {
               id: true,
               name: true
             }
-          })
+          });
         }
         else if (status == 2) {
           return await this.prisma.request_type.findMany({
@@ -123,7 +123,7 @@ export class RequestTypeService {
               id: true,
               name: true
             }
-          })
+          });
         }
         else {
           return await this.prisma.request_type.findMany({
@@ -134,7 +134,7 @@ export class RequestTypeService {
               id: true,
               name: true
             }
-          })
+          });
         }
       }
       else {
@@ -147,7 +147,7 @@ export class RequestTypeService {
             id: true,
             name: true
           }
-        })
+        });
       }
     }
 }

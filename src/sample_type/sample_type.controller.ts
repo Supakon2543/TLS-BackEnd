@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { SampleTypeService } from './sample_type.service';
 import { CreateSampleTypeDto } from './dto/create-sample_type.dto';
 import { UpdateSampleTypeDto } from './dto/update-sample_type.dto';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('sample-type')
+
+@UseGuards(AuthGuard('jwt'))
+@Controller('sample_type')
 export class SampleTypeController {
   constructor(private readonly sampleTypeService: SampleTypeService) {}
 
@@ -18,7 +21,7 @@ export class SampleTypeController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.sampleTypeService.find(payload/*req, res*/);
     }
   

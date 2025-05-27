@@ -23,6 +23,10 @@ export class CreateChemicalParameterDto {
   @Length(1, 50)
   name: string;
 
+  @IsString()
+  @Length(1, 50)
+  name_abb: string;
+
   @ApiPropertyOptional({ example: 0.5 })
   @IsOptional()
   @IsNumber()
@@ -87,12 +91,26 @@ export class CreateChemicalParameterDto {
 
   @ApiProperty({ example: true })
   @IsBoolean()
+  is_enter_decimal: boolean;
+
+  @ApiProperty({ example: true })
+  @IsBoolean()
   status: boolean;
+
+  @ApiPropertyOptional({ example: new Date() })
+  @IsOptional()
+  @IsString()
+  created_on?: string;
 
   @ApiPropertyOptional({ example: 1001 })
   @IsOptional()
   @IsInt()
   created_by?: number;
+
+  @ApiPropertyOptional({ example: new Date() })
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
 
   @ApiPropertyOptional({ example: 1002 })
   @IsOptional()

@@ -9,7 +9,7 @@ export class SectionService {
 
   // Retrieve sections with filters
   async getSections(params: {
-    id?: number | string;
+    id?: number;
     keyword?: string;
     status?: number | string;
   }) {
@@ -18,6 +18,29 @@ export class SectionService {
     // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
+
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      if (keyword || status) {
+        return this.prisma.section.findMany({
+          where: {
+            ...(id && { id }),
+            ...(typeof status === 'number' && status !== 0
+              ? { status: status === 1 }
+              : {}),
+            ...(keyword && {
+              name: { contains: keyword, mode: 'insensitive' },
+            }),
+          },
+          orderBy: { name: 'asc' },
+          include: {
+            location: {
+              select: { name: true },
+            },
+          },
+        });
+      }
+      return [];
+    }
 
      const section = await this.prisma.section.findMany({
       where: {
@@ -48,7 +71,7 @@ export class SectionService {
   // Create or update a record
   async createOrUpdate(data: CreateSectionDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data; // Destructure to exclude id
+      const { id, created_on, updated_on, ...createData } = data; // Destructure to exclude id
       return this.prisma.section.create({ data: createData }); // Create a new record
     }
     return this.prisma.section.upsert({

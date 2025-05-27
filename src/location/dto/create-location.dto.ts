@@ -26,8 +26,18 @@ export class CreateLocationDto {
   @IsInt()
   created_by?: number;
 
+  @ApiPropertyOptional({ example: '2023-10-01T12:00:00Z', description: 'Timestamp when the location was created' })
+  @IsOptional()
+  @IsString()
+  created_on?: string;
+
   @ApiPropertyOptional({ example: 12, description: 'ID of the user who last updated the location' })
   @IsOptional()
   @IsInt()
   updated_by?: number;
+
+  @ApiPropertyOptional({ example: '2023-10-02T12:00:00Z', description: 'Timestamp when the location was last updated' })
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
 }

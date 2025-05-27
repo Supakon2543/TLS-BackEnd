@@ -15,7 +15,7 @@ datasource db {
 }
 
 model lab_site {
-  id     String  @id @db.VarChar(5)
+  id     String  @id @db.VarChar(10)
   order  Int
   name   String  @db.VarChar(50)
   status Boolean
@@ -130,14 +130,14 @@ model activity_equipment {
 }
 
 model role {
-  id     String  @id @db.VarChar(5)
+  id     String  @id @db.VarChar(10)
   order  Int
   name   String  @db.VarChar(50)
   status Boolean
 }
 
 model user_location {
-  id          String  @id @db.VarChar(5)
+  id          String  @id @db.VarChar(10)
   order       Int
   name        String  @db.VarChar(50)
   lab_site_id String?
@@ -198,7 +198,7 @@ model location_email {
   updated_on         DateTime? @updatedAt
   updated_by         Int?
 
-  user_location      user_location? @relation(fields: [user_location_id], references: [id])
+  user_location user_location? @relation(fields: [user_location_id], references: [id])
 }
 
 model equipment_type {
@@ -311,8 +311,8 @@ model material_microbiology {
   created_on                DateTime? @default(now())
   created_by                Int?
 
-  material material @relation(fields: [material_id], references: [id])
-  microbiology_parameter   microbiology_parameter @relation(fields: [microbiology_parameter_id], references: [id])
+  material               material               @relation(fields: [material_id], references: [id])
+  microbiology_parameter microbiology_parameter @relation(fields: [microbiology_parameter_id], references: [id])
 }
 
 model material_chemical {
@@ -322,27 +322,31 @@ model material_chemical {
   created_on            DateTime? @default(now())
   created_by            Int?
 
-  material material @relation(fields: [material_id], references: [id])
-  chemical_parameter   chemical_parameter  @relation(fields: [chemical_parameter_id], references: [id])
+  material           material           @relation(fields: [material_id], references: [id])
+  chemical_parameter chemical_parameter @relation(fields: [chemical_parameter_id], references: [id])
 }
 
 model microbiology_parameter {
   id                   Int       @id @default(autoincrement())
   order                Int
   name                 String    @db.VarChar(50)
+  name_abb             String?    @default("")
   request_min          Decimal?  @db.Decimal
-  unit_id              Int
-  sample_type_id       String
-  spec_type_id         String
+  unit_id              Int?
+  sample_type_id       String?
+  spec_type_id         String?
   spec                 String    @db.VarChar(100)
   spec_min             Decimal?  @db.Decimal
   spec_max             Decimal?  @db.Decimal
   warning_min          Decimal?  @db.Decimal
   warning_max          Decimal?  @db.Decimal
+  final_result         String
+  decimal              Int
   is_enter_spec_min    Boolean
   is_enter_spec_max    Boolean
   is_enter_warning_min Boolean
   is_enter_warning_max Boolean
+  is_enter_decimal     Boolean
   status               Boolean
   created_on           DateTime? @default(now())
   created_by           Int?
@@ -356,28 +360,30 @@ model chemical_parameter {
   id                   Int       @id @default(autoincrement())
   order                Int
   name                 String    @db.VarChar(50)
+  name_abb             String    @default("")
   request_min          Decimal?
-  unit_id              Int
-  sample_type_id       String
-  spec_type_id         String
-  spec                 String    @db.VarChar(100)
-  spec_min             Decimal
-  spec_max             Decimal
-  warning_min          Decimal
-  warning_max          Decimal
-  final_result         String
-  decimal              Int
-  is_enter_spec_min    Boolean
-  is_enter_spec_max    Boolean
-  is_enter_warning_min Boolean
-  is_enter_warning_max Boolean
-  status               Boolean
+  unit_id              Int?
+  sample_type_id       String?
+  spec_type_id         String?
+  spec                 String?    @db.VarChar(100)
+  spec_min             Decimal?
+  spec_max             Decimal?
+  warning_min          Decimal?
+  warning_max          Decimal?
+  final_result         String?
+  decimal              Int?
+  is_enter_spec_min    Boolean?
+  is_enter_spec_max    Boolean?
+  is_enter_warning_min Boolean?
+  is_enter_warning_max Boolean?
+  is_enter_decimal     Boolean?
+  status               Boolean?
   created_on           DateTime? @default(now())
   created_by           Int?
   updated_on           DateTime? @updatedAt
   updated_by           Int?
 
-  material_chemical    material_chemical[] 
+  material_chemical material_chemical[]
 }
 
 model material {

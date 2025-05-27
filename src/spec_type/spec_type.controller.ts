@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { SpecTypeService } from './spec_type.service';
 import { CreateSpecTypeDto } from './dto/create-spec_type.dto';
 import { UpdateSpecTypeDto } from './dto/update-spec_type.dto';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('spec-type')
+@UseGuards(AuthGuard('jwt'))
+@Controller('spec_type')
 export class SpecTypeController {
   constructor(private readonly specTypeService: SpecTypeService) {}
 
@@ -18,7 +20,7 @@ export class SpecTypeController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.specTypeService.find(payload/*req, res*/);
     }
   

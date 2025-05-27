@@ -9,7 +9,7 @@ export class LocationService {
 
   async createOrUpdate(data: CreateLocationDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data; // Destructure to exclude id
+      const { id, created_on, updated_on, ...createData } = data; // Destructure to exclude id
       return this.prisma.location.create({ data: createData }); // Create a new record
     }
     return this.prisma.location.upsert({
@@ -24,7 +24,7 @@ export class LocationService {
   }
 
   async getLocations(params: {
-    id?: number | string;
+    id?: number ;
     keyword?: string;
     status?: number | string;
   }) {
@@ -33,6 +33,24 @@ export class LocationService {
     // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
+  
+
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      if (keyword || status) {
+        return this.prisma.location.findMany({
+          where: {
+            ...(typeof status === 'number' && status !== 0
+              ? { status: status === 1 }
+              : {}),
+            ...(keyword && {
+              name: { contains: keyword, mode: 'insensitive' },
+            }),
+          },
+          orderBy: { name: 'asc' }, // Sorting by name or any field as needed
+        });
+      }
+      return [];
+    }
 
     return this.prisma.location.findMany({
       where: {

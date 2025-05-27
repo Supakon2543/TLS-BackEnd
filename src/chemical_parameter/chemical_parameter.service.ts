@@ -11,7 +11,7 @@ export class ChemicalParameterService {
   async createOrUpdate(data: CreateChemicalParameterDto) {
 
      if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data;
+      const { id,created_on,updated_on, ...createData } = data;
       return this.prisma.chemical_parameter.create({ data: createData });
     }
     return this.prisma.chemical_parameter.upsert({
@@ -41,6 +41,23 @@ export class ChemicalParameterService {
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      if (keyword || status) {
+        return this.prisma.chemical_parameter.findMany({
+          where: {
+            ...(typeof status === 'number' && status !== 0
+              ? { status: status === 1 }
+              : {}),
+            ...(keyword && {
+              name: { contains: keyword, mode: 'insensitive' },
+            }),
+          },
+          orderBy: { order: 'asc' }, // Sorting by order or any field as needed
+        });
+      }
+      return [];
+    }
+
     const results = await this.prisma.chemical_parameter.findMany({
       where: {
         ...(id && { id }),
@@ -57,10 +74,11 @@ export class ChemicalParameterService {
     // Ensure spec_min is returned as a number (not a string)
     return results.map(item => ({
       ...item,
-      spec_min:
-        typeof item.spec_min === 'string'
-          ? parseFloat(item.spec_min)
-          : item.spec_min,
+      request_min: item.request_min !== null && item.request_min !== undefined ? Number(item.request_min) : null,
+      spec_min: item.spec_min !== null && item.spec_min !== undefined ? Number(item.spec_min) : null,
+      spec_max: item.spec_max !== null && item.spec_max !== undefined ? Number(item.spec_max) : null,
+      warning_max: item.warning_max !== null && item.warning_max !== undefined ? Number(item.warning_max) : null,
+      warning_min: item.warning_min !== null && item.warning_min !== undefined ? Number(item.warning_min) : null,
     }));
   }
 

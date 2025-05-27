@@ -3,7 +3,7 @@ import { IsBoolean, IsNumber, IsString, MaxLength } from "class-validator"
 export class CreateRoleDto {
 
     @IsString()
-    @MaxLength(5)
+    @MaxLength(10)
     id: string
 
     @IsNumber()

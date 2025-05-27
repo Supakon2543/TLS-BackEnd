@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { StatusSampleService } from './status_sample.service';
 import { CreateStatusSampleDto } from './dto/create-status_sample.dto';
 import { UpdateStatusSampleDto } from './dto/update-status_sample.dto';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('status-sample')
+
+@UseGuards(AuthGuard('jwt'))
+@Controller('status_sample')
 export class StatusSampleController {
   constructor(private readonly statusSampleService: StatusSampleService) {}
 
@@ -18,7 +21,7 @@ export class StatusSampleController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.statusSampleService.find(payload/*req, res*/);
     }
   
