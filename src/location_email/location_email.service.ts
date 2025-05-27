@@ -31,14 +31,19 @@ export class LocationEmailService {
   const where: any = {};
   if (id !== undefined && id !== null) where.id = String(id);
   if (keyword) where.name = { contains: keyword, mode: 'insensitive' };
-  if (status !== undefined && status !== null && status !== 0)
-    where.status = status === 1 || status === '1';
+
+  // Build filter for location_emails relation
+  let locationEmailWhere: any = undefined;
+  if (status !== undefined && status !== null && status !== 0) {
+    const statusBool = status === 1 || status === '1';
+    locationEmailWhere = { status: statusBool };
+  }
 
   const userLocations = await this.prisma.user_location.findMany({
     where,
     orderBy: { order: 'asc' },
     include: {
-      location_emails: true,
+      location_emails: locationEmailWhere ? { where: locationEmailWhere } : true,
     },
   });
 

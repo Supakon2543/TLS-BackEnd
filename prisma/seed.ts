@@ -87,6 +87,9 @@ async function clearOldData() {
   await prisma.location.deleteMany();
   await prisma.section.deleteMany();
   await prisma.box.deleteMany();
+  await prisma.manufacturer.deleteMany();  //   5/27/2025
+  await prisma.equipment_type.deleteMany();
+  await prisma.location_email.deleteMany();
   // Add any other models you want to clear here
   console.log('🧹 Old data deleted');
 }
@@ -1120,6 +1123,121 @@ async function seedBoxFromNew() {
   }
   console.log('✅ box (from box.xlsx) seeded');
 }
+
+async function seedManufacturerFromBrand() {
+  const fileName = 'Brand.xlsx';
+  const filePath = path.join(__dirname, 'staticfile', fileName);
+  const wb = xlsx.readFile(filePath);
+  const sheet = wb.SheetNames[0];
+  const rows = xlsx.utils.sheet_to_json<any>(wb.Sheets[sheet], { defval: null });
+
+  for (const r of rows) {
+    try {
+      await prisma.manufacturer.create({
+        data: {
+          id: r.id,
+          name: r.name,
+          is_chemical_stock:
+            r.is_chemical_stock === true ||
+            r.is_chemical_stock === 'TRUE' ||
+            r.is_chemical_stock === 1 ||
+            r.is_chemical_stock === '1',
+          is_equipment_stock:
+            r.is_equipment_stock === true ||
+            r.is_equipment_stock === 'TRUE' ||
+            r.is_equipment_stock === 1 ||
+            r.is_equipment_stock === '1',
+          status:
+            r.status === true ||
+            r.status === 'TRUE' ||
+            r.status === 1 ||
+            r.status === '1',
+
+          created_by: r.created_by ? Number(r.created_by) : 0,
+          updated_by: r.updated_by ? Number(r.updated_by) : 0,
+        },
+      });
+    } catch (e) {
+      console.error('❌ Failed to insert manufacturer:', r, e.message);
+    }
+  }
+  console.log('✅ manufacturer (from brand.xlsx) seeded');
+}
+
+// EquipmentType
+
+async function seedEquipmentTypeFromNew() {
+  const fileName = 'Equipment_Type.xlsx';
+  const filePath = path.join(__dirname, 'staticfile', fileName);
+  const wb = xlsx.readFile(filePath);
+  const sheet = wb.SheetNames[0];
+  const rows = xlsx.utils.sheet_to_json<any>(wb.Sheets[sheet], { defval: null });
+
+  for (const r of rows) {
+    try {
+      await prisma.equipment_type.create({
+        data: {
+          id: r.id,
+          name: r.name,
+          order: Number(r.order),
+          status:
+            r.status === true ||
+            r.status === 'TRUE' ||
+            r.status === 1 ||
+            r.status === '1',
+          created_by: r.created_by ? Number(r.created_by) : 0,
+          updated_by: r.updated_by ? Number(r.updated_by) : 0,
+          // Add other fields as needed
+        },
+      });
+    } catch (e) {
+      console.error('❌ Failed to insert equipment_type:', r, e.message);
+    }
+  }
+  console.log('✅ equipment_type (from Equipment_Type.xlsx) seeded');
+}
+
+async function seedLocationEmailFromEquipmentDueDate() {
+  const fileName = 'Equipment_Due_Date_Notification.xlsx';
+  const filePath = path.join(__dirname, 'staticfile', fileName);
+  const wb = xlsx.readFile(filePath);
+  const sheet = wb.SheetNames[0];
+  const rows = xlsx.utils.sheet_to_json<any>(wb.Sheets[sheet], { defval: null });
+
+  for (const r of rows) {
+    // Resolve user_location_id by name or code if needed
+    let userLocationId = r.user_location_id;
+    if (userLocationId && isNaN(Number(userLocationId))) {
+      const userLocation = await prisma.user_location.findFirst({
+        where: {
+          OR: [
+            { name: userLocationId },
+          ]
+        },
+        select: { id: true },
+      });
+      userLocationId = userLocation ? userLocation.id : null;
+    } else if (userLocationId) {
+      userLocationId = String(userLocationId);
+    }
+
+    try {
+      await prisma.location_email.create({
+        data: {
+          user_location_id: userLocationId,
+          email_notification: r.email_notification,
+          status: r.status === true || r.status === 'TRUE' || r.status === 1 || r.status === '1',
+          created_by: r.created_by ? Number(r.created_by) : 0,
+          updated_by: r.updated_by ? Number(r.updated_by) : 0,
+          // Add other fields as needed
+        },
+      });
+    } catch (e) {
+      console.error('❌ Failed to insert location_email:', r, e.message);
+    }
+  }
+  console.log('✅ location_email (from 019 - Equipment Due Date Notification.xlsx) seeded');
+}
 /* ---------- main runner ---------- */
 
 async function main() {
@@ -1158,6 +1276,9 @@ async function main() {
   await seedLocationFromNew();
   await seedSectionFromNew();
   await seedBoxFromNew();
+  await seedManufacturerFromBrand();
+  await seedEquipmentTypeFromNew();
+  await seedLocationEmailFromEquipmentDueDate();
   console.log('✅ All data seeded successfully');
 }
 
