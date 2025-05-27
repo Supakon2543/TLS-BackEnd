@@ -48,35 +48,36 @@ export class LocationEmailService {
   });
 
   const result: any[] = [];
-  userLocations.forEach(u => {
-    if (u.location_emails.length === 0) {
+userLocations.forEach(u => {
+  // Only push "empty" user_location if status param is NOT set
+  if ((status === undefined || status === null || status === 0) && u.location_emails.length === 0) {
+    result.push({
+      id: null,
+      user_location_id: u.id,
+      user_location_name: u.name,
+      email_notification: null,
+      status: null,
+      created_on: null,
+      created_by: null,
+      updated_on: null,
+      updated_by: null,
+    });
+  } else {
+    u.location_emails.forEach(e => {
       result.push({
-        id: null,
+        id: e.id,
         user_location_id: u.id,
         user_location_name: u.name,
-        email_notification: null,
-        status: null,
-        created_on: null,
-        created_by: null,
-        updated_on: null,
-        updated_by: null,
+        email_notification: e.email_notification,
+        status: e.status,
+        created_on: e.created_on,
+        created_by: e.created_by,
+        updated_on: e.updated_on,
+        updated_by: e.updated_by,
       });
-    } else {
-      u.location_emails.forEach(e => {
-        result.push({
-          id: e.id,
-          user_location_id: u.id,
-          user_location_name: u.name,
-          email_notification: e.email_notification,
-          status: e.status,
-          created_on: e.created_on,
-          created_by: e.created_by,
-          updated_on: e.updated_on,
-          updated_by: e.updated_by,
-        });
-      });
-    }
-  });
+    });
+  }
+});
 
   return result;
 }
