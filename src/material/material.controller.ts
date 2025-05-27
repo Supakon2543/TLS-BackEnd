@@ -25,10 +25,11 @@ export class MaterialController {
     return this.materialService.createOrUpdate(createMaterialDto);
   }
   @Post('')
-  async upsertMaterialWithChildren(@Body() datas: UpsertMaterialDto[]) {
-    for (const data of datas) {
-      await this.materialService.upsertMaterialWithChildren(data);
-    }
+  async upsertMaterialWithChildren(@Body() data: UpsertMaterialDto) {
+    // for (const data of datas) {
+    //   await this.materialService.upsertMaterialWithChildren(data);
+    // }
+    await this.materialService.upsertMaterialWithChildren(data);
     return { code: 200, message: "Success" };
   }
 
