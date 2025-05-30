@@ -96,7 +96,7 @@ export class ActivityRequestService {
     async find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       const id = payload.id
       const status = payload.status
-      if (id == "") {
+      if (id == "" || id == null || id == undefined) {
         if (status == 1){
           return await this.prisma.activity_request.findMany({
             where: {

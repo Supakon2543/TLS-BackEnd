@@ -1,4 +1,4 @@
-import { IsInt, IsString, IsDateString } from 'class-validator';
+import { IsInt, IsString, IsDateString, IsOptional } from 'class-validator';
 
 export class UpsertMaterialChemicalDto {
   @IsInt()
@@ -11,6 +11,7 @@ export class UpsertMaterialChemicalDto {
   chemical_parameter_id: number;
 
   @IsString()
+  @IsOptional()
   chemical_parameter_name: string;
 
   @IsDateString()
