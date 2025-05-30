@@ -41,4 +41,8 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   supervisor_code?: string;
+
+  @IsOptional()
+  @IsString()
+  position_name?: string;
 }
