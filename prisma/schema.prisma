@@ -177,7 +177,8 @@ model user {
   dept_code        String?   @db.VarChar(10)
   dept_name        String?   @db.VarChar(100)
   user_location_id String? // Defaultdata คือ AY, HM, HCC, QAC AY, QAC HM, Incoming HM, Incoming AY
-  supervisor_id    String?
+  supervisor_id    Int?
+  position_name    String?   @db.VarChar(100)
   created_on       DateTime? @default(now()) @db.Timestamptz(3)
   updated_on       DateTime? @updatedAt @db.Timestamptz(3)
 }

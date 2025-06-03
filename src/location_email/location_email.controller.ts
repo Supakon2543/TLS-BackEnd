@@ -14,6 +14,7 @@ import { CreateLocationEmailDto } from './dto/create-location_email.dto';
 import { UpdateLocationEmailDto } from './dto/update-location_email.dto';
 import { AuthGuard } from '@nestjs/passport';
 
+//test
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('location_email')

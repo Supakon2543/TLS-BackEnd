@@ -9,7 +9,7 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   // Create or update a record
-  async createOrUpdate(data: CreateUserDto) {
+  async createOrUpdate(/*p0: { id: number; employee_id: string | null; username: string; fullname: string; tel: string | null; email: string; company: string | null; dept_code: string | null; dept_name: string | null; user_location_id: string | null; position_name: string | null; } | CreateUserDto, p1: { employee_id: any; username: any; fullname: any; tel: any; email: any; company: any; dept_code: any; dept_name: any; user_location_id: string; position_name: any; },*/ data: CreateUserDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
       const { id, ...createData } = data; // Destructure to exclude id
       return this.prisma.user.create({ data: createData }); // Create a new record
