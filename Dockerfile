@@ -1,4 +1,4 @@
-FROM node:18.12.1-alpine
+FROM node:18.18-alpine
 
 ENV NODE_APP_ENV=prod
 ENV NPM_CONFIG_LOGLEVEL info
