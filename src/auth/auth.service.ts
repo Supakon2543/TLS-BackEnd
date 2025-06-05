@@ -12,9 +12,14 @@ export class AuthService {
   constructor(private readonly prisma: PrismaService,
               private readonly usersService: UsersService,
               private readonly userRoleService: UserRoleService,
+              private readonly jwtService: JwtService
   ) {}
 
-  async login(@Body() user: CreateAuthDto): Promise<any> {
+  async login(user: any/*@Body() user: CreateAuthDto*/)/*: Promise<any>*/ {
+    const payload = { username: user.username, sub: user.id };
+    return {
+      access_token: this.jwtService.sign(payload),
+    };/*
     try {
       let response_token: any;
       let user_data: any;
@@ -393,6 +398,6 @@ export class AuthService {
     } catch (error) {
       console.error('External authentication failed:', error.message);
       throw new UnauthorizedException('Invalid credentials or external auth failed');
-    }
+    }*/
   }
 }

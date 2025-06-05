@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
@@ -17,7 +17,7 @@ const secret = process.env.JWTSECRET || '515b400cc9024b3a97fc25aceebb71e3';
       signOptions: { expiresIn: '3h' },
     }),
   ],
-  providers: [AuthService, JwtStrategy, UsersService, UserRoleService, PrismaService],
+  providers: [AuthService, JwtStrategy, UsersService, UserRoleService, PrismaService, JwtService],
   controllers: [AuthController],
   exports: [AuthService],
 })
