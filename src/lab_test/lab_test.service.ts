@@ -7,7 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class LabTestService {
   constructor(private prisma: PrismaService){}
     async create(/*@Request() req: Request, */@Body() payload: CreateLabTestDto/*, @Response() res: Response*/) {
-      return await this.prisma.status_request.create({
+      return await this.prisma.lab_test.create({
         data: payload,
         // select: {
         //   id: true,
@@ -21,33 +21,33 @@ export class LabTestService {
     }
   
     findAll(/*@Request() req: Request, @Response() res: Response*/) {
-      return this.prisma.status_request.findMany({
+      return this.prisma.lab_test.findMany({
         orderBy: { order: 'asc' },
       });
     }
     
   
     async findOne(/*@Request() req: Request, */@Param() id: string/*, @Response() res: Response*/) {
-      const status_request = await this.prisma.status_request.findUnique({
+      const lab_test = await this.prisma.lab_test.findUnique({
         where: { id },
       });
   
-      if (!status_request) {
+      if (!lab_test) {
         throw new NotFoundException(`Lab Test with ID ${id} not found`);
       }
   
-      return status_request;
+      return lab_test;
     }
   
     async update(/*@Request() req: Request, */@Param() id: string, @Body() payload: UpdateLabTestDto/*, @Response() res: Response*/) {
   
-      const existingLabTest = await this.prisma.status_request.findUnique({ where: { id } });
+      const existingLabTest = await this.prisma.lab_test.findUnique({ where: { id } });
   
       if (!existingLabTest) {
         throw new NotFoundException(`Lab Test with ID ${id} not found`);
       }
   
-      return await this.prisma.status_request.update({
+      return await this.prisma.lab_test.update({
         where: { id },
         data: payload,
       });
@@ -55,28 +55,28 @@ export class LabTestService {
   
     async remove(/*@Request() req: Request, */@Param() id: string/*, @Response() res: Response*/) {
       // Check if user exists before deleting
-      const status_request = await this.prisma.status_request.findUnique({
+      const lab_test = await this.prisma.lab_test.findUnique({
         where: { id },
       });
   
-      if (!status_request) {
+      if (!lab_test) {
         throw new NotFoundException(`Lab Test with ID ${id} not found`);
       }
   
       // Perform the delete operation
-      return this.prisma.status_request.delete({
+      return this.prisma.lab_test.delete({
         where: { id },
       });
     }
 
     async create_update(/*@Request() req: Request, */@Body() payload: CreateLabTestDto/*, @Response() res: Response*/) {
       const id = payload.id
-      const status_request = await this.prisma.status_request.findUnique({
+      const lab_test = await this.prisma.lab_test.findUnique({
         where: { id },
       });
   
-      if (!status_request) {
-        return await this.prisma.status_request.create({
+      if (!lab_test) {
+        return await this.prisma.lab_test.create({
           data: payload,
           select: {
             id: true,
@@ -87,7 +87,7 @@ export class LabTestService {
         });
       }
 
-      return await this.prisma.status_request.update({
+      return await this.prisma.lab_test.update({
         where: { id },
         data: payload,
       });
@@ -98,7 +98,7 @@ export class LabTestService {
       const status = payload.status
       if (id == "" || id == null || id == undefined) {
         if (status == 1){
-          return await this.prisma.status_request.findMany({
+          return await this.prisma.lab_test.findMany({
             where: {
               status: true
             },
@@ -112,7 +112,7 @@ export class LabTestService {
           })
         }
         else if (status == 2) {
-          return await this.prisma.status_request.findMany({
+          return await this.prisma.lab_test.findMany({
             where: {
               status: false
             },
@@ -126,7 +126,7 @@ export class LabTestService {
           })
         }
         else {
-          return await this.prisma.status_request.findMany({
+          return await this.prisma.lab_test.findMany({
             orderBy: { 
               order: 'asc'
             },
@@ -138,7 +138,7 @@ export class LabTestService {
         }
       }
       else {
-        return await this.prisma.status_request.findMany({
+        return await this.prisma.lab_test.findMany({
           where: { id },
           orderBy: { 
             order: 'asc'
