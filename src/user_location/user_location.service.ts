@@ -1,4 +1,4 @@
-import { Body, Injectable, NotFoundException, Param } from '@nestjs/common';
+import { Body, Injectable, NotFoundException, Param, Query } from '@nestjs/common';
 import { CreateUserLocationDto } from './dto/create-user_location.dto';
 import { UpdateUserLocationDto } from './dto/update-user_location.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -93,10 +93,10 @@ export class UserLocationService {
       });
     }
 
-    async find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    async find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       const id = payload.id
       const status = payload.status
-      if (id == "") {
+      if (id == "" || id == null || id == undefined) {
         if (status == 1){
           return await this.prisma.user_location.findMany({
             where: {
@@ -107,7 +107,8 @@ export class UserLocationService {
             },
             select: {
               id: true,
-              name: true
+              name: true,
+              lab_site_id: true
             }
           })
         }
@@ -121,7 +122,8 @@ export class UserLocationService {
             },
             select: {
               id: true,
-              name: true
+              name: true,
+              lab_site_id: true
             }
           })
         }
@@ -132,7 +134,8 @@ export class UserLocationService {
             },
             select: {
               id: true,
-              name: true
+              name: true,
+              lab_site_id: true
             }
           })
         }
@@ -145,7 +148,8 @@ export class UserLocationService {
           },
           select: {
             id: true,
-            name: true
+            name: true,
+            lab_site_id: true
           }
         })
       }

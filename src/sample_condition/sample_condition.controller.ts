@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { SampleConditionService } from './sample_condition.service';
 import { CreateSampleConditionDto } from './dto/create-sample_condition.dto';
 import { UpdateSampleConditionDto } from './dto/update-sample_condition.dto';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('sample-condition')
+@UseGuards(AuthGuard('jwt'))
+@Controller('sample_condition')
 export class SampleConditionController {
   constructor(private readonly sampleConditionService: SampleConditionService) {}
 
@@ -18,7 +20,7 @@ export class SampleConditionController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.sampleConditionService.find(payload/*req, res*/);
     }
   

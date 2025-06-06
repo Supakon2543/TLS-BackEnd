@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsString, Length } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, Length } from 'class-validator';
 
 export class CreateSampleStageDto {
   @IsInt()
@@ -19,6 +19,14 @@ export class CreateSampleStageDto {
 
   @IsInt()
   created_by: number;
+
+  @IsOptional()
+  @IsString()
+  created_on?: string;
+
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
 
   @IsInt()
   updated_by: number;

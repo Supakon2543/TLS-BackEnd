@@ -1,13 +1,37 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { UserRoleService } from './user_role.service';
 import { CreateUserRoleDto } from './dto/create-user_role.dto';
 import { UpdateUserRoleDto } from './dto/update-user_role.dto';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('user-role')
+@UseGuards(AuthGuard('jwt'))
+@Controller('user_role')
 export class UserRoleController {
   constructor(private readonly userRoleService: UserRoleService) {}
 
   @Post()
+  createOrUpdate(@Body() createUserRoleDto: CreateUserRoleDto) {
+    return this.userRoleService.createOrUpdate(createUserRoleDto);
+  }
+
+  @Get()
+  getuser_role(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.userRoleService.getuser_role(params);
+  }
+
+  @Post('create')
   create(@Body() createUserRoleDto: CreateUserRoleDto) {
     return this.userRoleService.create(createUserRoleDto);
   }
@@ -23,7 +47,10 @@ export class UserRoleController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserRoleDto: UpdateUserRoleDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateUserRoleDto: UpdateUserRoleDto,
+  ) {
     return this.userRoleService.update(+id, updateUserRoleDto);
   }
 

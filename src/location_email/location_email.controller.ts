@@ -1,13 +1,38 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { LocationEmailService } from './location_email.service';
 import { CreateLocationEmailDto } from './dto/create-location_email.dto';
 import { UpdateLocationEmailDto } from './dto/update-location_email.dto';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('location-email')
+
+@UseGuards(AuthGuard('jwt'))
+@Controller('location_email')
 export class LocationEmailController {
   constructor(private readonly locationEmailService: LocationEmailService) {}
 
   @Post()
+  createOrUpdate(@Body() createLocationEmailDto: CreateLocationEmailDto) {
+    return this.locationEmailService.createOrUpdate(createLocationEmailDto);
+  }
+
+  @Get()
+  getLocationEmails(
+    @Query() params: { id?: string; keyword?: string; status?: number },
+  ) {
+    return this.locationEmailService.getLocationEmails(params);
+  }
+
+  @Post('create')
   create(@Body() createLocationEmailDto: CreateLocationEmailDto) {
     return this.locationEmailService.create(createLocationEmailDto);
   }
@@ -23,7 +48,10 @@ export class LocationEmailController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateLocationEmailDto: UpdateLocationEmailDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateLocationEmailDto: UpdateLocationEmailDto,
+  ) {
     return this.locationEmailService.update(+id, updateLocationEmailDto);
   }
 

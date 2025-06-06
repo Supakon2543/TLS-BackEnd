@@ -1,30 +1,39 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ManufacturerService } from './manufacturer.service';
 import { CreateManufacturerDto } from './dto/create-manufacturer.dto';
 import { UpdateManufacturerDto } from './dto/update-manufacturer.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('manufacturer')
 export class ManufacturerController {
   constructor(private readonly manufacturerService: ManufacturerService) {}
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createManufacturerDto: CreateManufacturerDto) {
     return this.manufacturerService.createOrUpdate(createManufacturerDto);
   }
 
-  @Post()
+  @Post('create')
   create(@Body() createManufacturerDto: CreateManufacturerDto) {
     return this.manufacturerService.create(createManufacturerDto);
   }
 
-  @Get('get-manufacturers')
-  getManufacturers(@Body() params: { id?: number; keyword?: string; status?: number }) {
-    return this.manufacturerService.getManufacturers(params);
-  }
-
   @Get()
-  findAll() {
-    return this.manufacturerService.findAll();
+  getManufacturers(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.manufacturerService.getManufacturers(params);
   }
 
   @Get(':id')
@@ -33,7 +42,10 @@ export class ManufacturerController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateManufacturerDto: UpdateManufacturerDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateManufacturerDto: UpdateManufacturerDto,
+  ) {
     return this.manufacturerService.update(+id, updateManufacturerDto);
   }
 

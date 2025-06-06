@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { LabTestService } from './lab_test.service';
 import { CreateLabTestDto } from './dto/create-lab_test.dto';
 import { UpdateLabTestDto } from './dto/update-lab_test.dto';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('lab-test')
+@UseGuards(AuthGuard('jwt'))
+@Controller('lab_test')
 export class LabTestController {
   constructor(private readonly labTestService: LabTestService) {}
 
@@ -18,7 +20,7 @@ export class LabTestController {
     }
   
     @Get()
-    find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       return this.labTestService.find(payload/*req, res*/);
     }
   

@@ -9,9 +9,13 @@ export class LabProcessService {
 
   // Create or update a lab process
   async createOrUpdate(data: CreateLabProcessDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      const { id, created_on, updated_on, ...createData } = data; // Destructure to exclude id
+      return this.prisma.lab_process.create({ data: createData }); // Create a new record
+    }
     return this.prisma.lab_process.upsert({
       where: { id: data.id },
-      create: { ...data}, // Create a new record with the provided data
+      create: { ...data }, // Create a new record with the provided data
       update: data, // Update the existing record with the provided data
     });
   }
@@ -23,11 +27,32 @@ export class LabProcessService {
   }
 
   async getLabProcesses(params: {
-    id?: number;
+    id?: number | string;
     keyword?: string;
-    status?: number;
+    status?: number | string;
   }) {
-    const { id, keyword, status } = params;
+    let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
+
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      if (keyword || status) {
+        return this.prisma.lab_process.findMany({
+          where: {
+            ...(typeof status === 'number' && status !== 0
+              ? { status: status === 1 }
+              : {}),
+            ...(keyword && {
+              name: { contains: keyword, mode: 'insensitive' },
+            }),
+          },
+          orderBy: { order: 'asc' }, // Sorting by order or any field as needed
+        });
+      }
+      return [];
+    }
 
     return this.prisma.lab_process.findMany({
       where: {

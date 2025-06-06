@@ -1,4 +1,4 @@
-import { Body, Injectable, NotFoundException, Param } from '@nestjs/common';
+import { Body, Injectable, NotFoundException, Param, Query } from '@nestjs/common';
 import { CreateTestReportFormatDto } from './dto/create-test_report_format.dto';
 import { UpdateTestReportFormatDto } from './dto/update-test_report_format.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -93,10 +93,10 @@ export class TestReportFormatService {
       });
     }
 
-    async find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    async find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       const id = payload.id
       const status = payload.status
-      if (id == "") {
+      if (id == "" || id == null || id == undefined) {
         if (status == 1){
           return await this.prisma.test_report_format.findMany({
             where: {

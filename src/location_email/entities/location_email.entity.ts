@@ -12,8 +12,8 @@ export class LocationEmail {
   @Length(1, 15)
   id: string;
 
-  @IsInt()
-  user_location_id: number;
+  @IsString()
+  user_location_id?: string;
 
   @IsOptional()
   @IsString()

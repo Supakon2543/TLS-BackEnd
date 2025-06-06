@@ -1,29 +1,38 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ObjectiveService } from './objective.service';
 import { CreateObjectiveDto } from './dto/create-objective.dto';
 import { UpdateObjectiveDto } from './dto/update-objective.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('objective')
 export class ObjectiveController {
   constructor(private readonly objectiveService: ObjectiveService) {}
 
-  @Post()
+  @Post('create')
   create(@Body() createObjectiveDto: CreateObjectiveDto) {
     return this.objectiveService.create(createObjectiveDto);
   }
 
-  @Post('create-or-update')
+  @Post()
   createOrUpdate(@Body() createObjectiveDto: CreateObjectiveDto) {
     return this.objectiveService.createOrUpdate(createObjectiveDto);
   }
 
   @Get()
-  findAll() {
-    return this.objectiveService.findAll();
-  }
-
-  @Get('get-objectives')
-  getObjectives(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  getObjectives(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
     return this.objectiveService.getObjectives(params);
   }
 
@@ -33,7 +42,10 @@ export class ObjectiveController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateObjectiveDto: UpdateObjectiveDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateObjectiveDto: UpdateObjectiveDto,
+  ) {
     return this.objectiveService.update(+id, updateObjectiveDto);
   }
 

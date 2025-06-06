@@ -26,6 +26,14 @@ export class CreateObjectiveDto {
   @IsInt()
   created_by: number;
 
+  @IsOptional()
+  @IsString()
+  created_on?: string;
+
   @IsInt()
   updated_by: number;
+
+  @IsOptional()
+  @IsString()
+  updated_on?: string;
 }

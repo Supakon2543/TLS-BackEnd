@@ -1,29 +1,57 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { MaterialService } from './material.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { UpsertMaterialDto } from './dto/upsert-material.dto';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('material')
 export class MaterialController {
   constructor(private readonly materialService: MaterialService) {}
 
-  @Post('create-or-update')
+  @Post('create_update')
   createOrUpdate(@Body() createMaterialDto: CreateMaterialDto) {
     return this.materialService.createOrUpdate(createMaterialDto);
   }
+  @Post('')
+  async upsertMaterialWithChildren(@Body() data: UpsertMaterialDto) {
+    // for (const data of datas) {
+    //   await this.materialService.upsertMaterialWithChildren(data);
+    // }
+    await this.materialService.upsertMaterialWithChildren(data);
+    return { code: 200, message: "Success" };
+  }
 
-  @Post()
+  @Post('create')
   create(@Body() createMaterialDto: CreateMaterialDto) {
     return this.materialService.create(createMaterialDto);
   }
 
-  @Get()
-  findAll() {
-    return this.materialService.findAll();
+  @Post('insert')
+  test(@Body() payload: { id: number, name: string, test_report_name: string, status: boolean }) {
+    return this.materialService.insert_material(payload);
   }
 
-  @Get('get-materials')
-  getMaterials(@Body() params: { id?: number; keyword?: string; status?: number }) {
+  @Get('get')
+  get_test(@Body() payload: { id: number, keyword: string, status: number }) {
+    return this.materialService.get_material(payload);
+  }
+
+  @Get()
+  getMaterials(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
     return this.materialService.getMaterials(params);
   }
 
@@ -33,7 +61,10 @@ export class MaterialController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMaterialDto: UpdateMaterialDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateMaterialDto: UpdateMaterialDto,
+  ) {
     return this.materialService.update(+id, updateMaterialDto);
   }
 

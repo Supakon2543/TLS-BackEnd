@@ -9,6 +9,10 @@ export class LineService {
 
   // Create or update a line
   async createOrUpdate(data: CreateLineDto) {
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      const { id, created_on, updated_on, ...createData } = data; // Destructure to exclude id
+      return this.prisma.line.create({ data: createData }); // Create a new record
+    }
     return this.prisma.line.upsert({
       where: { id: data.id },
       create: { ...data }, // Create a new record with the provided data
@@ -16,19 +20,32 @@ export class LineService {
     });
   }
 
-  // Create a new line
-  async create(data: CreateLineDto) {
-    return this.prisma.line.create({ data });
-  }
-
-  // Retrieve all lines
-  async findAll() {
-    return this.prisma.line.findMany();
-  }
-
   // Retrieve lines with filters
-  async getLines(params: { id?: number; keyword?: string; status?: number }) {
-    const { id, keyword, status } = params;
+  async getLines(params: {
+    id?: number | string;
+    keyword?: string;
+    status?: number | string;
+  }) {
+    let { id, keyword, status } = params;
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
+
+    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+      if (keyword || status) {
+        return this.prisma.line.findMany({
+          where: {
+            ...(typeof status === 'number' && status !== 0
+              ? { status: status === 1 }
+              : {}),
+            ...(keyword && {
+              name: { contains: keyword, mode: 'insensitive' },
+            }),
+          },
+          orderBy: { name: 'asc' }, // Sorting by name or any field as needed
+        });
+      }
+      return [];
+    }
 
     return this.prisma.line.findMany({
       where: {
@@ -40,8 +57,18 @@ export class LineService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { code: 'asc' },
+      orderBy: { name: 'asc' },
     });
+  }
+
+  // Create a new line
+  async create(data: CreateLineDto) {
+    return this.prisma.line.create({ data });
+  }
+
+  // Retrieve all lines
+  async findAll() {
+    return this.prisma.line.findMany();
   }
 
   // Retrieve a single line by ID

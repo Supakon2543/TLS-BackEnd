@@ -15,138 +15,142 @@ datasource db {
 }
 
 model lab_site {
-  id      String  @id @db.VarChar(5)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model request_type {
-  id      String  @id @db.VarChar(10)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model state {
-  id      String  @id @db.VarChar(10)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model status_request {
-  id        String  @id @db.VarChar(10)
-  order     Int
-  name      String  @db.VarChar(50)
-  state_id  String?
-  status    Boolean
+  id       String  @id @db.VarChar(10)
+  order    Int
+  name     String  @db.VarChar(50)
+  state_id String?
+  status   Boolean
 }
 
 model status_sample {
-  id      String  @id @db.VarChar(10)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model status_retain {
-  id      String  @id @db.VarChar(15)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model status_equipment {
-  id      String  @id @db.VarChar(15)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model sample_type {
-  id      String  @id @db.VarChar(10)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model lab_test {
-  id      String  @id @db.VarChar(10)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model category_chemical {
-  id      String  @id @db.VarChar(5)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(5)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  chemicals chemical[]
 }
 
 model sample_condition {
-  id      String  @id @db.VarChar(10)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model test_report_format {
-  id      String  @id @db.VarChar(15)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model accredited {
-  id      String  @id @db.VarChar(10)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model spec_type {
-  id      String  @id @db.VarChar(10)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model activity_request {
-  id      String  @id @db.VarChar(15)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model activity_equipment {
-  id      String  @id @db.VarChar(15)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model role {
-  id      String  @id @db.VarChar(5)
-  order   Int
-  name    String  @db.VarChar(50)
-  status  Boolean
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
 }
 
 model user_location {
-  id          String  @id @db.VarChar(5)
+  id          String  @id @db.VarChar(10)
   order       Int
   name        String  @db.VarChar(50)
   lab_site_id String?
   status      Boolean
+
+  location_emails location_email[]
 }
 
 model chemical {
-  id                  Int       @unique @default(autoincrement())
+  id                   Int       @unique @default(autoincrement())
   code                 String
   name                 String
-  manufacturer_id      Int  
+  manufacturer_id      Int
   category_chemical_id String
   storage_condition    String
   min_stock            Int
@@ -157,6 +161,9 @@ model chemical {
   created_by           Int?
   updated_on           DateTime? @updatedAt
   updated_by           Int?
+
+  manufacturer      manufacturer?      @relation(fields: [manufacturer_id], references: [id])
+  category_chemical category_chemical? @relation(fields: [category_chemical_id], references: [id])
 }
 
 model user {
@@ -182,14 +189,16 @@ model user_role {
 }
 
 model location_email {
-  id                 Int    @id @default(autoincrement())
-  user_location_id   Int
+  id                 Int       @id @default(autoincrement())
+  user_location_id   String?
   email_notification String?   @db.VarChar(500)
   status             Boolean
   created_on         DateTime? @default(now())
   created_by         Int?
   updated_on         DateTime? @updatedAt
   updated_by         Int?
+
+  user_location user_location? @relation(fields: [user_location_id], references: [id])
 }
 
 model equipment_type {
@@ -213,6 +222,8 @@ model manufacturer {
   created_by         Int?
   updated_on         DateTime? @updatedAt
   updated_by         Int?
+
+  chemicals chemical[]
 }
 
 model StorageUnit {
@@ -238,6 +249,9 @@ model section {
   created_by    Int?
   updated_on    DateTime? @default(now())
   updated_by    Int?
+
+  location location? @relation(fields: [location_id], references: [id])
+  boxes    box[]
 }
 
 model location {
@@ -248,6 +262,9 @@ model location {
   created_by Int?
   updated_on DateTime? @default(now())
   updated_by Int?
+
+  sections section[]
+  boxes    box[]
 }
 
 model category_edit {
@@ -293,6 +310,9 @@ model material_microbiology {
   microbiology_parameter_id Int
   created_on                DateTime? @default(now())
   created_by                Int?
+
+  material               material               @relation(fields: [material_id], references: [id])
+  microbiology_parameter microbiology_parameter @relation(fields: [microbiology_parameter_id], references: [id])
 }
 
 model material_chemical {
@@ -301,56 +321,69 @@ model material_chemical {
   chemical_parameter_id Int
   created_on            DateTime? @default(now())
   created_by            Int?
+
+  material           material           @relation(fields: [material_id], references: [id])
+  chemical_parameter chemical_parameter @relation(fields: [chemical_parameter_id], references: [id])
 }
 
 model microbiology_parameter {
   id                   Int       @id @default(autoincrement())
   order                Int
   name                 String    @db.VarChar(50)
+  name_abb             String?    @default("")
   request_min          Decimal?  @db.Decimal
-  unit_id              Int
-  sample_type_id       String
-  spec_type_id         String
+  unit_id              Int?
+  sample_type_id       String?
+  spec_type_id         String?
   spec                 String    @db.VarChar(100)
   spec_min             Decimal?  @db.Decimal
   spec_max             Decimal?  @db.Decimal
   warning_min          Decimal?  @db.Decimal
   warning_max          Decimal?  @db.Decimal
+  final_result         String
+  decimal              Int
   is_enter_spec_min    Boolean
   is_enter_spec_max    Boolean
   is_enter_warning_min Boolean
   is_enter_warning_max Boolean
+  is_enter_decimal     Boolean
   status               Boolean
   created_on           DateTime? @default(now())
   created_by           Int?
   updated_on           DateTime? @updatedAt
   updated_by           Int?
+
+  material_microbiology material_microbiology[] // <-- Must exist
 }
 
 model chemical_parameter {
   id                   Int       @id @default(autoincrement())
   order                Int
   name                 String    @db.VarChar(50)
+  name_abb             String    @default("")
   request_min          Decimal?
-  unit_id              Int
-  sample_type_id       String
-  spec_type_id         String
-  spec                 String    @db.VarChar(100)
-  spec_min             Decimal
-  spec_max             Decimal
-  warning_min          Decimal
-  warning_max          Decimal
-  final_result         String
-  decimal              Int    
-  is_enter_spec_min    Boolean
-  is_enter_spec_max    Boolean
-  is_enter_warning_min Boolean
-  is_enter_warning_max Boolean
-  status               Boolean
+  unit_id              Int?
+  sample_type_id       String?
+  spec_type_id         String?
+  spec                 String?    @db.VarChar(100)
+  spec_min             Decimal?
+  spec_max             Decimal?
+  warning_min          Decimal?
+  warning_max          Decimal?
+  final_result         String?
+  decimal              Int?
+  is_enter_spec_min    Boolean?
+  is_enter_spec_max    Boolean?
+  is_enter_warning_min Boolean?
+  is_enter_warning_max Boolean?
+  is_enter_decimal     Boolean?
+  status               Boolean?
   created_on           DateTime? @default(now())
   created_by           Int?
   updated_on           DateTime? @updatedAt
   updated_by           Int?
+
+  material_chemical material_chemical[]
 }
 
 model material {
@@ -362,6 +395,9 @@ model material {
   created_by       Int?
   updated_on       DateTime? @updatedAt
   updated_by       Int?
+
+  material_chemical     material_chemical[] // <-- Must exist
+  material_microbiology material_microbiology[]
 }
 
 model sample_retaining {
@@ -424,6 +460,6 @@ model box {
   updated_on       DateTime? @updatedAt
   updated_by       Int?
 
+  location location? @relation(fields: [location_id], references: [id])
+  section  section?  @relation(fields: [section_id], references: [id])
 }
-
-

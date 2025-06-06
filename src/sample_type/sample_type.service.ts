@@ -1,4 +1,4 @@
-import { Body, Injectable, NotFoundException, Param } from '@nestjs/common';
+import { Body, Injectable, NotFoundException, Param, Query } from '@nestjs/common';
 import { CreateSampleTypeDto } from './dto/create-sample_type.dto';
 import { UpdateSampleTypeDto } from './dto/update-sample_type.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -93,10 +93,10 @@ export class SampleTypeService {
       });
     }
 
-    async find(@Body() payload: {id: string, status: number}/*@Request() req: Request, @Response() res: Response*/) {
+    async find(@Query() payload: {id?: string; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
       const id = payload.id
       const status = payload.status
-      if (id == "") {
+      if (id == "" || id == null || id == undefined) {
         if (status == 1){
           return await this.prisma.sample_type.findMany({
             where: {
