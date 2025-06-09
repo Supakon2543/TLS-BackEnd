@@ -13,7 +13,7 @@ const secret = process.env.JWTSECRET || '515b400cc9024b3a97fc25aceebb71e3';
   imports: [
     PassportModule,
     JwtModule.register({
-      secret: secret, // Use env variable in production!
+      secret: process.env.JWTSECRET, // Use env variable in production!
       signOptions: { expiresIn: '3h' },
     }),
   ],
