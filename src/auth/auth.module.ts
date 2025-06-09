@@ -14,7 +14,7 @@ console.log('JWT Secret From .ENV:', process.env.JWTSECRET); // Log the secret f
   imports: [
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWTSECRET, // Use env variable in production!
+      secret: '515b400cc9024b3a97fc25aceebb71e3', // Use env variable in production!
       signOptions: { expiresIn: '3h' },
     }),
   ],
