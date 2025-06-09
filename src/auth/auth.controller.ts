@@ -18,6 +18,6 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Body() user: CreateAuthDto) {
     // Validate user here (e.g., check password)
-    return "process.env.JWTSECRET #2 : " + String(process.env.JWTSECRET)
+    return "process.env.JWTSECRET #3 : " + String(process.env.JWTSECRET)
   }
 }
