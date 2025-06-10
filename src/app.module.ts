@@ -42,6 +42,9 @@ import { ObjectiveModule } from './objective/objective.module';
 import { BoxModule } from './box/box.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthMiddleware } from './middleware/auth.middleware';
+import { SampleDescriptionModule } from './sample_description/sample_description.module';
+import { ReportHeadingModule } from './report_heading/report_heading.module';
+import { RequestModule } from './request/request.module';
 
 @Module({
   imports: [
@@ -85,6 +88,9 @@ import { AuthMiddleware } from './middleware/auth.middleware';
     ObjectiveModule,
     BoxModule,
     AuthModule,
+    SampleDescriptionModule,
+    ReportHeadingModule,
+    RequestModule,
   ],
   controllers: [AppController],
   providers: [AppService],

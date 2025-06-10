@@ -440,6 +440,38 @@ async function seedUserLocation() {
   console.log('✅ user_location seeded');
 }
 
+async function seedSampleDescription() {
+  const rows = readExcel<StaticRow>('sample_description.xlsx');
+
+  for (const r of rows) {
+    await prisma.user_location.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ sample_description seeded');
+}
+
+async function seedReportHeading() {
+  const rows = readExcel<StaticRow>('report_heading.xlsx');
+
+  for (const r of rows) {
+    await prisma.user_location.create({
+      data: {
+        id: r.id,
+        order: Number(r.order),
+        name: r.name,
+        status: toBool(r.status),
+      },
+    });
+  }
+  console.log('✅ report_heading seeded');
+}
+
 async function seedObjectiveFromNew() {
   const fileName = 'Objective.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
@@ -1263,6 +1295,8 @@ async function main() {
   await seedActivityEquipment();
   await seedRole();
   await seedUserLocation();
+  await seedSampleDescription();
+  await seedReportHeading();
   await seedObjectiveFromNew();
   await seedSampleStateFromNew();
   await seedLineFromNew();

@@ -1,13 +1,13 @@
 import { Body, Injectable, NotFoundException, Param, Query } from '@nestjs/common';
-import { CreateLabTestDto } from './dto/create-lab_test.dto';
-import { UpdateLabTestDto } from './dto/update-lab_test.dto';
+import { CreateSampleDescriptionDto } from './dto/create-sample_description.dto';
+import { UpdateSampleDescriptionDto } from './dto/update-sample_description.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
-export class LabTestService {
-  constructor(private prisma: PrismaService){}
-    async create(/*@Request() req: Request, */@Body() payload: CreateLabTestDto/*, @Response() res: Response*/) {
-      return await this.prisma.lab_test.create({
+export class SampleDescriptionService {
+  constructor(private readonly prisma: PrismaService){}
+    async create(/*@Request() req: Request, */@Body() payload: CreateSampleDescriptionDto/*, @Response() res: Response*/) {
+      return await this.prisma.sample_description.create({
         data: payload,
         // select: {
         //   id: true,
@@ -21,33 +21,33 @@ export class LabTestService {
     }
   
     findAll(/*@Request() req: Request, @Response() res: Response*/) {
-      return this.prisma.lab_test.findMany({
+      return this.prisma.sample_description.findMany({
         orderBy: { order: 'asc' },
       });
     }
     
   
     async findOne(/*@Request() req: Request, */@Param() id: string/*, @Response() res: Response*/) {
-      const lab_test = await this.prisma.lab_test.findUnique({
+      const sample_description = await this.prisma.sample_description.findUnique({
         where: { id },
       });
   
-      if (!lab_test) {
-        throw new NotFoundException(`Lab Test with ID ${id} not found`);
+      if (!sample_description) {
+        throw new NotFoundException(`Sample Description with ID ${id} not found`);
       }
   
-      return lab_test;
+      return sample_description;
     }
   
-    async update(/*@Request() req: Request, */@Param() id: string, @Body() payload: UpdateLabTestDto/*, @Response() res: Response*/) {
+    async update(/*@Request() req: Request, */@Param() id: string, @Body() payload: UpdateSampleDescriptionDto/*, @Response() res: Response*/) {
   
-      const existingLabTest = await this.prisma.lab_test.findUnique({ where: { id } });
+      const existingSampleDescription = await this.prisma.sample_description.findUnique({ where: { id } });
   
-      if (!existingLabTest) {
-        throw new NotFoundException(`Lab Test with ID ${id} not found`);
+      if (!existingSampleDescription) {
+        throw new NotFoundException(`Sample Description with ID ${id} not found`);
       }
   
-      return await this.prisma.lab_test.update({
+      return await this.prisma.sample_description.update({
         where: { id },
         data: payload,
       });
@@ -55,28 +55,28 @@ export class LabTestService {
   
     async remove(/*@Request() req: Request, */@Param() id: string/*, @Response() res: Response*/) {
       // Check if user exists before deleting
-      const lab_test = await this.prisma.lab_test.findUnique({
+      const sample_description = await this.prisma.sample_description.findUnique({
         where: { id },
       });
   
-      if (!lab_test) {
-        throw new NotFoundException(`Lab Test with ID ${id} not found`);
+      if (!sample_description) {
+        throw new NotFoundException(`Sample Description with ID ${id} not found`);
       }
   
       // Perform the delete operation
-      return this.prisma.lab_test.delete({
+      return this.prisma.sample_description.delete({
         where: { id },
       });
     }
 
-    async create_update(/*@Request() req: Request, */@Body() payload: CreateLabTestDto/*, @Response() res: Response*/) {
+    async create_update(/*@Request() req: Request, */@Body() payload: CreateSampleDescriptionDto/*, @Response() res: Response*/) {
       const id = payload.id
-      const lab_test = await this.prisma.lab_test.findUnique({
+      const sample_description = await this.prisma.sample_description.findUnique({
         where: { id },
       });
   
-      if (!lab_test) {
-        return await this.prisma.lab_test.create({
+      if (!sample_description) {
+        return await this.prisma.sample_description.create({
           data: payload,
           select: {
             id: true,
@@ -87,7 +87,7 @@ export class LabTestService {
         });
       }
 
-      return await this.prisma.lab_test.update({
+      return await this.prisma.sample_description.update({
         where: { id },
         data: payload,
       });
@@ -98,7 +98,7 @@ export class LabTestService {
       const status = payload.status
       if (id == "" || id == null || id == undefined) {
         if (status == 1){
-          return await this.prisma.lab_test.findMany({
+          return await this.prisma.sample_description.findMany({
             where: {
               status: true
             },
@@ -112,7 +112,7 @@ export class LabTestService {
           })
         }
         else if (status == 2) {
-          return await this.prisma.lab_test.findMany({
+          return await this.prisma.sample_description.findMany({
             where: {
               status: false
             },
@@ -126,7 +126,7 @@ export class LabTestService {
           })
         }
         else {
-          return await this.prisma.lab_test.findMany({
+          return await this.prisma.sample_description.findMany({
             orderBy: { 
               order: 'asc'
             },
@@ -138,7 +138,7 @@ export class LabTestService {
         }
       }
       else {
-        return await this.prisma.lab_test.findMany({
+        return await this.prisma.sample_description.findMany({
           where: { id },
           orderBy: { 
             order: 'asc'
