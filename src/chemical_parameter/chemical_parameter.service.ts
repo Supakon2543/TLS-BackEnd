@@ -6,81 +6,207 @@ import { UpdateChemicalParameterDto } from './dto/update-chemical_parameter.dto'
 @Injectable()
 export class ChemicalParameterService {
   constructor(private readonly prisma: PrismaService) {}
-  
-  
+
   async createOrUpdate(data: CreateChemicalParameterDto) {
+    const { id, chemical_sample_description, ...parameterData } = data;
 
-     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id,created_on,updated_on, ...createData } = data;
-      return this.prisma.chemical_parameter.create({ data: createData });
-    }
-    return this.prisma.chemical_parameter.upsert({
-      where: { id: data.id },
-      create: { ...data }, 
-      update: data, 
-    });
-  }
+    let chemicalSampleDescriptions: Array<any> = [];
+    if (
+      chemical_sample_description &&
+      Array.isArray(chemical_sample_description)
+    ) {
+      chemicalSampleDescriptions = await Promise.all(
+        chemical_sample_description.map(async (desc) => {
+          const { id: descId, chemical_parameter_id, ...descData } = desc;
+          if (!descId || descId === 0) {
+            return { ...descData };
+          } else {
+            await this.prisma.chemical_sample_description.update({
+              where: { id: descId },
+              data: { ...descData },
+            });
 
-
-  // Create new record
-  async create(dto: CreateChemicalParameterDto) {
-    return this.prisma.chemical_parameter.create({
-      data: dto,
-    });
-  }
-
-  // Get records with filters
-    async getChemicalParameters(params: {
-    id?: number | string;
-    keyword?: string;
-    status?: number | string;
-  }) {
-    let { id, keyword, status } = params;
-
-    // Convert id and status to numbers if they are strings
-    id = id !== undefined ? +id : undefined;
-    status = status !== undefined ? +status : undefined;
-
-    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
-      if (keyword || status) {
-        return this.prisma.chemical_parameter.findMany({
-          where: {
-            ...(typeof status === 'number' && status !== 0
-              ? { status: status === 1 }
-              : {}),
-            ...(keyword && {
-              name: { contains: keyword, mode: 'insensitive' },
-            }),
-          },
-          orderBy: { order: 'asc' }, // Sorting by order or any field as needed
-        });
-      }
-      return [];
-    }
-
-    const results = await this.prisma.chemical_parameter.findMany({
-      where: {
-        ...(id && { id }),
-        ...(typeof status === 'number' && status !== 0
-          ? { status: status === 1 }
-          : {}),
-        ...(keyword && {
-          name: { contains: keyword, mode: 'insensitive' },
+            return { id: descId };
+          }
         }),
-      },
-      orderBy: { order: 'asc' },
-    });
+      );
+    }
 
-    // Ensure spec_min is returned as a number (not a string)
-    return results.map(item => ({
-      ...item,
-      request_min: item.request_min !== null && item.request_min !== undefined ? Number(item.request_min) : null,
-      spec_min: item.spec_min !== null && item.spec_min !== undefined ? Number(item.spec_min) : null,
-      spec_max: item.spec_max !== null && item.spec_max !== undefined ? Number(item.spec_max) : null,
-      warning_max: item.warning_max !== null && item.warning_max !== undefined ? Number(item.warning_max) : null,
-      warning_min: item.warning_min !== null && item.warning_min !== undefined ? Number(item.warning_min) : null,
-    }));
+    if (!id) {
+      // Create chemical_parameter with nested create for new chemical_sample_description
+      return this.prisma.chemical_parameter.create({
+        data: {
+          ...parameterData,
+          chemical_sample_description: chemicalSampleDescriptions.length
+            ? {
+                create: chemicalSampleDescriptions.filter(
+                  (desc: any) => !desc.id,
+                ),
+                connect: chemicalSampleDescriptions
+                  .filter((desc: any) => desc.id)
+                  .map((desc: any) => ({ id: desc.id })),
+              }
+            : undefined,
+        },
+        include: { chemical_sample_description: true },
+      });
+    }
+
+    // For update: update parameter and handle nested chemical_sample_description
+    return this.prisma.chemical_parameter.update({
+      where: { id },
+      data: {
+        ...parameterData,
+        chemical_sample_description: chemicalSampleDescriptions.length
+          ? {
+              create: chemicalSampleDescriptions.filter(
+                (desc: any) => !desc.id,
+              ),
+              connect: chemicalSampleDescriptions
+                .filter((desc: any) => desc.id)
+                .map((desc: any) => ({ id: desc.id })),
+            }
+          : undefined,
+      },
+      include: { chemical_sample_description: true },
+    });
   }
+  // async getChemicalParameters(params: {
+  //   id?: number | string;
+  //   keyword?: string;
+  //   status?: number | string;
+  // }) {
+  //   let { id, keyword, status } = params;
+
+  //   // Convert id and status to numbers if they are strings
+  //   id = id !== undefined ? +id : undefined;
+  //   status = status !== undefined ? +status : undefined;
+
+  //   if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+  //     if (keyword || status) {
+  //       return this.prisma.chemical_parameter.findMany({
+  //         where: {
+  //           ...(typeof status === 'number' && status !== 0
+  //             ? { status: status === 1 }
+  //             : {}),
+  //           ...(keyword && {
+  //             name: { contains: keyword, mode: 'insensitive' },
+  //           }),
+  //         },
+  //         orderBy: { order: 'asc' }, // Sorting by order or any field as needed
+  //       });
+  //     }
+  //     return [];
+  //   }
+
+  //   const results = await this.prisma.chemical_parameter.findMany({
+  //     where: {
+  //       ...(id && { id }),
+  //       ...(typeof status === 'number' && status !== 0
+  //         ? { status: status === 1 }
+  //         : {}),
+  //       ...(keyword && {
+  //         name: { contains: keyword, mode: 'insensitive' },
+  //       }),
+  //     },
+  //     orderBy: { order: 'asc' },
+  //   });
+
+  //   // Ensure spec_min is returned as a number (not a string)
+  //   return results.map((item) => ({
+  //     ...item,
+  //     request_min:
+  //       item.request_min !== null && item.request_min !== undefined
+  //         ? Number(item.request_min)
+  //         : null,
+  //     spec_min:
+  //       item.spec_min !== null && item.spec_min !== undefined
+  //         ? Number(item.spec_min)
+  //         : null,
+  //     spec_max:
+  //       item.spec_max !== null && item.spec_max !== undefined
+  //         ? Number(item.spec_max)
+  //         : null,
+  //     warning_max:
+  //       item.warning_max !== null && item.warning_max !== undefined
+  //         ? Number(item.warning_max)
+  //         : null,
+  //     warning_min:
+  //       item.warning_min !== null && item.warning_min !== undefined
+  //         ? Number(item.warning_min)
+  //         : null,
+  //   }));
+  // } แบบเก่า
+
+  async getChemicalParameters(params: {
+  id?: number | string;
+  keyword?: string;
+  status?: number | string;
+}) {
+  let { id, keyword, status } = params;
+
+  // Convert id and status to numbers if they are strings
+  id = id !== undefined ? +id : undefined;
+  status = status !== undefined ? +status : undefined;
+
+  if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+    if (keyword || status) {
+      return this.prisma.chemical_parameter.findMany({
+        where: {
+          ...(typeof status === 'number' && status !== 0
+            ? { status: status === 1 }
+            : {}),
+          ...(keyword && {
+            name: { contains: keyword, mode: 'insensitive' },
+          }),
+        },
+        orderBy: { order: 'asc' },
+        include: { chemical_sample_description: true }, // <-- include related descriptions
+      });
+    }
+    return [];
+  }
+
+  const results = await this.prisma.chemical_parameter.findMany({
+    where: {
+      ...(id && { id }),
+      ...(typeof status === 'number' && status !== 0
+        ? { status: status === 1 }
+        : {}),
+      ...(keyword && {
+        name: { contains: keyword, mode: 'insensitive' },
+      }),
+    },
+    orderBy: { order: 'asc' },
+    include: { chemical_sample_description: true }, // <-- include related descriptions
+  });
+
+  // Ensure spec_min is returned as a number (not a string)
+  return results.map((item) => ({
+    ...item,
+    request_min:
+      item.request_min !== null && item.request_min !== undefined
+        ? Number(item.request_min)
+        : null,
+    spec_min:
+      item.spec_min !== null && item.spec_min !== undefined
+        ? Number(item.spec_min)
+        : null,
+    spec_max:
+      item.spec_max !== null && item.spec_max !== undefined
+        ? Number(item.spec_max)
+        : null,
+    warning_max:
+      item.warning_max !== null && item.warning_max !== undefined
+        ? Number(item.warning_max)
+        : null,
+    warning_min:
+      item.warning_min !== null && item.warning_min !== undefined
+        ? Number(item.warning_min)
+        : null,
+    chemical_sample_description: item.chemical_sample_description, // included in result
+  }));
+}
 
   // Get all records
   async findAll() {
@@ -120,4 +246,48 @@ export class ChemicalParameterService {
       where: { id },
     });
   }
+
+  // Map chemical_parameter to chemical_sample_description
+  // Map chemical_sample_description to chemical_parameter (LEFT JOIN base: chemical_sample_description)
+async Chemical_paraMapChemical_description(params: {
+  id?: number | string;
+  keyword?: string;
+  status?: number | string;
+}) {
+  let { id, keyword, status } = params;
+
+  // Build where clause for chemical_sample_description
+  const where: any = {};
+  if (id !== undefined && id !== null) where.id = +id;
+  if (keyword) where.sample_description_id = { contains: keyword, mode: 'insensitive' };
+  // If you want to filter by status, add status field to chemical_sample_description model and here
+
+  // Fetch chemical_sample_description with related chemical_parameter (left join)
+  const descriptions = await this.prisma.chemical_sample_description.findMany({
+    where,
+    orderBy: { id: 'asc' },
+    include: {
+      chemical_parameter: true,
+    },
+  });
+
+  // Flatten the result to map each chemical_sample_description to its parameter
+  const result: any[] = [];
+  descriptions.forEach(desc => {
+    result.push({
+      chemical_sample_description_id: desc.id,
+      sample_description_id: desc.sample_description_id,
+      lod_value: desc.lod_value,
+      loq_value: desc.loq_value,
+      created_on: desc.created_on,
+      created_by: desc.created_by,
+      updated_on: desc.updated_on,
+      updated_by: desc.updated_by,
+      chemical_parameter_id: desc.chemical_parameter?.id ?? null,
+      chemical_parameter_name: desc.chemical_parameter?.name ?? null,
+    });
+  });
+
+  return result;
+}
 }

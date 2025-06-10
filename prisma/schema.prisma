@@ -384,6 +384,7 @@ model chemical_parameter {
   updated_by           Int?
 
   material_chemical material_chemical[]
+  chemical_sample_description  chemical_sample_description[]
 }
 
 model material {
@@ -487,13 +488,15 @@ model signature {
 model chemical_sample_description {
   id                    Int       @id @default(autoincrement())
   sample_description_id String
-  chemical_parameter_id String
+  chemical_parameter_id Int
   lod_value             String?
   loq_value             String?
   created_on            DateTime? @default(now()) @db.Timestamptz(6)
   created_by            Int?
   updated_on            DateTime? @updatedAt @db.Timestamptz(6)
   updated_by            Int?
+
+  chemical_parameter chemical_parameter @relation(fields: [chemical_parameter_id], references: [id])
 }
 
 model microbiology_sample_description {

@@ -1,20 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { MicrobiologySampleDescriptionService } from './microbiology_sample_description.service';
 import { CreateMicrobiologySampleDescriptionDto } from './dto/create-microbiology_sample_description.dto';
 import { UpdateMicrobiologySampleDescriptionDto } from './dto/update-microbiology_sample_description.dto';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('microbiology-sample-description')
+@UseGuards(AuthGuard('jwt'))
+@Controller('microbiology_sample_description')
 export class MicrobiologySampleDescriptionController {
   constructor(private readonly microbiologySampleDescriptionService: MicrobiologySampleDescriptionService) {}
 
   @Post()
   create(@Body() createMicrobiologySampleDescriptionDto: CreateMicrobiologySampleDescriptionDto) {
-    return this.microbiologySampleDescriptionService.create(createMicrobiologySampleDescriptionDto);
+    return this.microbiologySampleDescriptionService.createOrUpdate(createMicrobiologySampleDescriptionDto);
   }
 
   @Get()
-  findAll() {
-    return this.microbiologySampleDescriptionService.findAll();
+  getMicrobiologySampleDescriptions(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.microbiologySampleDescriptionService.getMicrobiologySampleDescriptions(params);
   }
 
   @Get(':id')
