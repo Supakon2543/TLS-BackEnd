@@ -41,6 +41,10 @@ import { SampleStageModule } from './sample_stage/sample_stage.module';
 import { ObjectiveModule } from './objective/objective.module';
 import { BoxModule } from './box/box.module';
 import { AuthModule } from './auth/auth.module';
+import { ChemicalSampleDescriptionModule } from './chemical_sample_description/chemical_sample_description.module';
+import { MicrobiologySampleDescriptionModule } from './microbiology_sample_description/microbiology_sample_description.module';
+import { CustomerContactInfoModule } from './customer_contact_info/customer_contact_info.module';
+import { SignatureModule } from './signature/signature.module';
 
 @Module({
   imports: [
@@ -84,6 +88,10 @@ import { AuthModule } from './auth/auth.module';
     ObjectiveModule,
     BoxModule,
     AuthModule,
+    ChemicalSampleDescriptionModule,
+    MicrobiologySampleDescriptionModule,
+    CustomerContactInfoModule,
+    SignatureModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -330,7 +330,7 @@ model microbiology_parameter {
   id                   Int       @id @default(autoincrement())
   order                Int
   name                 String    @db.VarChar(50)
-  name_abb             String?    @default("")
+  name_abb             String?   @default("")
   request_min          Decimal?  @db.Decimal
   unit_id              Int?
   sample_type_id       String?
@@ -365,7 +365,7 @@ model chemical_parameter {
   unit_id              Int?
   sample_type_id       String?
   spec_type_id         String?
-  spec                 String?    @db.VarChar(100)
+  spec                 String?   @db.VarChar(100)
   spec_min             Decimal?
   spec_max             Decimal?
   warning_min          Decimal?
@@ -462,4 +462,48 @@ model box {
 
   location location? @relation(fields: [location_id], references: [id])
   section  section?  @relation(fields: [section_id], references: [id])
+}
+
+model customer_contact_info {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(100)
+  status     Boolean?
+  created_on DateTime? @default(now()) @db.Timestamptz(6)
+  created_by Int?
+  updated_on DateTime? @updatedAt @db.Timestamptz(6)
+  updated_by Int?
+}
+
+model signature {
+  id         Int       @id @default(autoincrement())
+  lead_name  String    @db.VarChar(100)
+  path       String?   @db.VarChar(500)
+  created_on DateTime? @default(now()) @db.Timestamptz(6)
+  created_by Int?
+  updated_on DateTime? @updatedAt @db.Timestamptz(6)
+  updated_by Int?
+}
+
+model chemical_sample_description {
+  id                    Int       @id @default(autoincrement())
+  sample_description_id String
+  chemical_parameter_id String
+  lod_value             String?
+  loq_value             String?
+  created_on            DateTime? @default(now()) @db.Timestamptz(6)
+  created_by            Int?
+  updated_on            DateTime? @updatedAt @db.Timestamptz(6)
+  updated_by            Int?
+}
+
+model microbiology_sample_description {
+  id                        Int       @id @default(autoincrement())
+  sample_description_id     String
+  microbiology_parameter_id String
+  lod_value                 String?
+  loq_value                 String?
+  created_on                DateTime? @default(now()) @db.Timestamptz(6)
+  created_by                Int?
+  updated_on                DateTime? @updatedAt @db.Timestamptz(6)
+  updated_by                Int?
 }
