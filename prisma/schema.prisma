@@ -397,6 +397,7 @@ model microbiology_parameter {
   material_microbiology material_microbiology[] // <-- Must exist
 
   request_sample_microbiology request_sample_microbiology[]
+  microbiology_sample_description microbiology_sample_description[]
 }
 
 model chemical_parameter {
@@ -526,6 +527,8 @@ model sample_description {
   status     Boolean
 
   request_sample request_sample[]
+  chemical_sample_description chemical_sample_description[]
+  microbiology_sample_description microbiology_sample_description[]
 }
 
 model report_heading {
@@ -733,7 +736,6 @@ model request_sample_microbiology {
   request_sample request_sample @relation(fields: [request_sample_id], references: [id])
   microbiology_parameter microbiology_parameter? @relation(fields: [microbiology_parameter_id], references: [id])
 }
-=======
 model customer_contact_info {
   id         Int       @id @default(autoincrement())
   name       String    @db.VarChar(100)
@@ -766,16 +768,20 @@ model chemical_sample_description {
   updated_by            Int?
 
   chemical_parameter chemical_parameter @relation(fields: [chemical_parameter_id], references: [id])
+  sample_description sample_description @relation(fields: [sample_description_id], references: [id])
 }
 
 model microbiology_sample_description {
   id                        Int       @id @default(autoincrement())
   sample_description_id     String
-  microbiology_parameter_id String
+  microbiology_parameter_id Int
   lod_value                 String?
   loq_value                 String?
   created_on                DateTime? @default(now()) @db.Timestamptz(6)
   created_by                Int?
   updated_on                DateTime? @updatedAt @db.Timestamptz(6)
   updated_by                Int?
+
+  sample_description sample_description @relation(fields: [sample_description_id], references: [id])
+  microbiology_parameter microbiology_parameter @relation(fields: [microbiology_parameter_id], references: [id])
 }
