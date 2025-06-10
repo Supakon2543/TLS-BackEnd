@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -41,6 +41,10 @@ import { SampleStageModule } from './sample_stage/sample_stage.module';
 import { ObjectiveModule } from './objective/objective.module';
 import { BoxModule } from './box/box.module';
 import { AuthModule } from './auth/auth.module';
+import { AuthMiddleware } from './middleware/auth.middleware';
+import { SampleDescriptionModule } from './sample_description/sample_description.module';
+import { ReportHeadingModule } from './report_heading/report_heading.module';
+import { RequestModule } from './request/request.module';
 import { ChemicalSampleDescriptionModule } from './chemical_sample_description/chemical_sample_description.module';
 import { MicrobiologySampleDescriptionModule } from './microbiology_sample_description/microbiology_sample_description.module';
 import { CustomerContactInfoModule } from './customer_contact_info/customer_contact_info.module';
@@ -88,6 +92,9 @@ import { SignatureModule } from './signature/signature.module';
     ObjectiveModule,
     BoxModule,
     AuthModule,
+    SampleDescriptionModule,
+    ReportHeadingModule,
+    RequestModule,
     ChemicalSampleDescriptionModule,
     MicrobiologySampleDescriptionModule,
     CustomerContactInfoModule,
@@ -96,4 +103,10 @@ import { SignatureModule } from './signature/signature.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule /*implements NestModule*/{
+  // configure(consumer: MiddlewareConsumer) {
+  //   consumer
+  //     .apply(AuthMiddleware)
+  //     .forRoutes(); // Or { path: '/api/some', method: RequestMethod.GET }
+  // }
+}
