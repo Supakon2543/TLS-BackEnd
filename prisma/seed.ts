@@ -53,6 +53,8 @@ function readExcel<T>(fileName: string): T[] {
 /* ---------- delete existing data ---------- */
 
 async function clearOldData() {
+  await prisma.chemical_sample_description.deleteMany();
+  await prisma.chemical_parameter.deleteMany();
   await prisma.sample_retaining.deleteMany();
   await prisma.sample_stage.deleteMany();
   await prisma.lab_process.deleteMany();
@@ -87,9 +89,10 @@ async function clearOldData() {
   await prisma.location.deleteMany();
   await prisma.section.deleteMany();
   await prisma.box.deleteMany();
-  await prisma.manufacturer.deleteMany();  //   5/27/2025
+  await prisma.manufacturer.deleteMany(); //   5/27/2025
   await prisma.equipment_type.deleteMany();
   await prisma.location_email.deleteMany();
+  
   // Add any other models you want to clear here
   console.log('🧹 Old data deleted');
 }
@@ -1161,7 +1164,9 @@ async function seedManufacturerFromBrand() {
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
-  const rows = xlsx.utils.sheet_to_json<any>(wb.Sheets[sheet], { defval: null });
+  const rows = xlsx.utils.sheet_to_json<any>(wb.Sheets[sheet], {
+    defval: null,
+  });
 
   for (const r of rows) {
     try {
@@ -1203,7 +1208,9 @@ async function seedEquipmentTypeFromNew() {
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
-  const rows = xlsx.utils.sheet_to_json<any>(wb.Sheets[sheet], { defval: null });
+  const rows = xlsx.utils.sheet_to_json<any>(wb.Sheets[sheet], {
+    defval: null,
+  });
 
   for (const r of rows) {
     try {
@@ -1234,7 +1241,9 @@ async function seedLocationEmailFromEquipmentDueDate() {
   const filePath = path.join(__dirname, 'staticfile', fileName);
   const wb = xlsx.readFile(filePath);
   const sheet = wb.SheetNames[0];
-  const rows = xlsx.utils.sheet_to_json<any>(wb.Sheets[sheet], { defval: null });
+  const rows = xlsx.utils.sheet_to_json<any>(wb.Sheets[sheet], {
+    defval: null,
+  });
 
   for (const r of rows) {
     // Resolve user_location_id by name or code if needed
@@ -1242,9 +1251,7 @@ async function seedLocationEmailFromEquipmentDueDate() {
     if (userLocationId && isNaN(Number(userLocationId))) {
       const userLocation = await prisma.user_location.findFirst({
         where: {
-          OR: [
-            { name: userLocationId },
-          ]
+          OR: [{ name: userLocationId }],
         },
         select: { id: true },
       });
@@ -1258,7 +1265,11 @@ async function seedLocationEmailFromEquipmentDueDate() {
         data: {
           user_location_id: userLocationId,
           email_notification: r.email_notification,
-          status: r.status === true || r.status === 'TRUE' || r.status === 1 || r.status === '1',
+          status:
+            r.status === true ||
+            r.status === 'TRUE' ||
+            r.status === 1 ||
+            r.status === '1',
           created_by: r.created_by ? Number(r.created_by) : 0,
           updated_by: r.updated_by ? Number(r.updated_by) : 0,
           // Add other fields as needed
@@ -1268,7 +1279,9 @@ async function seedLocationEmailFromEquipmentDueDate() {
       console.error('❌ Failed to insert location_email:', r, e.message);
     }
   }
-  console.log('✅ location_email (from 019 - Equipment Due Date Notification.xlsx) seeded');
+  console.log(
+    '✅ location_email (from 019 - Equipment Due Date Notification.xlsx) seeded',
+  );
 }
 /* ---------- main runner ---------- */
 
