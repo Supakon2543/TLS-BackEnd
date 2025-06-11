@@ -16,29 +16,68 @@ export class AuthService {
 
   async login(@Body() user: CreateAuthDto): Promise<any> {
     try {
+      const header_token = await axios.post('https://api-dev.osotspa.com/securitycontrol/oauth2/token', {
+        client_id: process.env.OAUTH2_CLIENT_ID ?? "2ATwV3iAbpmdkzuazH4XPZaffMsQc94H",
+        client_secret: process.env.OAUTH2_CLIENT_SECRET ?? "f8D1UqM9OGVcziQ1SfIoz6UTXL5qaDtp",
+        grant_type: process.env.OAUTH2_GRANT_TYPE ?? "client_credentials"
+      });
       let response_token: any;
       let user_data: any;
-      if (!user.username || !user.password) {
-        response_token = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/auth/verify_token', {
-          accessToken: user.token,
+      let check_role: any;
+      if (!user.password) {
+        response_token = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/auth/signin_az', {
+          header: {
+            Authorization: `Bearer ${header_token.data.access_token}`,
+          },
+          username: user.username,
         });
         user_data = response_token.data;
+        if (user_data.data) {
+          check_role = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/roles_modulesearch', {
+            header: {
+              Authorization: `Bearer ${header_token.data.access_token}`,
+            },
+            userid: user_data.data.id,
+            module: process.env.MODULE_ID_BOF ?? 108,
+          });
+        }
+        else {
+          throw new UnauthorizedException('Invalid credentials');
+        }
       }
       else if (!user.token) {
         const response_login = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/auth/signin', {
+        header: {
+          Authorization: `Bearer ${header_token.data.access_token}`,
+        },
         username: user.username,
         password: user.password,
         });
         response_token = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/auth/verify_token', {
+        header: {
+          Authorization: `Bearer ${header_token.data.access_token}`,
+        },
           accessToken: response_login.data.accessToken,
         });
         user_data = response_login.data;
+        if (user_data.data) {
+          check_role = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/roles_modulesearch', {
+            header: {
+              Authorization: `Bearer ${header_token.data.access_token}`,
+            },
+            userid: user_data.data.id,
+            module: process.env.MODULE_ID_BOF ?? 108,
+          });
+        }
+        else {
+          throw new UnauthorizedException('Invalid credentials');
+        }
       }
       else {
         throw new UnauthorizedException('Invalid credentials');
       }
       // Check if the response contains the access token
-      if (!response_token.data) {
+      if (!check_role.data) {
         throw new UnauthorizedException('Invalid credentials');
       }
 
@@ -132,6 +171,9 @@ export class AuthService {
           id: employee_info?.id ?? 0
         });
         let employee_role = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/dataaccessbyuserid', {
+          header: {
+            Authorization: `Bearer ${header_token.data.access_token}`,
+          },
           user_id: user_data.data.id,
         });
         const filtered_roles = employee_role.data.filter((role: any) => role.name == 'TLSRole');
@@ -220,8 +262,16 @@ export class AuthService {
         // }
       }
       else {
-        const response_employee = await axios.get(`https://api.osotspa.com/workday/api/workday/employee_info?employee_id=${user_data.data.employee_id}`);
-        const response_supervisor = await axios.get(`https://api.osotspa.com/workday/api/workday/employee_info?employee_id=${response_employee.data.supervisor_code}`);
+        const response_employee = await axios.get(`https://api.osotspa.com/workday/api/workday/employee_info?employee_id=${user_data.data.employee_id}`, {
+          headers: {
+            Authorization: `Bearer ${header_token.data.access_token}`,
+          },
+        });
+        const response_supervisor = await axios.get(`https://api.osotspa.com/workday/api/workday/employee_info?employee_id=${response_employee.data.supervisor_code}`, {
+          headers: {
+            Authorization: `Bearer ${header_token.data.access_token}`,
+          },
+        });
         const user_location_data = await this.prisma.user_location.findFirstOrThrow({
           where: {
             name: user_data.data.location,
@@ -309,6 +359,9 @@ export class AuthService {
           id: employee_info?.id ?? 0
         });
         let employee_role = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/dataaccessbyuserid', {
+        header: {
+          Authorization: `Bearer ${header_token.data.access_token}`,
+        },
           user_id: user_data.data.id,
         });
         const filtered_roles = employee_role.data.filter((role: any) => role.name == 'TLSRole');
