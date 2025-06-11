@@ -35,13 +35,13 @@ export class ChemicalParameterController {
     );
   }
 
-  @Post('create')
-  @ApiOperation({ summary: 'Create a new chemical parameter' })
-  @ApiBody({ type: CreateChemicalParameterDto })
-  @ApiResponse({ status: 201, description: 'Chemical parameter created.' })
-  create(@Body() createChemicalParameterDto: CreateChemicalParameterDto) {
-    return this.chemicalParameterService.create(createChemicalParameterDto);
-  }
+  // @Post('create')
+  // @ApiOperation({ summary: 'Create a new chemical parameter' })
+  // @ApiBody({ type: CreateChemicalParameterDto })
+  // @ApiResponse({ status: 201, description: 'Chemical parameter created.' })
+  // create(@Body() createChemicalParameterDto: CreateChemicalParameterDto) {
+  //   return this.chemicalParameterService.create(createChemicalParameterDto);
+  // }
 
   @Get()
   @ApiOperation({ summary: 'Get chemical parameters' })
@@ -84,5 +84,17 @@ export class ChemicalParameterController {
   @ApiResponse({ status: 200, description: 'Chemical parameter deleted.' })
   remove(@Param('id') id: string) {
     return this.chemicalParameterService.remove(+id);
+  }
+
+  @Get('map/chemical-description')
+  @ApiOperation({ summary: 'Get mapping between chemical_parameter and chemical_sample_description' })
+  @ApiQuery({ name: 'id', required: false, type: Number })
+  @ApiQuery({ name: 'keyword', required: false, type: String })
+  @ApiQuery({ name: 'status', required: false, type: Number })
+  @ApiResponse({ status: 200, description: 'Mapping of chemical_parameter and chemical_sample_description.' })
+  Chemical_paraMapChemical_description(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.chemicalParameterService.Chemical_paraMapChemical_description(params);
   }
 }

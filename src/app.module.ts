@@ -45,6 +45,10 @@ import { AuthMiddleware } from './middleware/auth.middleware';
 import { SampleDescriptionModule } from './sample_description/sample_description.module';
 import { ReportHeadingModule } from './report_heading/report_heading.module';
 import { RequestModule } from './request/request.module';
+import { ChemicalSampleDescriptionModule } from './chemical_sample_description/chemical_sample_description.module';
+import { MicrobiologySampleDescriptionModule } from './microbiology_sample_description/microbiology_sample_description.module';
+import { CustomerContactInfoModule } from './customer_contact_info/customer_contact_info.module';
+import { SignatureModule } from './signature/signature.module';
 
 @Module({
   imports: [
@@ -91,6 +95,10 @@ import { RequestModule } from './request/request.module';
     SampleDescriptionModule,
     ReportHeadingModule,
     RequestModule,
+    ChemicalSampleDescriptionModule,
+    MicrobiologySampleDescriptionModule,
+    CustomerContactInfoModule,
+    SignatureModule,
   ],
   controllers: [AppController],
   providers: [AppService],
