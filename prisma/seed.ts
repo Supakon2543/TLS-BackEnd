@@ -55,6 +55,8 @@ function readExcel<T>(fileName: string): T[] {
 async function clearOldData() {
   await prisma.chemical_sample_description.deleteMany();
   await prisma.chemical_parameter.deleteMany();
+  await prisma.sample_description.deleteMany();
+  await prisma.report_heading.deleteMany();
   await prisma.sample_retaining.deleteMany();
   await prisma.sample_stage.deleteMany();
   await prisma.lab_process.deleteMany();
@@ -92,7 +94,7 @@ async function clearOldData() {
   await prisma.manufacturer.deleteMany(); //   5/27/2025
   await prisma.equipment_type.deleteMany();
   await prisma.location_email.deleteMany();
-  
+
   // Add any other models you want to clear here
   console.log('🧹 Old data deleted');
 }
@@ -447,7 +449,7 @@ async function seedSampleDescription() {
   const rows = readExcel<StaticRow>('sample_description.xlsx');
 
   for (const r of rows) {
-    await prisma.user_location.create({
+    await prisma.sample_description.create({
       data: {
         id: r.id,
         order: Number(r.order),
@@ -463,7 +465,7 @@ async function seedReportHeading() {
   const rows = readExcel<StaticRow>('report_heading.xlsx');
 
   for (const r of rows) {
-    await prisma.user_location.create({
+    await prisma.report_heading.create({
       data: {
         id: r.id,
         order: Number(r.order),
@@ -1308,8 +1310,8 @@ async function main() {
   await seedActivityEquipment();
   await seedRole();
   await seedUserLocation();
-  // await seedSampleDescription();
-  // await seedReportHeading();
+  await seedSampleDescription();
+  await seedReportHeading();
   await seedObjectiveFromNew();
   await seedSampleStateFromNew();
   await seedLineFromNew();
