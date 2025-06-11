@@ -1309,7 +1309,7 @@ async function main() {
   await seedRole();
   await seedUserLocation();
   // await seedSampleDescription();
-  await seedReportHeading();
+  // await seedReportHeading();
   await seedObjectiveFromNew();
   await seedSampleStateFromNew();
   await seedLineFromNew();

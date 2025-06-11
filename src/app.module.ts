@@ -49,6 +49,7 @@ import { ChemicalSampleDescriptionModule } from './chemical_sample_description/c
 import { MicrobiologySampleDescriptionModule } from './microbiology_sample_description/microbiology_sample_description.module';
 import { CustomerContactInfoModule } from './customer_contact_info/customer_contact_info.module';
 import { SignatureModule } from './signature/signature.module';
+import { SamplePackagingModule } from './sample_packaging/sample_packaging.module';
 
 @Module({
   imports: [
@@ -99,6 +100,7 @@ import { SignatureModule } from './signature/signature.module';
     MicrobiologySampleDescriptionModule,
     CustomerContactInfoModule,
     SignatureModule,
+    SamplePackagingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
