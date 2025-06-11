@@ -1308,7 +1308,7 @@ async function main() {
   await seedActivityEquipment();
   await seedRole();
   await seedUserLocation();
-  await seedSampleDescription();
+  // await seedSampleDescription();
   await seedReportHeading();
   await seedObjectiveFromNew();
   await seedSampleStateFromNew();
