@@ -8,20 +8,19 @@ export class MicrobiologySampleDescriptionService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOrUpdate(data: CreateMicrobiologySampleDescriptionDto) {
+    // Convert microbiology_parameter_id to number if needed
+    const createData = {
+      ...data,
+      microbiology_parameter_id: Number(data.microbiology_parameter_id),
+    };
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, created_on, updated_on, ...createData } = data;
-      return this.prisma.microbiology_sample_description.create({ data: createData });
+      const { id, ...rest } = createData;
+      return this.prisma.microbiology_sample_description.create({ data: rest });
     }
     return this.prisma.microbiology_sample_description.upsert({
       where: { id: data.id },
-      create: { ...data },
-      update: data,
-    });
-  }
-
-  async create(createMicrobiologySampleDescriptionDto: CreateMicrobiologySampleDescriptionDto) {
-    return this.prisma.microbiology_sample_description.create({
-      data: createMicrobiologySampleDescriptionDto,
+      create: createData,
+      update: createData,
     });
   }
 
@@ -86,10 +85,19 @@ export class MicrobiologySampleDescriptionService {
 
   async update(id: number, updateMicrobiologySampleDescriptionDto: UpdateMicrobiologySampleDescriptionDto) {
     await this.findOne(id);
+    // Remove id from update data and convert microbiology_parameter_id to number if needed
+    const { id: _id, ...updateData } = updateMicrobiologySampleDescriptionDto;
+    if (updateData.microbiology_parameter_id !== undefined) {
+      updateData.microbiology_parameter_id = Number(updateData.microbiology_parameter_id);
+    }
+    // Remove undefined fields
+    const cleanData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, v]) => v !== undefined)
+    );
 
     return this.prisma.microbiology_sample_description.update({
       where: { id },
-      data: updateMicrobiologySampleDescriptionDto,
+      data: cleanData,
     });
   }
 

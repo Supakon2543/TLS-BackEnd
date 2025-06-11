@@ -1,12 +1,18 @@
+import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
+  IsDecimal,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
-  IsNumberString,
   Length,
-  IsNumber,
+  ValidateNested,
 } from 'class-validator';
+import { CreateChemicalSampleDescriptionDto } from 'src/chemical_sample_description/dto/create-chemical_sample_description.dto';
+import { CreateMicrobiologySampleDescriptionDto } from 'src/microbiology_sample_description/dto/create-microbiology_sample_description.dto';
+
 
 export class CreateMicrobiologyParameterDto {
   @IsInt()
@@ -94,4 +100,10 @@ export class CreateMicrobiologyParameterDto {
   @IsOptional()
   @IsInt()
   updated_by?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateMicrobiologySampleDescriptionDto)
+  microbiology_sample_description?: CreateMicrobiologySampleDescriptionDto[];
 }

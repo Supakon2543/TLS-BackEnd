@@ -21,14 +21,14 @@ export class MicrobiologyParameterController {
     private readonly microbiologyParameterService: MicrobiologyParameterService,
   ) {}
 
-  @Post('create')
-  create(
-    @Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto,
-  ) {
-    return this.microbiologyParameterService.create(
-      createMicrobiologyParameterDto,
-    );
-  }
+  // @Post('create')
+  // create(
+  //   @Body() createMicrobiologyParameterDto: CreateMicrobiologyParameterDto,
+  // ) {
+  //   return this.microbiologyParameterService.create(
+  //     createMicrobiologyParameterDto,
+  //   );
+  // }
 
   @Post()
   createOrUpdate(
@@ -44,6 +44,13 @@ export class MicrobiologyParameterController {
     @Query() params: { id?: number; keyword?: string; status?: number },
   ) {
     return this.microbiologyParameterService.getMicrobiologyParameters(params);
+  }
+
+  @Get('map')
+  getMicrobiologyParametersWithSampleDescriptions(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.microbiologyParameterService.getMicrobiologyParametersWithSampleDescriptions(params);
   }
 
   @Get(':id')
