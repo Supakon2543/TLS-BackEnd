@@ -10,16 +10,6 @@ import { UserRoleService } from 'src/user_role/user_role.service';
 @Injectable()
 export class AuthService {
   constructor(private jwtService: JwtService) {}
-
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.id };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
-  }
- 
-  // แก้เรื่อง auth 6/5/2025
-
   // constructor(private readonly prisma: PrismaService,
   //             private readonly usersService: UsersService,
   //             private readonly userRoleService: UserRoleService,
@@ -81,93 +71,7 @@ export class AuthService {
   //         }
   //       });
         
-  //       let supervisor_info = await this.prisma.user.findFirst({
-  //         where: {
-  //           username: user_data.data.supervisor_username,
-  //         },
-  //         select: {
-  //           id: true,
-  //           employee_id: true,
-  //           username: true,
-  //           fullname: true,
-  //           tel: true,
-  //           email: true,
-  //           company: true,
-  //           dept_code: true,
-  //           dept_name: true,
-  //           user_location_id: true,
-  //           supervisor_id: true,
-  //           position_name: true,
-  //         }
-  //       });
-  //       const supervisor_data = await this.usersService.createOrUpdate({
-  //         employee_id: user_data.data.supervisor_code,
-  //         username: user_data.data.supervisor_username,
-  //         fullname: user_data.data.supervisor_name,
-  //         tel: supervisor_info?.tel ?? "",
-  //         email: user_data.data.supervisor_mail,
-  //         company: supervisor_info?.company ?? "",
-  //         dept_code: supervisor_info?.dept_code ?? "",
-  //         dept_name: supervisor_info?.dept_name ?? "",
-  //         user_location_id: supervisor_info?.user_location_id ?? "",
-  //         supervisor_id: supervisor_info?.id ?? 0,
-  //         position_name: supervisor_info?.position_name ?? "",
-  //         id: supervisor_info?.id ?? 0
-  //       });
-  //       const employee_info = await this.prisma.user.findFirst({
-  //         where: {
-  //           username: user_data.data.username,
-  //         },
-  //         select: {
-  //           id: true,
-  //           employee_id: true,
-  //           username: true,
-  //           fullname: true,
-  //           tel: true,
-  //           email: true,
-  //           company: true,
-  //           dept_code: true,
-  //           dept_name: true,
-  //           user_location_id: true,
-  //           supervisor_id: true,
-  //           position_name: true,
-  //         }
-  //       });
-  //       const employee_data = await this.usersService.createOrUpdate({
-  //         employee_id: user_data.data.employee_id,
-  //         username: user_data.data.username,
-  //         fullname: user_data.data.fullname,
-  //         tel: user_data.data.telephone,
-  //         email: user_data.data.email,
-  //         company: user_data.data.company ?? "",
-  //         dept_code: user_data.data.dept_code ?? "",
-  //         dept_name: user_data.data.department,
-  //         user_location_id: user_location_data.id,
-  //         supervisor_id: supervisor_data.id,
-  //         position_name: user_data.data.position_name,
-  //         id: employee_info?.id ?? 0
-  //       });
-  //       let employee_role = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/dataaccessbyuserid', {
-  //         user_id: user_data.data.id,
-  //       });
-  //       const filtered_roles = employee_role.data.filter((role: any) => role.name == 'TLSRole');
-  //       const employee_role_info = await this.prisma.role.findMany({
-  //         where: {
-  //           name: {
-  //             in: filtered_roles.data.map((role: any) => role.data_value),
-  //           },
-  //         },
-  //         select: {
-  //           id: true,
-  //           name: true,
-  //         },
-  //       });
-  //       if (employee_role_info.length > 0) {
-  //         // Get all current roles for the user
-  //         const existingUserRoles = await this.prisma.user_role.findMany({
-  //           where: { user_id: employee_data.id },
-  //           select: { role_id: true, user_id: true },
-  //         });
+
 
   //         const employeeRoleIds = employee_role_info.map(role => role.id);
   //         const existingRoleIds = existingUserRoles.map(ur => ur.role_id);
@@ -182,6 +86,7 @@ export class AuthService {
   //             });
   //           }
   //         }
+
 
   //         // Delete roles that exist but are not in employee_role_info
   //         for (const userRole of existingUserRoles) {
