@@ -16,7 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse , ApiQuery , ApiParam  } from '@nestjs/swagger';
 
 @ApiTags('chemical_parameter')
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('chemical_parameter')
 export class ChemicalParameterController {
   constructor(
@@ -55,6 +55,18 @@ export class ChemicalParameterController {
     return this.chemicalParameterService.getChemicalParameters(params);
   }
 
+  @Get('map')
+  @ApiOperation({ summary: 'Get chemical parameters' })
+  @ApiQuery({ name: 'id', required: false, type: Number })
+  @ApiQuery({ name: 'keyword', required: false, type: String })
+  @ApiQuery({ name: 'status', required: false, type: Number })
+  @ApiResponse({ status: 200, description: 'List of chemical parameters.' })
+  getChemicalParametersWithSampleDescriptions(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.chemicalParameterService.getChemicalParametersWithSampleDescriptions(params);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a chemical parameter by id' })
   @ApiParam({ name: 'id', type: Number })
@@ -86,15 +98,4 @@ export class ChemicalParameterController {
     return this.chemicalParameterService.remove(+id);
   }
 
-  @Get('map/chemical-description')
-  @ApiOperation({ summary: 'Get mapping between chemical_parameter and chemical_sample_description' })
-  @ApiQuery({ name: 'id', required: false, type: Number })
-  @ApiQuery({ name: 'keyword', required: false, type: String })
-  @ApiQuery({ name: 'status', required: false, type: Number })
-  @ApiResponse({ status: 200, description: 'Mapping of chemical_parameter and chemical_sample_description.' })
-  Chemical_paraMapChemical_description(
-    @Query() params: { id?: number; keyword?: string; status?: number },
-  ) {
-    return this.chemicalParameterService.Chemical_paraMapChemical_description(params);
-  }
 }

@@ -11,9 +11,9 @@ export class CreateMicrobiologySampleDescriptionDto {
   @IsString()
   sample_description_id: string;
 
-  @ApiProperty({ example: 'microbio456' })
-  @IsString()
-  microbiology_parameter_id: string;
+  @ApiProperty({ example: 1 })
+  @IsInt()
+  microbiology_parameter_id: number;
 
   @ApiProperty({ required: false })
   @IsString()
