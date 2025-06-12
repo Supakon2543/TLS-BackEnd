@@ -10,7 +10,7 @@ export class SamplePackagingService {
   // Create or update a record
   async createOrUpdate(data: CreateSamplePackagingDto) {
     if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data; // Exclude id
+      const { id,created_on,updated_on, ...createData } = data; // Exclude id
       return this.prisma.sample_packaging.create({ data: createData });
     }
     return this.prisma.sample_packaging.upsert({

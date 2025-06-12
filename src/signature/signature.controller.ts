@@ -22,6 +22,13 @@ export class SignatureController {
       return this.signatureService.getSignatures(params);
     }
 
+  @Get('map')
+  getSignatureMap(
+    @Query() params: { id?: number; keyword?: string; role_id?: string }
+  ) {
+    return this.signatureService.getSignatureMap(params);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.signatureService.findOne(+id);

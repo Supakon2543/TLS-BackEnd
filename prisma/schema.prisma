@@ -215,12 +215,16 @@ model user {
   request_detail_email request_detail_email[]
 
   request_detail_attachment request_detail_attachment[]
+
+  user_role user_role[]
+  signature signature[]
 }
 
 model user_role {
   user_id    Int       @id @default(autoincrement())
   role_id    String
   created_on DateTime? @default(now())
+  user       user?     @relation(fields: [user_id], references: [id])
 }
 
 model location_email {
@@ -755,12 +759,15 @@ model customer_contact_info {
 
 model signature {
   id         Int       @id @default(autoincrement())
-  lead_name  String    @db.VarChar(100)
-  path       String?   @db.VarChar(500)
+  user_id    Int
+  filename   String    @db.VarChar(100)
+  path       String    @db.VarChar(500)
   created_on DateTime? @default(now()) @db.Timestamptz(6)
   created_by Int?
   updated_on DateTime? @updatedAt @db.Timestamptz(6)
   updated_by Int?
+
+  user user @relation(fields: [user_id], references: [id])
 }
 
 model chemical_sample_description {
@@ -794,9 +801,13 @@ model microbiology_sample_description {
 }
 
 model sample_packaging {
-  id         Int     @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   order      Int
-  name       String  @db.VarChar(100) // Sample Condition Name
+  name       String    @db.VarChar(100) // Sample Condition Name
   text_input Boolean
   status     Boolean
+  created_on DateTime? @default(now()) @db.Timestamptz(6)
+  created_by Int?
+  updated_on DateTime? @updatedAt @db.Timestamptz(6)
+  updated_by Int?
 }
