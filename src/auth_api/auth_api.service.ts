@@ -200,7 +200,7 @@ export class AuthApiService {
             if (!existingRoleIds.includes(roleId)) {
               await this.userRoleService.createOrUpdate({
                 id: 0,
-                userId: employee_data.id,
+                user_id: employee_data.id,
                 role_id: roleId,
               });
             }
@@ -387,7 +387,7 @@ export class AuthApiService {
             if (!existingRoleIds.includes(roleId)) {
               await this.userRoleService.createOrUpdate({
                 id: 0,
-                userId: employee_data.id,
+                user_id: employee_data.id,
                 role_id: roleId,
               });
             }

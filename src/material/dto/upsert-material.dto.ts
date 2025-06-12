@@ -1,4 +1,4 @@
-import { IsInt, IsString, IsBoolean, IsDateString, ValidateNested } from 'class-validator';
+import { IsInt, IsString, IsBoolean, IsDateString, ValidateNested, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { UpsertMaterialChemicalDto } from './upsert-material-chemical.dto';
 import { UpsertMaterialMicrobiologyDto } from './upsert-material-microbiology.dto';
@@ -13,21 +13,27 @@ export class UpsertMaterialDto {
   @IsString()
   test_report_name: string;
 
+  @IsOptional()
   @IsString()
   conclusion: string;
 
+  @IsOptional()
   @IsString()
   reg_no: string;
 
+  @IsOptional()
   @IsBoolean()
   is_special_parameter: boolean;
 
+  @IsOptional()
   @IsString()
   special_parameter_name: string;
 
+  @IsOptional()
   @IsString()
   special_parameter_type: string;
 
+  @IsOptional()
   @IsString()
   remark_report: string;
 
