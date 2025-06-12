@@ -1,4 +1,10 @@
-import { IsBoolean, IsInt, IsOptional, IsString, Length } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 
 export class CreateSamplePackagingDto {
   @IsOptional()
@@ -17,4 +23,18 @@ export class CreateSamplePackagingDto {
 
   @IsBoolean()
   status: boolean;
+
+  @IsInt()
+  created_by: number;
+
+  @IsOptional()
+  @IsString()
+  created_on: string;
+  
+  @IsOptional()
+  @IsString()
+  updated_on: string;
+
+  @IsInt()
+  updated_by: number;
 }

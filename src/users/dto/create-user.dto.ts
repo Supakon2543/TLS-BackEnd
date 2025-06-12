@@ -39,7 +39,7 @@ export class CreateUserDto {
   user_location_id?: string;
 
   @IsOptional()
-  @IsString()
+  @IsInt()
   supervisor_id?: number;
 
   @IsOptional()
