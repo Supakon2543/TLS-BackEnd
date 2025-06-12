@@ -432,14 +432,20 @@ model chemical_parameter {
 }
 
 model material {
-  id               Int       @id @default(autoincrement())
-  name             String    @db.VarChar(100)
-  test_report_name String    @db.VarChar(100)
-  status           Boolean
-  created_on       DateTime? @default(now())
-  created_by       Int?
-  updated_on       DateTime? @updatedAt
-  updated_by       Int?
+  id                      Int       @id @default(autoincrement())
+  name                    String    @db.VarChar(100)
+  test_report_name        String    @db.VarChar(100)
+  conclusion              String?   @db.VarChar(100)
+  reg_no                  String?   @db.VarChar(50)
+  is_special_parameter    Boolean?
+  special_parameter_name  String?   @db.VarChar(100)
+  special_parameter_type  String?
+  remark_report           String?   @db.VarChar(200)
+  status                  Boolean
+  created_on              DateTime? @default(now())
+  created_by              Int?
+  updated_on              DateTime? @updatedAt
+  updated_by              Int?
 
   material_chemical     material_chemical[] // <-- Must exist
   material_microbiology material_microbiology[]
@@ -733,7 +739,7 @@ model request_sample_microbiology {
   request_sample request_sample @relation(fields: [request_sample_id], references: [id])
   microbiology_parameter microbiology_parameter? @relation(fields: [microbiology_parameter_id], references: [id])
 }
-=======
+
 model customer_contact_info {
   id         Int       @id @default(autoincrement())
   name       String    @db.VarChar(100)

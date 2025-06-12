@@ -10,6 +10,27 @@ export class UpsertMaterialDto {
   @IsString()
   name: string;
 
+  @IsString()
+  test_report_name: string;
+
+  @IsString()
+  conclusion: string;
+
+  @IsString()
+  reg_no: string;
+
+  @IsBoolean()
+  is_special_parameter: boolean;
+
+  @IsString()
+  special_parameter_name: string;
+
+  @IsString()
+  special_parameter_type: string;
+
+  @IsString()
+  remark_report: string;
+
   @IsBoolean()
   status: boolean;
 
