@@ -437,14 +437,20 @@ model chemical_parameter {
 }
 
 model material {
-  id               Int       @id @default(autoincrement())
-  name             String    @db.VarChar(100)
-  test_report_name String    @db.VarChar(100)
-  status           Boolean
-  created_on       DateTime? @default(now())
-  created_by       Int?
-  updated_on       DateTime? @updatedAt
-  updated_by       Int?
+  id                      Int       @id @default(autoincrement())
+  name                    String    @db.VarChar(100)
+  test_report_name        String    @db.VarChar(100)
+  conclusion              String?   @db.VarChar(100)
+  reg_no                  String?   @db.VarChar(50)
+  is_special_parameter    Boolean?
+  special_parameter_name  String?   @db.VarChar(100)
+  special_parameter_type  String?
+  remark_report           String?   @db.VarChar(200)
+  status                  Boolean
+  created_on              DateTime? @default(now())
+  created_by              Int?
+  updated_on              DateTime? @updatedAt
+  updated_by              Int?
 
   material_chemical     material_chemical[] // <-- Must exist
   material_microbiology material_microbiology[]
