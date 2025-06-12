@@ -8,69 +8,77 @@ export class ChemicalParameterService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOrUpdate(data: CreateChemicalParameterDto) {
-    const { id, chemical_sample_description, ...parameterData } = data;
+  const { id,created_on,updated_on, chemical_sample_description, ...parameterData } = data;
 
-    let chemicalSampleDescriptions: Array<any> = [];
-    if (
-      chemical_sample_description &&
-      Array.isArray(chemical_sample_description)
-    ) {
-      chemicalSampleDescriptions = await Promise.all(
-        chemical_sample_description.map(async (desc) => {
-          const { id: descId, chemical_parameter_id, ...descData } = desc;
-          if (!descId || descId === 0) {
-            return { ...descData };
-          } else {
-            await this.prisma.chemical_sample_description.update({
-              where: { id: descId },
-              data: { ...descData },
-            });
+  let chemicalSampleDescriptions: Array<any> = [];
+  if (
+    chemical_sample_description &&
+    Array.isArray(chemical_sample_description)
+  ) {
+    chemicalSampleDescriptions = await Promise.all(
+      chemical_sample_description.map(async (desc) => {
+        const { id: descId, chemical_parameter_id,created_on,updated_on, ...descData } = desc;
+        if (!descId || descId === 0) {
+          return { ...descData };
+        } else {
+          await this.prisma.chemical_sample_description.update({
+            where: { id: descId },
+            data: { ...descData },
+          });
+          return { id: descId };
+        }
+      }),
+    );
+  }
 
-            return { id: descId };
-          }
-        }),
+  if (!id) {
+    // Create chemical_parameter first
+    const createdParam = await this.prisma.chemical_parameter.create({
+      data: { ...parameterData },
+    });
+
+    // Now create chemical_sample_description with the new chemical_parameter_id
+    if (chemicalSampleDescriptions.length) {
+      await Promise.all(
+        chemicalSampleDescriptions
+          .filter((desc: any) => !desc.id)
+          .map((desc: any) =>
+            this.prisma.chemical_sample_description.create({
+              data: {
+                ...desc,
+                chemical_parameter_id: createdParam.id,
+              },
+            }),
+          ),
       );
     }
 
-    if (!id) {
-      // Create chemical_parameter with nested create for new chemical_sample_description
-      return this.prisma.chemical_parameter.create({
-        data: {
-          ...parameterData,
-          chemical_sample_description: chemicalSampleDescriptions.length
-            ? {
-                create: chemicalSampleDescriptions.filter(
-                  (desc: any) => !desc.id,
-                ),
-                connect: chemicalSampleDescriptions
-                  .filter((desc: any) => desc.id)
-                  .map((desc: any) => ({ id: desc.id })),
-              }
-            : undefined,
-        },
-        include: { chemical_sample_description: true },
-      });
-    }
-
-    // For update: update parameter and handle nested chemical_sample_description
-    return this.prisma.chemical_parameter.update({
-      where: { id },
-      data: {
-        ...parameterData,
-        chemical_sample_description: chemicalSampleDescriptions.length
-          ? {
-              create: chemicalSampleDescriptions.filter(
-                (desc: any) => !desc.id,
-              ),
-              connect: chemicalSampleDescriptions
-                .filter((desc: any) => desc.id)
-                .map((desc: any) => ({ id: desc.id })),
-            }
-          : undefined,
-      },
+    // Return the created parameter with its sample descriptions
+    return this.prisma.chemical_parameter.findUnique({
+      where: { id: createdParam.id },
       include: { chemical_sample_description: true },
     });
   }
+
+  // For update: update parameter and handle nested chemical_sample_description
+  return this.prisma.chemical_parameter.update({
+    where: { id },
+    data: {
+      ...parameterData,
+      chemical_sample_description: chemicalSampleDescriptions.length
+        ? {
+            create: chemicalSampleDescriptions.filter(
+              (desc: any) => !desc.id,
+            ),
+            connect: chemicalSampleDescriptions
+              .filter((desc: any) => desc.id)
+              .map((desc: any) => ({ id: desc.id })),
+          }
+        : undefined,
+    },
+    include: { chemical_sample_description: true },
+  });
+}
   async getChemicalParameters(params: {
     id?: number | string;
     keyword?: string;

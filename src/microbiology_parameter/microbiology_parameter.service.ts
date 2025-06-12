@@ -9,87 +9,81 @@ export class MicrobiologyParameterService {
 
   // Create or update a record
   async createOrUpdate(data: CreateMicrobiologyParameterDto) {
-    const { id, microbiology_sample_description, ...parameterData } = data;
+  const { id, created_on, updated_on, microbiology_sample_description, ...parameterData } = data;
 
-    let microbiologySampleDescriptions: Array<any> = [];
-    if (
-      microbiology_sample_description &&
-      Array.isArray(microbiology_sample_description)
-    ) {
-      microbiologySampleDescriptions = await Promise.all(
-        microbiology_sample_description.map(async (desc) => {
-          const {
-            id: descId,
-            microbiology_parameter_id,
-            sample_description_id,
-            ...descData
-          } = desc;
-          if (!descId || descId === 0) {
-            // For new records, use relation connect for sample_description
-            return {
-              ...descData,
-              ...(sample_description_id && {
-                sample_description: { connect: { id: sample_description_id } },
-              }),
-            };
-          } else {
-            // For updates, use relation connect for sample_description
-            await this.prisma.microbiology_sample_description.update({
-              where: { id: descId },
+  let microbiologySampleDescriptions: Array<any> = [];
+  if (
+    microbiology_sample_description &&
+    Array.isArray(microbiology_sample_description)
+  ) {
+    microbiologySampleDescriptions = await Promise.all(
+      microbiology_sample_description.map(async (desc) => {
+        const { id: descId, microbiology_parameter_id, created_on, updated_on, ...descData } = desc;
+        if (!descId || descId === 0) {
+          return { ...descData };
+        } else {
+          await this.prisma.microbiology_sample_description.update({
+            where: { id: descId },
+            data: { ...descData },
+          });
+          return { id: descId };
+        }
+      }),
+    );
+  }
+
+  if (!id) {
+    // Create microbiology_parameter first
+    const createdParam = await this.prisma.microbiology_parameter.create({
+      data: { ...parameterData },
+    });
+
+    // Now create microbiology_sample_description with the new microbiology_parameter_id
+    if (microbiologySampleDescriptions.length) {
+      await Promise.all(
+        microbiologySampleDescriptions
+          .filter((desc: any) => !desc.id)
+          .map((desc: any) => {
+            // Remove empty string dates if present
+            const cleanedDesc = { ...desc };
+            if (cleanedDesc.created_on === "") delete cleanedDesc.created_on;
+            if (cleanedDesc.updated_on === "") delete cleanedDesc.updated_on;
+            return this.prisma.microbiology_sample_description.create({
               data: {
-                ...descData,
-                ...(sample_description_id && {
-                  sample_description: {
-                    connect: { id: sample_description_id },
-                  },
-                }),
+                ...cleanedDesc,
+                microbiology_parameter_id: createdParam.id,
               },
             });
-            return { id: descId };
-          }
-        }),
+          }),
       );
     }
 
-    if (!id) {
-      // Create microbiology_parameter with nested create for new microbiology_sample_description
-      return this.prisma.microbiology_parameter.create({
-        data: {
-          ...parameterData,
-          microbiology_sample_description: microbiologySampleDescriptions.length
-            ? {
-                create: microbiologySampleDescriptions.filter(
-                  (desc: any) => !desc.id,
-                ),
-                connect: microbiologySampleDescriptions
-                  .filter((desc: any) => desc.id)
-                  .map((desc: any) => ({ id: desc.id })),
-              }
-            : undefined,
-        },
-        include: { microbiology_sample_description: true },
-      });
-    }
-
-    // For update: update parameter and handle nested microbiology_sample_description
-    return this.prisma.microbiology_parameter.update({
-      where: { id },
-      data: {
-        ...parameterData,
-        microbiology_sample_description: microbiologySampleDescriptions.length
-          ? {
-              create: microbiologySampleDescriptions.filter(
-                (desc: any) => !desc.id,
-              ),
-              connect: microbiologySampleDescriptions
-                .filter((desc: any) => desc.id)
-                .map((desc: any) => ({ id: desc.id })),
-            }
-          : undefined,
-      },
+    // Return the created parameter with its sample descriptions
+    return this.prisma.microbiology_parameter.findUnique({
+      where: { id: createdParam.id },
       include: { microbiology_sample_description: true },
     });
   }
+
+  // For update: update parameter and handle nested microbiology_sample_description
+  return this.prisma.microbiology_parameter.update({
+    where: { id },
+    data: {
+      ...parameterData,
+      microbiology_sample_description: microbiologySampleDescriptions.length
+        ? {
+            create: microbiologySampleDescriptions.filter(
+              (desc: any) => !desc.id,
+            ),
+            connect: microbiologySampleDescriptions
+              .filter((desc: any) => desc.id)
+              .map((desc: any) => ({ id: desc.id })),
+          }
+        : undefined,
+    },
+    include: { microbiology_sample_description: true },
+  });
+}
 
   // ...existing code...
 async getMicrobiologyParametersWithSampleDescriptions(params: {
