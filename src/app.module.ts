@@ -50,6 +50,7 @@ import { MicrobiologySampleDescriptionModule } from './microbiology_sample_descr
 import { CustomerContactInfoModule } from './customer_contact_info/customer_contact_info.module';
 import { SignatureModule } from './signature/signature.module';
 import { SamplePackagingModule } from './sample_packaging/sample_packaging.module';
+import { PresignModule } from './presign/presign.module';
 
 @Module({
   imports: [
@@ -101,6 +102,7 @@ import { SamplePackagingModule } from './sample_packaging/sample_packaging.modul
     CustomerContactInfoModule,
     SignatureModule,
     SamplePackagingModule,
+    PresignModule,
   ],
   controllers: [AppController],
   providers: [AppService],
