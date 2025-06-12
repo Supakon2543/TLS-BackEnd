@@ -6,7 +6,7 @@ export class CreateUserRoleDto {
   id: number;
   
   @IsInt()
-  userId: number;
+  user_id: number;
 
   @IsString()
   role_id: string;

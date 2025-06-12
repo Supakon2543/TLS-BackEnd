@@ -44,7 +44,7 @@ export class SignatureService {
               ? { status: status === 1 }
               : {}),
             ...(keyword && {
-              lead_name: { contains: keyword, mode: 'insensitive' },
+              filename: { contains: keyword, mode: 'insensitive' },
             }),
           },
           orderBy: { id: 'asc' },
@@ -65,6 +65,64 @@ export class SignatureService {
       },
       orderBy: { id: 'asc' },
     });
+  }
+
+  async getSignatureMap(params: {
+    id?: number | string;
+    keyword?: string;
+    role_id?: string;
+  }) {
+    let { id, keyword, role_id } = params;
+
+    // Convert id to number if it's a string
+    id = id !== undefined ? +id : undefined;
+
+    const signatures = await this.prisma.signature.findMany({
+      where: {
+        ...(id && { user_id: id }),
+        ...(keyword && {
+          filename: { contains: keyword, mode: 'insensitive' },
+        }),
+        ...(role_id && {
+          user: {
+            user_role: {
+              some: {
+                role_id: role_id,
+              },
+            },
+          },
+        }),
+      },
+      include: {
+        user: {
+          include: {
+            user_role: true,
+          },
+        },
+      },
+      orderBy: { id: 'asc' },
+    });
+
+    // Flatten the result as requested
+    return signatures.map((sig) => ({
+      id: sig.id,
+      user_id: sig.user_id,
+      filename: sig.filename,
+      path: sig.path,
+      employee_id: sig.user?.employee_id,
+      username: sig.user?.username,
+      fullname: sig.user?.fullname,
+      tel: sig.user?.tel,
+      email: sig.user?.email,
+      company: sig.user?.company,
+      dept_code: sig.user?.dept_code,
+      dept_name: sig.user?.dept_name,
+      user_location_id: sig.user?.user_location_id,
+      supervisor_id: sig.user?.supervisor_id,
+      position_name: sig.user?.position_name,
+      // Return the first role_id if exists, or null
+      role_id: sig.user?.user_role?.[0]?.role_id ?? null,
+    }));
   }
 
   async findAll() {
