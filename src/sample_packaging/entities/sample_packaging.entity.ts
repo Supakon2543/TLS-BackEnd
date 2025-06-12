@@ -1,13 +1,11 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column 
-} from 'typeorm';
-import { 
-  IsBoolean, 
-  IsInt, 
-  IsString, 
-  Length 
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  IsBoolean,
+  IsDate,
+  IsInt,
+  IsOptional,
+  IsString,
+  Length,
 } from 'class-validator';
 
 @Entity()
@@ -31,4 +29,18 @@ export class SamplePackaging {
   @Column()
   @IsBoolean()
   status: boolean;
+
+  @IsOptional()
+  @IsDate()
+  created_on?: Date;
+
+  @IsInt()
+  created_by: number;
+
+  @IsOptional()
+  @IsDate()
+  updated_on?: Date;
+
+  @IsInt()
+  updated_by: number;
 }

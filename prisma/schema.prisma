@@ -793,4 +793,8 @@ model sample_packaging {
   name       String  @db.VarChar(100) // Sample Condition Name
   text_input Boolean
   status     Boolean
+  created_on                DateTime? @default(now()) @db.Timestamptz(6)
+  created_by                Int?
+  updated_on                DateTime? @updatedAt @db.Timestamptz(6)
+  updated_by                Int?
 }
