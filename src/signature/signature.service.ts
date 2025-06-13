@@ -117,7 +117,6 @@ export class SignatureService {
         user_location_id: string | null;
         supervisor_id: number | null;
         position_name: string | null;
-        user_role: any[];
       };
       signature: {
         id: number | null;
@@ -150,7 +149,7 @@ export class SignatureService {
                 user_location_id: user.user_location_id,
                 supervisor_id: user.supervisor_id,
                 position_name: user.position_name,
-                user_role: user.user_role,
+          
               },
               signature: {
                 id: null,
@@ -179,7 +178,7 @@ export class SignatureService {
             user_location_id: user.user_location_id,
             supervisor_id: user.supervisor_id,
             position_name: user.position_name,
-            user_role: user.user_role,
+           
           },
           signature: sig,
         }));
