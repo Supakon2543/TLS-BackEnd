@@ -24,22 +24,35 @@ export class MaterialService {
     const material = data;
 
     // 1. Upsert the main material
-    // await this.prisma.material.upsert({
-    //   where: { id: material.id },
-    //   update: {
-    //     name: material.name,
-    //     status: material.status,
-    //     updated_by: material.updated_by,
-    //   },
-    //   create: {
-    //     id: material.id,
-    //     name: material.name,
-    //     test_report_name: material.test_report_name,
-    //     status: material.status,
-    //     created_by: material.created_by,
-    //     updated_by: material.updated_by,
-    //   },
-    // });
+    await this.prisma.material.upsert({
+      where: { id: material.id },
+      update: {
+        name: material.name,
+        test_report_name: material.test_report_name,
+        conclusion: material.conclusion,
+        reg_no: material.reg_no,
+        is_special_parameter: material.is_special_parameter,
+        special_parameter_name: material.special_parameter_name,
+        special_parameter_type: material.special_parameter_type,
+        remark_report: material.remark_report,
+        status: material.status,
+        updated_by: material.updated_by,
+      },
+      create: {
+        id: material.id,
+        name: material.name,
+        test_report_name: material.test_report_name,
+        conclusion: material.conclusion,
+        reg_no: material.reg_no,
+        is_special_parameter: material.is_special_parameter,
+        special_parameter_name: material.special_parameter_name,
+        special_parameter_type: material.special_parameter_type,
+        remark_report: material.remark_report,
+        status: material.status,
+        created_by: material.created_by,
+        updated_by: material.updated_by,
+      },
+    });
 
     // 2. Sync material_chemical
     const chemicalIds = material.material_chemical.map((chem: any) => chem.id);
@@ -151,6 +164,12 @@ export class MaterialService {
           id: material.id,
           name: material.name,
           test_report_name: material.test_report_name,
+          conclusion: material.conclusion,
+          reg_no: material.reg_no,
+          is_special_parameter: material.is_special_parameter,
+          special_parameter_name: material.special_parameter_name,
+          special_parameter_type: material.special_parameter_type,
+          remark_report: material.remark_report,
           status: material.status,
           created_on: material.created_on,
           created_by: material.created_by,

@@ -16,8 +16,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse , ApiQuery , ApiParam  } from '@nestjs/swagger';
 
 @ApiTags('chemical_parameter')
-@UseGuards(AuthGuard('jwt'))
-@Controller('chemical_parameter')
+// @UseGuards(AuthGuard('jwt'))
+@Controller('chemical-parameter')
 export class ChemicalParameterController {
   constructor(
     private readonly chemicalParameterService: ChemicalParameterService,
@@ -35,13 +35,13 @@ export class ChemicalParameterController {
     );
   }
 
-  @Post('create')
-  @ApiOperation({ summary: 'Create a new chemical parameter' })
-  @ApiBody({ type: CreateChemicalParameterDto })
-  @ApiResponse({ status: 201, description: 'Chemical parameter created.' })
-  create(@Body() createChemicalParameterDto: CreateChemicalParameterDto) {
-    return this.chemicalParameterService.create(createChemicalParameterDto);
-  }
+  // @Post('create')
+  // @ApiOperation({ summary: 'Create a new chemical parameter' })
+  // @ApiBody({ type: CreateChemicalParameterDto })
+  // @ApiResponse({ status: 201, description: 'Chemical parameter created.' })
+  // create(@Body() createChemicalParameterDto: CreateChemicalParameterDto) {
+  //   return this.chemicalParameterService.create(createChemicalParameterDto);
+  // }
 
   @Get()
   @ApiOperation({ summary: 'Get chemical parameters' })
@@ -53,6 +53,18 @@ export class ChemicalParameterController {
     @Query() params: { id?: number; keyword?: string; status?: number },
   ) {
     return this.chemicalParameterService.getChemicalParameters(params);
+  }
+
+  @Get('map')
+  @ApiOperation({ summary: 'Get chemical parameters' })
+  @ApiQuery({ name: 'id', required: false, type: Number })
+  @ApiQuery({ name: 'keyword', required: false, type: String })
+  @ApiQuery({ name: 'status', required: false, type: Number })
+  @ApiResponse({ status: 200, description: 'List of chemical parameters.' })
+  getChemicalParametersWithSampleDescriptions(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.chemicalParameterService.getChemicalParametersWithSampleDescriptions(params);
   }
 
   @Get(':id')
@@ -85,4 +97,5 @@ export class ChemicalParameterController {
   remove(@Param('id') id: string) {
     return this.chemicalParameterService.remove(+id);
   }
+
 }

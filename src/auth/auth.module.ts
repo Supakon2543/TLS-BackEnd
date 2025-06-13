@@ -18,7 +18,11 @@ console.log('JWT Secret From .ENV:', process.env.JWTSECRET); // Log the secret f
       signOptions: { expiresIn: '3h' },
     }),
   ],
+<<<<<<< HEAD
   providers: [AuthService, JwtStrategy, UsersService, UserRoleService, PrismaService, JwtService],
+=======
+  providers: [AuthService, JwtStrategy, UsersService, UserRoleService, PrismaService],
+>>>>>>> 604a125c958e15b87c14dd7e775088090791d193
   controllers: [AuthController],
   exports: [AuthService],
 })

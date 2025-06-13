@@ -42,6 +42,18 @@ import { ObjectiveModule } from './objective/objective.module';
 import { BoxModule } from './box/box.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthMiddleware } from './middleware/auth.middleware';
+<<<<<<< HEAD
+=======
+import { SampleDescriptionModule } from './sample_description/sample_description.module';
+import { ReportHeadingModule } from './report_heading/report_heading.module';
+import { RequestModule } from './request/request.module';
+import { ChemicalSampleDescriptionModule } from './chemical_sample_description/chemical_sample_description.module';
+import { MicrobiologySampleDescriptionModule } from './microbiology_sample_description/microbiology_sample_description.module';
+import { CustomerContactInfoModule } from './customer_contact_info/customer_contact_info.module';
+import { SignatureModule } from './signature/signature.module';
+import { SamplePackagingModule } from './sample_packaging/sample_packaging.module';
+import { PresignModule } from './presign/presign.module';
+>>>>>>> 604a125c958e15b87c14dd7e775088090791d193
 
 @Module({
   imports: [
@@ -85,6 +97,15 @@ import { AuthMiddleware } from './middleware/auth.middleware';
     ObjectiveModule,
     BoxModule,
     AuthModule,
+    SampleDescriptionModule,
+    ReportHeadingModule,
+    RequestModule,
+    ChemicalSampleDescriptionModule,
+    MicrobiologySampleDescriptionModule,
+    CustomerContactInfoModule,
+    SignatureModule,
+    SamplePackagingModule,
+    PresignModule,
   ],
   controllers: [AppController],
   providers: [AppService],

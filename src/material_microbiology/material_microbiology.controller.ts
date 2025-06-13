@@ -14,7 +14,7 @@ import { CreateMaterialMicrobiologyDto } from './dto/create-material_microbiolog
 import { UpdateMaterialMicrobiologyDto } from './dto/update-material_microbiology.dto';
 import { AuthGuard } from '@nestjs/passport';
 @UseGuards(AuthGuard('jwt'))
-@Controller('material_microbiology')
+@Controller('material-microbiology')
 export class MaterialMicrobiologyController {
   constructor(
     private readonly materialMicrobiologyService: MaterialMicrobiologyService,

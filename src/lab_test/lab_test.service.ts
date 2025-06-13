@@ -71,7 +71,11 @@ export class LabTestService {
 
     async create_update(/*@Request() req: Request, */@Body() payload: CreateLabTestDto/*, @Response() res: Response*/) {
       const id = payload.id
+<<<<<<< HEAD
       const lab_test = await this.prisma.status_request.findUnique({
+=======
+      const lab_test = await this.prisma.lab_test.findUnique({
+>>>>>>> 604a125c958e15b87c14dd7e775088090791d193
         where: { id },
       });
   

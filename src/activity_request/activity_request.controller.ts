@@ -5,7 +5,7 @@ import { UpdateActivityRequestDto } from './dto/update-activity_request.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(AuthGuard('jwt'))
-@Controller('activity_request')
+@Controller('activity-request')
 export class ActivityRequestController {
   constructor(private readonly activityRequestService: ActivityRequestService) {}
 
