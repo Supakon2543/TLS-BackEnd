@@ -15,8 +15,28 @@ export class SignatureService {
     }
     return this.prisma.signature.upsert({
       where: { id: data.id },
-      create: { ...data },
-      update: data,
+      create: {
+        ...data,
+        created_on:
+          data.created_on && data.created_on !== ''
+            ? new Date(data.created_on)
+            : new Date(),
+        updated_on:
+          data.updated_on && data.updated_on !== ''
+            ? new Date(data.updated_on)
+            : new Date(),
+      },
+      update: {
+        ...data,
+        created_on:
+          data.created_on && data.created_on !== ''
+            ? new Date(data.created_on)
+            : new Date(),
+        updated_on:
+          data.updated_on && data.updated_on !== ''
+            ? new Date(data.updated_on)
+            : new Date(),
+      },
     });
   }
 
@@ -149,7 +169,6 @@ export class SignatureService {
                 user_location_id: user.user_location_id,
                 supervisor_id: user.supervisor_id,
                 position_name: user.position_name,
-          
               },
               signature: {
                 id: null,
@@ -178,7 +197,6 @@ export class SignatureService {
             user_location_id: user.user_location_id,
             supervisor_id: user.supervisor_id,
             position_name: user.position_name,
-           
           },
           signature: sig,
         }));

@@ -14,8 +14,8 @@ export class UpsertMaterialDto {
   test_report_name: string;
 
   @IsOptional()
-  @IsString()
-  conclusion: string;
+  @IsBoolean()
+  conclusion: boolean;
 
   @IsOptional()
   @IsString()
