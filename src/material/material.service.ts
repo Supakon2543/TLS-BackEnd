@@ -83,7 +83,9 @@ export class MaterialService {
     }
 
     // 3. Sync material_microbiology
-    const microIds = material.material_microbiology.map((micro: any) => micro.id);
+    const microIds = material.material_microbiology.map(
+      (micro: any) => micro.id,
+    );
 
     await this.prisma.material_microbiology.deleteMany({
       where: {
@@ -126,7 +128,7 @@ export class MaterialService {
   }) {
     let { id, keyword, status } = params;
 
-    // Convert id and status to numbers if they are strings 
+    // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
@@ -147,20 +149,20 @@ export class MaterialService {
             material_chemical: {
               include: {
                 chemical_parameter: {
-                  select: { name: true }
-                }
-              }
+                  select: { name: true },
+                },
+              },
             },
             material_microbiology: {
               include: {
                 microbiology_parameter: {
-                  select: { name: true }
-                }
-              }
-            }
-          }
+                  select: { name: true },
+                },
+              },
+            },
+          },
         });
-        return materials.map(material => ({
+        return materials.map((material) => ({
           id: material.id,
           name: material.name,
           test_report_name: material.test_report_name,
@@ -175,7 +177,7 @@ export class MaterialService {
           created_by: material.created_by,
           updated_on: material.updated_on,
           updated_by: material.updated_by,
-          material_chemical: material.material_chemical.map(mc => ({
+          material_chemical: material.material_chemical.map((mc) => ({
             id: mc.id,
             material_id: mc.material_id,
             chemical_parameter_id: mc.chemical_parameter_id,
@@ -183,7 +185,7 @@ export class MaterialService {
             created_on: mc.created_on,
             created_by: mc.created_by,
           })),
-          material_microbiology: material.material_microbiology.map(mm => ({
+          material_microbiology: material.material_microbiology.map((mm) => ({
             id: mm.id,
             material_id: mm.material_id,
             microbiology_parameter_id: mm.microbiology_parameter_id,
@@ -212,30 +214,36 @@ export class MaterialService {
         material_chemical: {
           include: {
             chemical_parameter: {
-              select: { name: true }
-            }
-          }
+              select: { name: true },
+            },
+          },
         },
         material_microbiology: {
           include: {
             microbiology_parameter: {
-              select: { name: true }
-            }
-          }
-        }
-      }
+              select: { name: true },
+            },
+          },
+        },
+      },
     });
 
-    return materials.map(material => ({
+    return materials.map((material) => ({
       id: material.id,
       name: material.name,
       test_report_name: material.test_report_name,
+      conclusion: material.conclusion,
+      reg_no: material.reg_no,
+      is_special_parameter: material.is_special_parameter,
+      special_parameter_name: material.special_parameter_name,
+      special_parameter_type: material.special_parameter_type,
+      remark_report: material.remark_report,
       status: material.status,
       created_on: material.created_on,
       created_by: material.created_by,
       updated_on: material.updated_on,
       updated_by: material.updated_by,
-      material_chemical: material.material_chemical.map(mc => ({
+      material_chemical: material.material_chemical.map((mc) => ({
         id: mc.id,
         material_id: mc.material_id,
         chemical_parameter_id: mc.chemical_parameter_id,
@@ -243,7 +251,7 @@ export class MaterialService {
         created_on: mc.created_on,
         created_by: mc.created_by,
       })),
-      material_microbiology: material.material_microbiology.map(mm => ({
+      material_microbiology: material.material_microbiology.map((mm) => ({
         id: mm.id,
         material_id: mm.material_id,
         microbiology_parameter_id: mm.microbiology_parameter_id,
@@ -293,16 +301,25 @@ export class MaterialService {
     });
   }
 
-  async insert_material(@Body() payload: { id: number, name: string, test_report_name: string, status: boolean }) {
-    
+  async insert_material(
+    @Body()
+    payload: {
+      id: number;
+      name: string;
+      test_report_name: string;
+      status: boolean;
+    },
+  ) {
     return await this.prisma.$executeRaw`
       CALL insert_material(${payload.id}, ${payload.name}, ${payload.test_report_name}, ${payload.status})
-    ;`
+    ;`;
   }
 
-  async get_material(@Body() payload: { id: number, keyword: string, status: number }) {
+  async get_material(
+    @Body() payload: { id: number; keyword: string; status: number },
+  ) {
     return await this.prisma.$queryRaw`
       SELECT * FROM get_material(${payload.id})
-    ;`
+    ;`;
   }
 }

@@ -15,8 +15,28 @@ export class SignatureService {
     }
     return this.prisma.signature.upsert({
       where: { id: data.id },
-      create: { ...data },
-      update: data,
+      create: {
+        ...data,
+        created_on:
+          data.created_on && data.created_on !== ''
+            ? new Date(data.created_on)
+            : new Date(),
+        updated_on:
+          data.updated_on && data.updated_on !== ''
+            ? new Date(data.updated_on)
+            : new Date(),
+      },
+      update: {
+        ...data,
+        created_on:
+          data.created_on && data.created_on !== ''
+            ? new Date(data.created_on)
+            : new Date(),
+        updated_on:
+          data.updated_on && data.updated_on !== ''
+            ? new Date(data.updated_on)
+            : new Date(),
+      },
     });
   }
 
@@ -77,52 +97,113 @@ export class SignatureService {
     // Convert id to number if it's a string
     id = id !== undefined ? +id : undefined;
 
-    const signatures = await this.prisma.signature.findMany({
-      where: {
-        ...(id && { user_id: id }),
-        ...(keyword && {
-          filename: { contains: keyword, mode: 'insensitive' },
-        }),
-        ...(role_id && {
-          user: {
-            user_role: {
-              some: {
-                role_id: role_id,
-              },
-            },
-          },
-        }),
-      },
+    // Build user filter
+    const userWhere: any = {};
+    if (id) userWhere.id = id;
+    if (role_id) {
+      userWhere.user_role = { some: { role_id } };
+    }
+    if (keyword) {
+      userWhere.OR = [
+        { fullname: { contains: keyword, mode: 'insensitive' } },
+        { username: { contains: keyword, mode: 'insensitive' } },
+        { email: { contains: keyword, mode: 'insensitive' } },
+      ];
+    }
+
+    // Get all users with their signatures (if any)
+    const users = await this.prisma.user.findMany({
+      where: userWhere,
       include: {
-        user: {
-          include: {
-            user_role: true,
-          },
+        signature: {
+          orderBy: { id: 'asc' },
         },
+        user_role: true,
       },
       orderBy: { id: 'asc' },
     });
 
-    // Flatten the result as requested
-    return signatures.map((sig) => ({
-      id: sig.id,
-      user_id: sig.user_id,
-      filename: sig.filename,
-      path: sig.path,
-      employee_id: sig.user?.employee_id,
-      username: sig.user?.username,
-      fullname: sig.user?.fullname,
-      tel: sig.user?.tel,
-      email: sig.user?.email,
-      company: sig.user?.company,
-      dept_code: sig.user?.dept_code,
-      dept_name: sig.user?.dept_name,
-      user_location_id: sig.user?.user_location_id,
-      supervisor_id: sig.user?.supervisor_id,
-      position_name: sig.user?.position_name,
-      // Return the first role_id if exists, or null
-      role_id: sig.user?.user_role?.[0]?.role_id ?? null,
-    }));
+    type UserSignatureMap = {
+      user: {
+        id: number;
+        employee_id: string | null;
+        username: string;
+        fullname: string;
+        tel: string | null;
+        email: string;
+        company: string | null;
+        dept_code: string | null;
+        dept_name: string | null;
+        user_location_id: string | null;
+        supervisor_id: number | null;
+        position_name: string | null;
+      };
+      signature: {
+        id: number | null;
+        user_id: number | null;
+        filename: string | null;
+        path: string | null;
+        created_on: Date | null;
+        created_by: number | null;
+        updated_on: Date | null;
+        updated_by: number | null;
+      } | null;
+    };
+
+    // Map to desired format: one record per user-signature pair, or user with signature: null
+    const result: UserSignatureMap[] = users
+      .map((user) => {
+        if (user.signature.length === 0) {
+          return [
+            {
+              user: {
+                id: user.id,
+                employee_id: user.employee_id,
+                username: user.username,
+                fullname: user.fullname,
+                tel: user.tel,
+                email: user.email,
+                company: user.company,
+                dept_code: user.dept_code,
+                dept_name: user.dept_name,
+                user_location_id: user.user_location_id,
+                supervisor_id: user.supervisor_id,
+                position_name: user.position_name,
+              },
+              signature: {
+                id: null,
+                user_id: null,
+                filename: null,
+                path: null,
+                created_on: null,
+                created_by: null,
+                updated_on: null,
+                updated_by: null,
+              },
+            },
+          ];
+        }
+        return user.signature.map((sig) => ({
+          user: {
+            id: user.id,
+            employee_id: user.employee_id,
+            username: user.username,
+            fullname: user.fullname,
+            tel: user.tel,
+            email: user.email,
+            company: user.company,
+            dept_code: user.dept_code,
+            dept_name: user.dept_name,
+            user_location_id: user.user_location_id,
+            supervisor_id: user.supervisor_id,
+            position_name: user.position_name,
+          },
+          signature: sig,
+        }));
+      })
+      .flat();
+
+    return result;
   }
 
   async findAll() {
