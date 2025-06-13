@@ -44,12 +44,5 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
-<<<<<<< HEAD
-  supervisor_id?: number;
-
-  @IsOptional()
-  @IsString()
-=======
->>>>>>> 604a125c958e15b87c14dd7e775088090791d193
   position_name?: string;
 }
