@@ -4,7 +4,7 @@ import { CreateLabSiteDto } from './dto/create-lab_site.dto';
 import { UpdateLabSiteDto } from './dto/update-lab_site.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('lab_site')
+@Controller('lab-site')
 export class LabSiteController {
   constructor(private readonly labSiteService: LabSiteService) {}
 

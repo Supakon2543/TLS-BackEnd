@@ -18,7 +18,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiBearerAuth('bearer')
 @UseGuards(AuthGuard('jwt'))
-@Controller('category_edit')
+@Controller('category-edit')
 export class CategoryEditController {
   constructor(private readonly categoryEditService: CategoryEditService) {}
 

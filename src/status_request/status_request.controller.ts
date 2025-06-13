@@ -5,7 +5,7 @@ import { UpdateStatusRequestDto } from './dto/update-status_request.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(AuthGuard('jwt'))
-@Controller('status_request')
+@Controller('status-request')
 export class StatusRequestController {
   constructor(private readonly statusRequestService: StatusRequestService) {}
 

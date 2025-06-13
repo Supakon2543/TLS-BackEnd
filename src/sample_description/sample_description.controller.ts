@@ -5,7 +5,7 @@ import { UpdateSampleDescriptionDto } from './dto/update-sample_description.dto'
 import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(AuthGuard('jwt'))
-@Controller('sample_description')
+@Controller('sample-description')
 export class SampleDescriptionController {
   constructor(private readonly sampleDescriptionService: SampleDescriptionService) {}
 
