@@ -23,7 +23,7 @@ export class CreateSignatureDto {
 
   @ApiProperty({ type: String, format: 'date-time', required: false })
   @IsOptional()
-  created_on?: Date;
+  created_on?: string;
 
   @ApiProperty({ example: 1, required: false })
   @IsOptional()
@@ -32,7 +32,7 @@ export class CreateSignatureDto {
 
   @ApiProperty({ type: String, format: 'date-time', required: false })
   @IsOptional()
-  updated_on?: Date;
+  updated_on?: string;
 
   @ApiProperty({ example: 1, required: false })
   @IsOptional()

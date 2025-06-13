@@ -440,7 +440,7 @@ model material {
   id                      Int       @id @default(autoincrement())
   name                    String    @db.VarChar(100)
   test_report_name        String    @db.VarChar(100)
-  conclusion              String?   @db.VarChar(100)
+  conclusion              Boolean?   
   reg_no                  String?   @db.VarChar(50)
   is_special_parameter    Boolean?
   special_parameter_name  String?   @db.VarChar(100)
