@@ -1,20 +1,25 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { ChemicalSampleDescriptionService } from './chemical_sample_description.service';
 import { CreateChemicalSampleDescriptionDto } from './dto/create-chemical_sample_description.dto';
 import { UpdateChemicalSampleDescriptionDto } from './dto/update-chemical_sample_description.dto';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('chemical-sample-description')
+
+@UseGuards(AuthGuard('jwt'))
+@Controller('chemical-sample_description')
 export class ChemicalSampleDescriptionController {
   constructor(private readonly chemicalSampleDescriptionService: ChemicalSampleDescriptionService) {}
 
   @Post()
   create(@Body() createChemicalSampleDescriptionDto: CreateChemicalSampleDescriptionDto) {
-    return this.chemicalSampleDescriptionService.create(createChemicalSampleDescriptionDto);
+    return this.chemicalSampleDescriptionService.createOrUpdate(createChemicalSampleDescriptionDto);
   }
 
   @Get()
-  findAll() {
-    return this.chemicalSampleDescriptionService.findAll();
+  getChemicalSampleDescriptions(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.chemicalSampleDescriptionService.getChemicalSampleDescriptions(params);
   }
 
   @Get(':id')

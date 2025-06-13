@@ -1,4 +1,4 @@
-import { IsInt, IsString, IsDateString, IsOptional } from 'class-validator';
+import { IsInt, IsString, IsDateString } from 'class-validator';
 
 export class UpsertMaterialMicrobiologyDto {
   @IsInt()
@@ -11,7 +11,6 @@ export class UpsertMaterialMicrobiologyDto {
   microbiology_parameter_id: number;
 
   @IsString()
-  @IsOptional()
   microbiology_parameter_name: string;
 
   @IsDateString()

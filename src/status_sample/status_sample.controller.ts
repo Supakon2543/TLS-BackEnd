@@ -6,7 +6,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 
 @UseGuards(AuthGuard('jwt'))
-@Controller('status_sample')
+@Controller('status-sample')
 export class StatusSampleController {
   constructor(private readonly statusSampleService: StatusSampleService) {}
 
