@@ -72,7 +72,7 @@ export class SaveRequestDto {
     @ValidateNested({ each: true })
     request_sample: SaveRequestSampleDto[];
 
-    @ValidateNested({ each: true })
-    request_log: CreateRequestLogDto[];
+    @ValidateNested()
+    request_log: CreateRequestLogDto;
 
 }
