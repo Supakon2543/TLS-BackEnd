@@ -17,7 +17,7 @@ import { AuthGuard } from '@nestjs/passport';
 //test
 
 @UseGuards(AuthGuard('jwt'))
-@Controller('location_email')
+@Controller('location-email')
 export class LocationEmailController {
   constructor(private readonly locationEmailService: LocationEmailService) {}
 

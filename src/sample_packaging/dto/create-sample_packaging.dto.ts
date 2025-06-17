@@ -24,6 +24,7 @@ export class CreateSamplePackagingDto {
   @IsBoolean()
   status: boolean;
 
+  @IsOptional()
   @IsInt()
   created_by: number;
 
@@ -35,6 +36,7 @@ export class CreateSamplePackagingDto {
   @IsString()
   updated_on: string;
 
+  @IsOptional()
   @IsInt()
   updated_by: number;
 }

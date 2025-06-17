@@ -13,7 +13,7 @@ export class ModelUserRole {
   id?: number;
 
   @PrimaryGeneratedColumn()
-  userId: number;
+  user_id: number;
 
   @Column()
   roleId: string;

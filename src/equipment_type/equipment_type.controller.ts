@@ -18,7 +18,7 @@ import { AuthGuard } from '@nestjs/passport';
 @ApiTags('equipment_type')
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
-@Controller('equipment_type')
+@Controller('equipment-type')
 export class EquipmentTypeController {
   constructor(private readonly equipmentTypeService: EquipmentTypeService) {}
 

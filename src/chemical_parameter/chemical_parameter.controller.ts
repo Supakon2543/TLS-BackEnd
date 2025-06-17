@@ -17,7 +17,7 @@ import { ApiTags, ApiOperation, ApiBody, ApiResponse , ApiQuery , ApiParam  } fr
 
 @ApiTags('chemical_parameter')
 // @UseGuards(AuthGuard('jwt'))
-@Controller('chemical_parameter')
+@Controller('chemical-parameter')
 export class ChemicalParameterController {
   constructor(
     private readonly chemicalParameterService: ChemicalParameterService,

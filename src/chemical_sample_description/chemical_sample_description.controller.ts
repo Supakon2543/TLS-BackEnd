@@ -6,7 +6,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 
 @UseGuards(AuthGuard('jwt'))
-@Controller('chemical_sample_description')
+@Controller('chemical-sample_description')
 export class ChemicalSampleDescriptionController {
   constructor(private readonly chemicalSampleDescriptionService: ChemicalSampleDescriptionService) {}
 

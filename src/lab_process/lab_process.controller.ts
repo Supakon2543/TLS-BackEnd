@@ -15,7 +15,7 @@ import { UpdateLabProcessDto } from './dto/update-lab_process.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(AuthGuard('jwt'))
-@Controller('lab_process')
+@Controller('lab-process')
 export class LabProcessController {
   constructor(private readonly labProcessService: LabProcessService) {}
 
