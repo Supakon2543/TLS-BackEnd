@@ -1,34 +1,55 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { RequestService } from './request.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
+import { SaveRequestDto } from './dto/save-request.dto';
 
 @Controller('request')
 export class RequestController {
   constructor(private readonly requestService: RequestService) {}
 
-  @Post()
-  create(@Body() createRequestDto: CreateRequestDto) {
-    return this.requestService.create(createRequestDto);
+  @Post('create')
+  create(@Body() payload: CreateRequestDto) {
+    return this.requestService.create(payload);
   }
 
-  @Get()
+  // @Post()
+  // create_update(/*@Request() req: Request, */@Body() payload: CreateRequestDto/*, @Response() res: Response*/) {
+  //   return this.requestService.create_update(/*req, */payload/*, res*/);
+  // }
+
+  // @Get()
+  // find(@Query() payload: {id?: number; status?: number;}/*@Request() req: Request, @Response() res: Response*/) {
+  //   return this.requestService.find(payload/*req, res*/);
+  // }
+
+  @Get('all')
   findAll() {
     return this.requestService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.requestService.findOne(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: number) {
+  //   return this.requestService.findOne(id);
+  // }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRequestDto: UpdateRequestDto) {
-    return this.requestService.update(+id, updateRequestDto);
+  update(@Param('id') id: number, @Body() payload: UpdateRequestDto) {
+    return this.requestService.update(id, payload);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.requestService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.requestService.remove(id);
+  }
+
+  @Get('')
+  get_info(@Query() params: { id?: number | string; }) {
+    return this.requestService.get_info(params);
+  }
+
+  @Post('save')
+  save(@Body() payload: SaveRequestDto) {
+    return this.requestService.save(payload);
   }
 }

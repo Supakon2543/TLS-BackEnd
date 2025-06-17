@@ -51,6 +51,14 @@ import { CustomerContactInfoModule } from './customer_contact_info/customer_cont
 import { SignatureModule } from './signature/signature.module';
 import { SamplePackagingModule } from './sample_packaging/sample_packaging.module';
 import { PresignModule } from './presign/presign.module';
+import { RequestDetailModule } from './request_detail/request_detail.module';
+import { RequestEmailModule } from './request_email/request_email.module';
+import { RequestDetailAttachmentModule } from './request_detail_attachment/request_detail_attachment.module';
+import { RequestSampleModule } from './request_sample/request_sample.module';
+import { RequestSampleChemicalModule } from './request_sample_chemical/request_sample_chemical.module';
+import { RequestSampleMicrobiologyModule } from './request_sample_microbiology/request_sample_microbiology.module';
+import { RequestSampleItemModule } from './request_sample_item/request_sample_item.module';
+import { RequestLogModule } from './request_log/request_log.module';
 
 @Module({
   imports: [
@@ -103,6 +111,14 @@ import { PresignModule } from './presign/presign.module';
     SignatureModule,
     SamplePackagingModule,
     PresignModule,
+    RequestDetailModule,
+    RequestEmailModule,
+    RequestDetailAttachmentModule,
+    RequestSampleModule,
+    RequestSampleChemicalModule,
+    RequestSampleMicrobiologyModule,
+    RequestSampleItemModule,
+    RequestLogModule,
   ],
   controllers: [AppController],
   providers: [AppService],
