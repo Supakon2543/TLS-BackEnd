@@ -212,7 +212,7 @@ model user {
 
   request_log request_log[]
 
-  request_detail_email request_detail_email[]
+  request_email request_email[]
 
   request_detail_attachment request_detail_attachment[]
 
@@ -582,7 +582,7 @@ model request {
 
   request_log request_log[]
 
-  request_detail_email request_detail_email[]
+  request_email request_email[]
 
   request_detail_attachment request_detail_attachment[]
 
@@ -635,7 +635,7 @@ model request_log {
   user             user?            @relation(fields: [user_id], references: [id])
 }
 
-model request_detail_email {
+model request_email {
   id         Int       @id @default(autoincrement())
   request_id Int
   user_id    Int
@@ -671,6 +671,8 @@ model request_sample {
   sampling_date          DateTime?
   expiry_date            DateTime?
   batch_no               String?   @db.VarChar(10)
+  is_display_special     Boolean?  @default(false)
+  special_test_time      DateTime?
   due_date               DateTime?
   status_sample_id       String?
   note                   String?   @db.VarChar(200)
@@ -708,6 +710,7 @@ model request_sample_item {
   sample_condition_id String?
   lab_test_id         String?
   remark              String?   @db.VarChar(100)
+  remark_lab          String?   @db.VarChar(100)
   created_on          DateTime? @default(now())
   created_by          Int?
   updated_on          DateTime? @updatedAt
