@@ -2,7 +2,6 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
-  IsDecimal,
   IsInt,
   IsNumber,
   IsOptional,
@@ -10,7 +9,6 @@ import {
   Length,
   ValidateNested,
 } from 'class-validator';
-import { CreateChemicalSampleDescriptionDto } from 'src/chemical_sample_description/dto/create-chemical_sample_description.dto';
 import { CreateMicrobiologySampleDescriptionDto } from 'src/microbiology_sample_description/dto/create-microbiology_sample_description.dto';
 
 
