@@ -5,7 +5,7 @@ import { UpdateReportHeadingDto } from './dto/update-report_heading.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(AuthGuard('jwt'))
-@Controller('report_heading')
+@Controller('report-heading')
 export class ReportHeadingController {
   constructor(private readonly reportHeadingService: ReportHeadingService) {}
 

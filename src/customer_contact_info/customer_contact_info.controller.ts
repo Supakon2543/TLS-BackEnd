@@ -6,7 +6,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 
 @UseGuards(AuthGuard('jwt'))
-@Controller('customer_contact_info')
+@Controller('customer-contact_info')
 export class CustomerContactInfoController {
   constructor(private readonly customerContactInfoService: CustomerContactInfoService) {}
 
