@@ -51,6 +51,14 @@ import { CustomerContactInfoModule } from './customer_contact_info/customer_cont
 import { SignatureModule } from './signature/signature.module';
 import { SamplePackagingModule } from './sample_packaging/sample_packaging.module';
 import { PresignModule } from './presign/presign.module';
+import { StockRetainModule } from './stock_retain/stock_retain.module';
+import { StockRetainItemModule } from './stock_retain_item/stock_retain_item.module';
+import { StockRetainItemLogModule } from './stock_retain_item_log/stock_retain_item_log.module';
+import { StockChemicalModule } from './stock_chemical/stock_chemical.module';
+import { StockChemicalItemModule } from './stock_chemical_item/stock_chemical_item.module';
+import { StockEquipmentModule } from './stock_equipment/stock_equipment.module';
+import { StockEquipmentCalibrationModule } from './stock_equipment_calibration/stock_equipment_calibration.module';
+import { StockEquipmentLogModule } from './stock_equipment_log/stock_equipment_log.module';
 
 @Module({
   imports: [
@@ -103,6 +111,14 @@ import { PresignModule } from './presign/presign.module';
     SignatureModule,
     SamplePackagingModule,
     PresignModule,
+    StockRetainModule,
+    StockRetainItemModule,
+    StockRetainItemLogModule,
+    StockChemicalModule,
+    StockChemicalItemModule,
+    StockEquipmentModule,
+    StockEquipmentCalibrationModule,
+    StockEquipmentLogModule,
   ],
   controllers: [AppController],
   providers: [AppService],
