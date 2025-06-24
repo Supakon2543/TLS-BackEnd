@@ -19,37 +19,47 @@ export class UpsertMaterialDto {
 
   @IsOptional()
   @IsString()
+  @IsOptional()
   reg_no: string;
 
   @IsOptional()
   @IsBoolean()
+  @IsOptional()
   is_special_parameter: boolean;
 
   @IsOptional()
   @IsString()
+  @IsOptional()
   special_parameter_name: string;
 
   @IsOptional()
   @IsString()
+  @IsOptional()
   special_parameter_type: string;
 
   @IsOptional()
   @IsString()
+  @IsOptional()
   remark_report: string;
 
   @IsBoolean()
+  @IsOptional()
   status: boolean;
 
   @IsDateString()
+  @IsOptional()
   created_on: string;
 
   @IsInt()
+  @IsOptional()
   created_by: number;
 
   @IsDateString()
+  @IsOptional()
   updated_on: string;
 
   @IsInt()
+  @IsOptional()
   updated_by: number;
 
   @ValidateNested({ each: true })
