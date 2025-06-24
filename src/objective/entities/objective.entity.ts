@@ -14,8 +14,8 @@ import {
     Length,
   } from 'class-validator';
   
-  @Entity() // Update table name as needed
-  export class objective {
+  @Entity() 
+  export class Objective {
     @PrimaryGeneratedColumn()
     id: number;
   

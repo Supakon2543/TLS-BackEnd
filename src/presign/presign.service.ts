@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
 export class PresignService {
-  private s3: S3Client;
-  private bucket = process.env.AWS_S3_BUCKET;
+  private readonly s3: S3Client;
+  private readonly bucket = process.env.AWS_S3_BUCKET;
+
+  
 
   constructor() {
     this.s3 = new S3Client({
@@ -31,5 +33,20 @@ export class PresignService {
       }),
     );
     return { urls };
+  }
+
+  async downloadFile(bucket: string, key: string): Promise<Buffer> {
+    const params = {
+      Bucket: bucket,
+      Key: key,
+    };
+    const command = new GetObjectCommand(params);
+    const data = await this.s3.send(command);
+    const stream = data.Body as NodeJS.ReadableStream;
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
   }
 }

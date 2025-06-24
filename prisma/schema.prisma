@@ -212,7 +212,7 @@ model user {
 
   request_log request_log[]
 
-  request_detail_email request_detail_email[]
+  request_email request_email[]
 
   request_detail_attachment request_detail_attachment[]
 
@@ -582,7 +582,7 @@ model request {
 
   request_log request_log[]
 
-  request_detail_email request_detail_email[]
+  request_email request_email[]
 
   request_detail_attachment request_detail_attachment[]
 
@@ -635,7 +635,7 @@ model request_log {
   user             user?            @relation(fields: [user_id], references: [id])
 }
 
-model request_detail_email {
+model request_email {
   id         Int       @id @default(autoincrement())
   request_id Int
   user_id    Int
@@ -671,6 +671,8 @@ model request_sample {
   sampling_date          DateTime?
   expiry_date            DateTime?
   batch_no               String?   @db.VarChar(10)
+  is_display_special     Boolean?  @default(false)
+  special_test_time      DateTime?
   due_date               DateTime?
   status_sample_id       String?
   note                   String?   @db.VarChar(200)
@@ -708,6 +710,7 @@ model request_sample_item {
   sample_condition_id String?
   lab_test_id         String?
   remark              String?   @db.VarChar(100)
+  remark_lab          String?   @db.VarChar(100)
   created_on          DateTime? @default(now())
   created_by          Int?
   updated_on          DateTime? @updatedAt
@@ -810,4 +813,109 @@ model sample_packaging {
   created_by Int?
   updated_on DateTime? @updatedAt @db.Timestamptz(6)
   updated_by Int?
+}
+
+//today 2023-10-30
+
+model stock_retain {
+  id                Int       @id @default(autoincrement())
+  request_sample_id Int
+  location_id       Int
+  section_id        Int
+  box_id            Int
+  status_retain_id  String?
+  created_on        DateTime? @db.Timestamptz
+  created_by        Int?
+  updated_on        DateTime? @db.Timestamptz
+  updated_by        Int?
+}
+
+model stock_retain_item {
+  id               Int       @id @default(autoincrement())
+  stock_retain_id  Int
+  sample_item_id   Int
+  status_retain_id String?
+  approve_role_id  String?
+  plan_return_date DateTime? @db.Timestamptz
+  return_date      DateTime? @db.Timestamptz
+  created_on       DateTime? @db.Timestamptz
+  created_by       Int?
+  updated_on       DateTime? @db.Timestamptz
+  updated_by       Int?
+}
+
+model stock_retain_item_log {
+  id                   Int      @id @default(autoincrement())
+  stock_retain_item_id Int
+  stock_retain_id      Int
+  activity             String?  @db.VarChar(200)
+  user_id              Int
+  timestamp            DateTime @db.Timestamptz
+  remark               String?  @db.VarChar(200)
+}
+
+model stock_chemical {
+  id              Int       @id @default(autoincrement())
+  chemical_id     Int
+  manufacturer_id Int
+  created_on      DateTime? @db.Timestamptz
+  created_by      Int?
+  updated_on      DateTime? @db.Timestamptz
+  updated_by      Int?
+}
+
+model stock_chemical_item {
+  id                Int        @id @default(autoincrement())
+  stock_chemical_id Int
+  lot_no            String     @db.VarChar(10)
+  number_of_bottle  String     @db.VarChar(6)
+  received_date     DateTime   @db.Timestamptz
+  expiry_date       DateTime   @db.Timestamptz
+  withdraw_date     DateTime?  @db.Timestamptz
+  prepare_date      DateTime?  @db.Timestamptz
+  prepare_by        Int?
+  created_on        DateTime?  @db.Timestamptz
+  created_by        Int?
+  updated_on        DateTime?  @db.Timestamptz
+  updated_by        Int?
+}
+
+model stock_equipment {
+  id                   Int       @id @default(autoincrement())
+  equipment_type_id    Int
+  location_id          Int
+  manufacturer_id      Int
+  model                String    @db.VarChar(50)
+  serial_no            String    @db.VarChar(50)
+  equipment_code       String    @db.VarChar(50)
+  asset_no             String    @db.VarChar(50)
+  status_equipment_id  String?
+  created_on           DateTime? @db.Timestamptz
+  created_by           Int?
+  updated_on           DateTime? @db.Timestamptz
+  updated_by           Int?
+
+}
+
+model stock_equipment_calibration {
+  id                  Int       @id @default(autoincrement())
+  stock_equipment_id  Int
+  calibration_date    DateTime  @db.Timestamptz
+  due_date            DateTime  @db.Timestamptz
+  certification_no    String    @db.VarChar(50)
+  note                String?   @db.VarChar(200)
+  filename            String    @db.VarChar(100)
+  path                String    @db.VarChar(200)
+  created_on          DateTime? @db.Timestamptz
+  created_by          Int?
+}
+
+model stock_equipment_log {
+  id                   Int       @id @default(autoincrement())
+  stock_equipment_id   Int
+  status_equipment_id  Int
+  activity_equipment_id String
+  user_id              Int
+  timestamp            DateTime  @db.Timestamptz
+  note                 String?   @db.VarChar(200)
 }
