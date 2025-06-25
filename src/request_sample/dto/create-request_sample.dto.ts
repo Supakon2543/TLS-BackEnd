@@ -3,6 +3,7 @@ import { IsBoolean, IsNumber, IsOptional, IsString, MaxLength } from "class-vali
 export class CreateRequestSampleDto {
 
     @IsNumber()
+    @IsOptional()
     id: number;
 
     @IsNumber()

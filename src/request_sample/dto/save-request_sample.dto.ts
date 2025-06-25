@@ -5,9 +5,11 @@ import { CreateRequestSampleItemDto } from "src/request_sample_item/dto/create-r
 export class SaveRequestSampleDto {
 
     @IsNumber()
+    @IsOptional()
     id: number;
 
     @IsNumber()
+    @IsOptional()
     request_id: number;
 
     @IsString()

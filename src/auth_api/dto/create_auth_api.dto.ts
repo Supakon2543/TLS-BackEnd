@@ -19,4 +19,9 @@ import {
     @IsString()
     @IsOptional()
     token: string;
+
+    @ApiProperty({type: String, description: 'Module' })
+    @IsString()
+    @IsOptional()
+    module: string;
   }

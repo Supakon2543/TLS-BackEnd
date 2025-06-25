@@ -8,6 +8,7 @@ import { SaveRequestSampleDto } from "src/request_sample/dto/save-request_sample
 export class SaveRequestDto {
 
     @IsNumber()
+    @IsOptional()
     id: number;
 
     @IsString()
@@ -48,9 +49,9 @@ export class SaveRequestDto {
     @IsOptional()
     review_role_id: string;
 
-    @IsNumber()
-    @IsOptional()
-    original_id: number;
+    // @IsNumber()
+    // @IsOptional()
+    // original_id: number;
 
     @IsNumber()
     @IsOptional()

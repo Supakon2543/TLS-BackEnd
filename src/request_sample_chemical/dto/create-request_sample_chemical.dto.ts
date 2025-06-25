@@ -3,9 +3,11 @@ import { IsNumber, IsOptional, IsString, MaxLength } from "class-validator";
 export class CreateRequestSampleChemicalDto {
 
     @IsNumber()
+    @IsOptional()
     id: number;
 
     @IsNumber()
+    @IsOptional()
     request_sample_id: number;
 
     @IsNumber()

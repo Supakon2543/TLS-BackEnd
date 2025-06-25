@@ -706,7 +706,7 @@ model request_sample_item {
   seq                 Int
   quantity            Int?
   unit_id             Int?
-  time                DateTime?
+  time                String?
   sample_condition_id String?
   lab_test_id         String?
   remark              String?   @db.VarChar(100)

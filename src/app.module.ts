@@ -59,6 +59,7 @@ import { RequestSampleChemicalModule } from './request_sample_chemical/request_s
 import { RequestSampleMicrobiologyModule } from './request_sample_microbiology/request_sample_microbiology.module';
 import { RequestSampleItemModule } from './request_sample_item/request_sample_item.module';
 import { RequestLogModule } from './request_log/request_log.module';
+import { AuthApiModule } from './auth_api/auth_api.module';
 
 @Module({
   imports: [
@@ -102,6 +103,7 @@ import { RequestLogModule } from './request_log/request_log.module';
     ObjectiveModule,
     BoxModule,
     AuthModule,
+    AuthApiModule,
     SampleDescriptionModule,
     ReportHeadingModule,
     RequestModule,
