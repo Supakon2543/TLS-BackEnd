@@ -2,21 +2,99 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service'; // adjust path as needed
 import { CreateSignatureDto } from './dto/create-signature.dto';
 import { UpdateSignatureDto } from './dto/update-signature.dto';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class SignatureService {
+  private readonly s3 = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+  });
   constructor(private readonly prisma: PrismaService) {}
-
   // Create or update a record
   async createOrUpdate(data: CreateSignatureDto) {
-    if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, created_on, updated_on, ...createData } = data;
-      return this.prisma.signature.create({ data: createData });
+    let s3Path = `tls/${process.env.ENVNAME}/signatures/${data.user_id}/${data.filename}`;
+    let filename = data.filename;
+
+     // 1. Delete old file from S3 if updating (id exists)
+  if (data.id) {
+    const oldSignature = await this.prisma.signature.findUnique({ where: { id: data.id } });
+    if (oldSignature && oldSignature.path) {
+      // Remove leading slash if present
+      const oldKey = oldSignature.path.startsWith('/') ? oldSignature.path.slice(1) : oldSignature.path;
+      try {
+        await this.s3.send(
+          new (await import('@aws-sdk/client-s3')).DeleteObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET!,
+            Key: oldKey,
+          }),
+        );
+      } catch (err) {
+        // Log but don't throw, so update can continue
+        console.warn('Failed to delete old S3 file:', err?.message || err);
+      }
     }
+  }
+
+    // If base64 is provided (raw, not data URL), upload to S3
+    if (data.base64 && data.base64 !== '') {
+      // If base64 is a data URL, extract the content
+      let buffer: Buffer;
+      let mimeType = 'image/png';
+
+      if (data.base64.startsWith('data:')) {
+        const matches = data.base64.match(/^data:(.+);base64,(.+)$/);
+        if (!matches) throw new Error('Invalid base64 format');
+        mimeType = matches[1];
+        buffer = Buffer.from(matches[2], 'base64');
+      } else {
+        // Assume PDF if not a data URL (as in your example)
+        buffer = Buffer.from(data.base64, 'base64');
+        mimeType = 'application/pdf';
+      }
+
+      filename = `${data.filename}`;
+      const s3Key = `tls/${process.env.ENVNAME}/signatures/${data.user_id}/${filename}`;
+      console.log({
+        AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+        AWS_REGION: process.env.AWS_REGION,
+        AWS_S3_BUCKET: process.env.AWS_S3_BUCKET,
+        ENVNAME: process.env.ENVNAME,
+        s3Key,
+      });
+
+      await this.s3.send(
+        new PutObjectCommand({
+          Bucket: process.env.AWS_S3_BUCKET!,
+          Key: s3Key,
+          Body: buffer,
+          ContentType: mimeType,
+        }),
+      );
+      s3Path = `/${s3Key}`;
+    }
+
+    if (data.id === null || data.id === undefined || data.id === 0) {
+      const { id, created_on, updated_on, base64, ...createData } = data;
+      return this.prisma.signature.create({
+        data: {
+          ...createData,
+          filename,
+          path: s3Path,
+        },
+      });
+    }
+    const { base64, ...prismaData } = data;
     return this.prisma.signature.upsert({
       where: { id: data.id },
       create: {
-        ...data,
+        ...prismaData,
+        filename,
+        path: s3Path,
         created_on:
           data.created_on && data.created_on !== ''
             ? new Date(data.created_on)
@@ -27,7 +105,9 @@ export class SignatureService {
             : new Date(),
       },
       update: {
-        ...data,
+        ...prismaData,
+        filename,
+        path: data.path || s3Path,
         created_on:
           data.created_on && data.created_on !== ''
             ? new Date(data.created_on)

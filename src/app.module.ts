@@ -51,6 +51,7 @@ import { CustomerContactInfoModule } from './customer_contact_info/customer_cont
 import { SignatureModule } from './signature/signature.module';
 import { SamplePackagingModule } from './sample_packaging/sample_packaging.module';
 import { PresignModule } from './presign/presign.module';
+import { DowloadS3Module } from './download_s3/download_s3.module';
 
 @Module({
   imports: [
@@ -103,6 +104,7 @@ import { PresignModule } from './presign/presign.module';
     SignatureModule,
     SamplePackagingModule,
     PresignModule,
+    DowloadS3Module,
   ],
   controllers: [AppController],
   providers: [AppService],
