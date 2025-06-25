@@ -10,4 +10,4 @@ import { PrismaService } from 'src/prisma/prisma.service';
   controllers: [AuthApiController],
   exports: [AuthApiService],
 })
-export class AuthModule {}
+export class AuthApiModule {}
