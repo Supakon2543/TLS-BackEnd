@@ -293,7 +293,7 @@ export class AuthApiService {
             select: { role_id: true, user_id: true },
         });
         return {
-          accessToken: response_token.data.accessToken,
+          accessToken: user_data.accessToken,
           id: employee_data.id,
           employee_id: employee_data.employee_id,
           username: employee_data.username,
@@ -515,7 +515,7 @@ export class AuthApiService {
           select: { role_id: true, user_id: true },
         });
         return {
-          accessToken: response_token.data.accessToken,
+          accessToken: user_data.accessToken,
           id: employee_data.id,
           employee_id: employee_data.employee_id,
           username: employee_data.username,
