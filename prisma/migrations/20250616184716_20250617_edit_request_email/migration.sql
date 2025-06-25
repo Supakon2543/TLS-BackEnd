@@ -11,7 +11,8 @@ ALTER TABLE "request_detail_email" DROP CONSTRAINT "request_detail_email_request
 ALTER TABLE "request_detail_email" DROP CONSTRAINT "request_detail_email_user_id_fkey";
 
 -- AlterTable
--- ALTER TABLE "material" ADD COLUMN     "conclusion" BOOLEAN,
+-- ALTER TABLE "material" 
+-- ADD COLUMN     "conclusion" BOOLEAN,
 -- ADD COLUMN     "is_special_parameter" BOOLEAN,
 -- ADD COLUMN     "reg_no" VARCHAR(50),
 -- ADD COLUMN     "remark_report" VARCHAR(200),
