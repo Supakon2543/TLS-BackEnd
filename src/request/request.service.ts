@@ -74,8 +74,11 @@ export class RequestService {
     async get_info(params: { id?: number | string; }) {
       let { id } = params;
 
-      // Convert id and status to numbers if they are strings 
+      // Convert id to number and check validity
       id = id !== undefined ? +id : undefined;
+      if (!id || isNaN(id)) {
+        throw new NotFoundException('Request ID is required and must be a valid number');
+      }
 
       const request = await this.prisma.request.findUnique({
         where: { id },
@@ -98,7 +101,28 @@ export class RequestService {
         throw new NotFoundException(`Request with ID ${id} not found`);
       }
 
-      return request;
+      // Transform to match your desired structure
+      return {
+        request: {
+          ...request,
+          // Remove nested arrays/objects from root
+          request_email: undefined,
+          request_detail: undefined,
+          request_detail_attachment: undefined,
+          request_sample: undefined,
+          request_log: undefined,
+        },
+        request_email: request.request_email ?? [],
+        request_detail: request.request_detail ?? {},
+        request_detail_attachment: request.request_detail_attachment ?? [],
+        request_sample: (request.request_sample ?? []).map(sample => ({
+          ...sample,
+          request_sample_chemical: sample.request_sample_chemical ?? [],
+          request_sample_microbiology: sample.request_sample_microbiology ?? [],
+          request_sample_item: sample.request_sample_item ?? [],
+        })),
+        request_log: request.request_log ?? []
+      };
     }
 
     async save(@Body() payload: any) {
@@ -248,5 +272,192 @@ export class RequestService {
 
       // 4. Return the full request info
       return this.get_info({ id: requestId });
+    }
+
+    async duplicate(@Query() payload: { id: number }) {
+      const { id } = payload;
+
+      // 1. Get the original request with all nested data
+      const original = await this.prisma.request.findUnique({
+        where: { id },
+        include: {
+          request_detail: true,
+          request_sample: {
+            include: {
+              request_sample_item: true,
+            },
+          },
+        },
+      });
+
+      if (!original) {
+        throw new NotFoundException(`Request with ID ${id} not found`);
+      }
+
+      let temp = {
+        request: {
+          ...original,
+          request_detail: undefined,
+          request_sample: undefined,
+        },
+        // Ensure request_detail is a record/object, not an array
+        request_detail: Array.isArray(original.request_detail)
+          ? (original.request_detail[0] ?? {})
+          : (original.request_detail ?? {}),
+        request_sample: (original.request_sample ?? []).map(sample => ({
+          ...sample,
+          id: 0, // Clear ID for duplication
+          category_edit_id: 0, // Clear category_edit_id for duplication
+          certificate_name: '', // Clear certificate_name for duplication
+          path: '', // Clear path for duplication
+          revision: 0, // Clear revision for duplication
+          is_parameter_completed: false, // Clear is_parameter_completed for duplication
+          status_sample_id: '', // Clear status_sample_id for duplication
+          note: '', // Clear note for duplication
+          request_sample_item: (sample.request_sample_item ?? []).map(item => ({
+            ...item,
+            id: 0, // Clear ID for duplication
+          })),
+        })),
+      };
+
+      if (temp.request.request_type_id == "REQUEST") {
+          const last_request = await this.prisma.request.findFirst({
+            where: { request_type_id: 'REQUEST' },
+            orderBy: { created_on: 'desc' },
+          });
+
+          // Get current year as 2 digits
+          const year = new Date().getFullYear().toString().slice(-2);
+
+          let lastNumber = 0;
+          if (last_request?.request_number) {
+            // Expect format: RQYYNNNN, e.g., RQ240001
+            const lastReqNum = String(last_request.request_number);
+            // Only increment if the year matches, otherwise reset to 0
+            const lastYear = lastReqNum.slice(2, 4);
+            if (lastYear === year) {
+              lastNumber = parseInt(lastReqNum.slice(-4), 10) || 0;
+            }
+          }
+          temp.request.request_number = "RQ" + year + (lastNumber + 1).toString().padStart(4, "0");
+        }
+        else if (temp.request.request_type_id == "ROUTINE") {
+          const last_request = await this.prisma.request.findFirst({
+            where: { request_type_id: 'ROUTINE' },
+            orderBy: { created_on: 'desc' },
+          });
+
+          // Get current year as 2 digits
+          const year = new Date().getFullYear().toString().slice(-2);
+
+          let lastNumber = 0;
+          if (last_request?.request_number) {
+            // Expect format: RQYYNNNN, e.g., RQ240001
+            const lastReqNum = String(last_request.request_number);
+            // Only increment if the year matches, otherwise reset to 0
+            const lastYear = lastReqNum.slice(2, 4);
+            if (lastYear === year) {
+              lastNumber = parseInt(lastReqNum.slice(-4), 10) || 0;
+            }
+          }
+          temp.request.request_number = "RT" + year + (lastNumber + 1).toString().padStart(4, "0");
+        }
+        else if (temp.request.request_type_id == "QIP") {
+          const last_request = await this.prisma.request.findFirst({
+            where: { request_type_id: 'QIP' },
+            orderBy: { created_on: 'desc' },
+          });
+
+          // Get current year as 2 digits
+          const year = new Date().getFullYear().toString().slice(-2);
+
+          let lastNumber = 0;
+          if (last_request?.request_number) {
+            // Expect format: RQYYNNNN, e.g., RQ240001
+            const lastReqNum = String(last_request.request_number);
+            // Only increment if the year matches, otherwise reset to 0
+            const lastYear = lastReqNum.slice(2, 4);
+            if (lastYear === year) {
+              lastNumber = parseInt(lastReqNum.slice(-4), 10) || 0;
+            }
+          }
+          temp.request.request_number = "RE" + year + (lastNumber + 1).toString().padStart(4, "0");
+        }
+
+      temp.request.original_id = payload.id; // Set original_id to the ID of the request being duplicated
+      temp.request.id = 0; // Clear the ID to create a new request
+      temp.request.created_by = 0; // Clear created_by for duplication
+      temp.request.updated_by = 0;
+      temp.request.created_on = new Date(); // Set created_on to now
+      temp.request.updated_on = new Date(); // Set updated_on to now
+      temp.request.request_date = new Date(); // Clear request_number for duplication
+      temp.request.requester_id = 0; // Clear requester_id for duplication
+      temp.request.status_request_id = 'DRAFT'; // Set status to DRAFT for duplication
+      temp.request.review_role_id = ''; // Set review role to REQ_HEAD for duplication
+      temp.request.telephone = ''; // Clear telephone for duplication
+
+      // Optionally, generate a new request_number here if needed
+
+      // 3. Create the duplicated request
+      const newRequest = await this.prisma.request.create({
+        data: temp.request });
+
+      // 4. Duplicate request_detail (handled above in nested create)
+      temp.request_detail.id = 0; // Set the new request ID
+      await this.prisma.request_detail.create({
+        data: {
+          ...temp.request_detail,
+          request_id: newRequest.id,
+          // set created_by, created_on as needed
+        },
+      });
+
+      // 5. Duplicate request_sample and request_sample_item
+      for (const sample of temp.request_sample) {
+        const {
+          id: _sampleId,
+          request_id: _sampleReqId,
+          created_by: _sampleCreatedBy,
+          updated_by: _sampleUpdatedBy,
+          created_on: _sampleCreatedOn,
+          updated_on: _sampleUpdatedOn,
+          request_sample_item,
+          ...sampleData
+        } = sample;
+
+        // Create new sample
+        const newSample = await this.prisma.request_sample.create({
+          data: {
+            ...sampleData,
+            request_id: newRequest.id,
+            // set created_by, created_on as needed
+          },
+        });
+
+        // Duplicate sample items
+        for (const item of request_sample_item) {
+          const {
+            id: _itemId,
+            request_sample_id: _itemSampleId,
+            created_by: _itemCreatedBy,
+            updated_by: _itemUpdatedBy,
+            created_on: _itemCreatedOn,
+            updated_on: _itemUpdatedOn,
+            ...itemData
+          } = item;
+
+          await this.prisma.request_sample_item.create({
+            data: {
+              ...itemData,
+              request_sample_id: newSample.id,
+              // set created_by, created_on as needed
+            },
+          });
+        }
+      }
+
+      // 6. Return the new duplicated request info
+      return this.get_info({ id: newRequest.id });
     }
 }
