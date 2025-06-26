@@ -341,7 +341,14 @@ export class RequestService {
 
         const sampleId = createdSample.id;
 
-        const items = (request_sample_item ?? []).map(i => ({ ...i, request_sample_id: sampleId }));
+        const items = (request_sample_item ?? []).map(i => {
+          // Remove undefined fields
+          const clean = Object.fromEntries(
+            Object.entries(i).filter(([_, v]) => v !== undefined)
+          );
+          return { ...clean, request_sample_id: sampleId };
+        });
+        console.log('items:', items);
         const chemicals = (request_sample_chemical ?? []).map(c => ({ ...c, request_sample_id: sampleId }));
         const micro = (request_sample_microbiology ?? []).map(m => ({ ...m, request_sample_id: sampleId }));
 
