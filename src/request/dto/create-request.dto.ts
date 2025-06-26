@@ -3,6 +3,7 @@ import { IsNumber, IsOptional, IsString, MaxLength } from "class-validator";
 export class CreateRequestDto {
 
     @IsNumber()
+    @IsOptional()
     id: number;
 
     @IsString()
