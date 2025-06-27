@@ -5,7 +5,7 @@ import { UpdateStatusSampleDto } from './dto/update-status_sample.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('status-sample')
 export class StatusSampleController {
   constructor(private readonly statusSampleService: StatusSampleService) {}

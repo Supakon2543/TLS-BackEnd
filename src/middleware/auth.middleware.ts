@@ -13,11 +13,24 @@ export class AuthMiddleware implements NestMiddleware {
     }
 
     try {
+      const header_token = await axios.post('https://api-dev.osotspa.com/securitycontrol/oauth2/token', {
+        client_id: process.env.OAUTH2_CLIENT_ID ?? "2ATwV3iAbpmdkzuazH4XPZaffMsQc94H",
+        client_secret: process.env.OAUTH2_CLIENT_SECRET ?? "f8D1UqM9OGVcziQ1SfIoz6UTXL5qaDtp",
+        grant_type: process.env.OAUTH2_GRANT_TYPE ?? "client_credentials"
+      });
       // Replace with your token verification API URL
-      const response = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/auth/verify_token', { token });
+      const response = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/auth/verify_token', {
+        accessToken: token,
+      }, {
+        headers: {
+          Authorization: `Bearer ${header_token.data.access_token}`,
+        },
+      });
 
       // If the response is successful, you can attach user data to the request
-      req['user'] = response.data;
+      if (!response.data || !response) {
+        throw new UnauthorizedException('Invalid or expired token');
+      }
       next();
     } catch (error) {
       console.error('Token verification error:', error);

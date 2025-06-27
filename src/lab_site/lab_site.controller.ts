@@ -8,7 +8,7 @@ import { AuthGuard } from '@nestjs/passport';
 export class LabSiteController {
   constructor(private readonly labSiteService: LabSiteService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  // @UseGuards(AuthGuard('jwt'))
   @Post('create')
   create(/*@Request() req: Request, */@Body() payload: CreateLabSiteDto/*, @Response() res: Response*/) {
     return this.labSiteService.create(/*req, */payload/*, res*/);

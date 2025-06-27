@@ -4,7 +4,7 @@ import { CreateActivityEquipmentDto } from './dto/create-activity_equipment.dto'
 import { UpdateActivityEquipmentDto } from './dto/update-activity_equipment.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('activity-equipment')
 export class ActivityEquipmentController {
   constructor(private readonly activityEquipmentService: ActivityEquipmentService) {}

@@ -4,7 +4,7 @@ import { CreateSpecTypeDto } from './dto/create-spec_type.dto';
 import { UpdateSpecTypeDto } from './dto/update-spec_type.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('spec-type')
 export class SpecTypeController {
   constructor(private readonly specTypeService: SpecTypeService) {}

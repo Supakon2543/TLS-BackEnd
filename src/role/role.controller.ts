@@ -5,7 +5,7 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('role')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}

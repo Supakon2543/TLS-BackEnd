@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -127,10 +127,14 @@ import { AuthApiModule } from './auth_api/auth_api.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule /*implements NestModule*/{
-  // configure(consumer: MiddlewareConsumer) {
-  //   consumer
-  //     .apply(AuthMiddleware)
-  //     .forRoutes(); // Or { path: '/api/some', method: RequestMethod.GET }
-  // }
+export class AppModule implements NestModule{
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .exclude(
+        { path: 'auth-api/(.*)', method: RequestMethod.ALL }, // Exclude all routes under /auth-api
+        { path: 'auth/(.*)', method: RequestMethod.ALL }, // Exclude all routes under /auth
+      )
+      .forRoutes('*'); // Apply to all other routes
+  }
 }
