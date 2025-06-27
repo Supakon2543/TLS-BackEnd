@@ -12,9 +12,6 @@ export class AuthApiController {
   @Post('login')
   async login(@Body() user: CreateAuthApiDto, @Res() res: Response) {
     const result = await this.authApiService.login(user);
-    return res.status(200).json({
-      message: "Success",
-      data: result,
-    });
+    return res.status(200).json(result);
   }
 }
