@@ -4,7 +4,7 @@ import { CreateStatusRetainDto } from './dto/create-status_retain.dto';
 import { UpdateStatusRetainDto } from './dto/update-status_retain.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('status-retain')
 export class StatusRetainController {
   constructor(private readonly statusRetainService: StatusRetainService) {}

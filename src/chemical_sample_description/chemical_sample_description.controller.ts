@@ -5,7 +5,7 @@ import { UpdateChemicalSampleDescriptionDto } from './dto/update-chemical_sample
 import { AuthGuard } from '@nestjs/passport';
 
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('chemical-sample_description')
 export class ChemicalSampleDescriptionController {
   constructor(private readonly chemicalSampleDescriptionService: ChemicalSampleDescriptionService) {}

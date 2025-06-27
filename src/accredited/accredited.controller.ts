@@ -4,7 +4,7 @@ import { CreateAccreditedDto } from './dto/create-accredited.dto';
 import { UpdateAccreditedDto } from './dto/update-accredited.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('accredited')
 export class AccreditedController {
   constructor(private readonly accreditedService: AccreditedService) {}

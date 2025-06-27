@@ -4,7 +4,7 @@ import { CreateMicrobiologySampleDescriptionDto } from './dto/create-microbiolog
 import { UpdateMicrobiologySampleDescriptionDto } from './dto/update-microbiology_sample_description.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('microbiology-sample_description')
 export class MicrobiologySampleDescriptionController {
   constructor(private readonly microbiologySampleDescriptionService: MicrobiologySampleDescriptionService) {}

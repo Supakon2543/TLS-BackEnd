@@ -16,7 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse , ApiQuery , ApiParam  } from '@nestjs/swagger';
 
 @ApiTags('chemical_parameter')
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('chemical-parameter')
 export class ChemicalParameterController {
   constructor(

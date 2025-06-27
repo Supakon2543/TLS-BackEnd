@@ -5,7 +5,7 @@ import { UpdateSignatureDto } from './dto/update-signature.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('signature')
 export class SignatureController {
   constructor(private readonly signatureService: SignatureService) {}

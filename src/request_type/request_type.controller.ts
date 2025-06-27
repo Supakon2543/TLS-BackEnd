@@ -4,7 +4,7 @@ import { CreateRequestTypeDto } from './dto/create-request_type.dto';
 import { UpdateRequestTypeDto } from './dto/update-request_type.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('request-type')
 export class RequestTypeController {
   constructor(private readonly requestTypeService: RequestTypeService) {}
