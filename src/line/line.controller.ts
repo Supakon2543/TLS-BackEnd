@@ -17,7 +17,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('line')
 @ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('line')
 export class LineController {
   constructor(private readonly lineService: LineService) {}

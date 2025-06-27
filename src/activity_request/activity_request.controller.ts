@@ -4,7 +4,7 @@ import { CreateActivityRequestDto } from './dto/create-activity_request.dto';
 import { UpdateActivityRequestDto } from './dto/update-activity_request.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('activity-request')
 export class ActivityRequestController {
   constructor(private readonly activityRequestService: ActivityRequestService) {}

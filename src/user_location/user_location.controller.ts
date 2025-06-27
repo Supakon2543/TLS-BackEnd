@@ -4,7 +4,7 @@ import { CreateUserLocationDto } from './dto/create-user_location.dto';
 import { UpdateUserLocationDto } from './dto/update-user_location.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('user-location')
 export class UserLocationController {
   constructor(private readonly userLocationService: UserLocationService) {}

@@ -4,7 +4,7 @@ import { CreateStatusEquipmentDto } from './dto/create-status_equipment.dto';
 import { UpdateStatusEquipmentDto } from './dto/update-status_equipment.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('status-equipment')
 export class StatusEquipmentController {
   constructor(private readonly statusEquipmentService: StatusEquipmentService) {}

@@ -14,7 +14,7 @@ import { CreateMaterialChemicalDto } from './dto/create-material_chemical.dto';
 import { UpdateMaterialChemicalDto } from './dto/update-material_chemical.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('material-chemical')
 export class MaterialChemicalController {
   constructor(

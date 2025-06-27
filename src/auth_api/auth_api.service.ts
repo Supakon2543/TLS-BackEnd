@@ -40,8 +40,15 @@ export class AuthApiService {
         let user_data: any;
         let check_role: any;
         if (!user.password) {
-          response_token = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/auth/signin_az', {
+          const response_login = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/auth/signin_az', {
             username: user.username,
+          }, {
+            headers: {
+              Authorization: `Bearer ${header_token.data.access_token}`,
+            },
+          });
+          response_token = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/auth/verify_token', {
+            accessToken: response_login.data.accessToken,
           }, {
             headers: {
               Authorization: `Bearer ${header_token.data.access_token}`,

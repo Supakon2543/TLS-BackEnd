@@ -15,7 +15,7 @@ import { UpdateChemicalDto } from './dto/update-chemical.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @ApiBearerAuth('bearer')
 @ApiTags('chemical')
 @Controller('chemical')
