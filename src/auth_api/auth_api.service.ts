@@ -54,6 +54,7 @@ export class AuthApiService {
               Authorization: `Bearer ${header_token.data.access_token}`,
             },
           });
+          response_token.data.accessToken = response_login.data.accessToken;
           user_data = response_token.data;
           console.log('User Data:', user_data);
           if (user_data) {
