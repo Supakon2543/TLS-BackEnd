@@ -623,7 +623,7 @@ export class AuthApiService {
       });
     } catch (error) {
       console.error('External authentication failed:', error.message);
-      throw new UnauthorizedException('Invalid credentials or external auth failed');
+      throw new UnauthorizedException(error.message /*'Invalid credentials or external auth failed'*/);
     }
   }
 }
