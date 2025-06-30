@@ -327,9 +327,16 @@ export class AuthApiService {
             // Delete roles that exist but are not in employee_role_info
             for (const userRole of existingUserRoles) {
               if (!employeeRoleIds.includes(userRole.role_id)) {
-                await tx.user_role.delete({
+                // Find the unique user_role record to get its id
+                const userRoleRecord = await tx.user_role.findFirst({
                   where: { user_id: userRole.user_id, role_id: userRole.role_id },
+                  select: { id: true },
                 });
+                if (userRoleRecord) {
+                  await tx.user_role.delete({
+                    where: { id: userRoleRecord.id },
+                  });
+                }
               }
             }
           }
@@ -578,9 +585,16 @@ export class AuthApiService {
             // Delete roles that exist but are not in employee_role_info
             for (const userRole of existingUserRoles) {
               if (!employeeRoleIds.includes(userRole.role_id)) {
-                await tx.user_role.delete({
+                // Find the unique user_role record to get its id
+                const userRoleRecord = await tx.user_role.findFirst({
                   where: { user_id: userRole.user_id, role_id: userRole.role_id },
+                  select: { id: true },
                 });
+                if (userRoleRecord) {
+                  await tx.user_role.delete({
+                    where: { id: userRoleRecord.id },
+                  });
+                }
               }
             }
           }
