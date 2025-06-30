@@ -13,10 +13,7 @@ export class RequestService {
         data: payload,
         // select: {
         //   id: true,
-        //   order: true,
-        //   name: true,
-        //   status :true
-        // },
+        //   order: 'asc' },
       });
   
       
@@ -353,7 +350,22 @@ export class RequestService {
         const micro = (request_sample_microbiology ?? []).map(m => ({ ...m, request_sample_id: sampleId }));
 
         if (items.length > 0) {
-          await this.prisma.request_sample_item.createMany({ data: items });
+          const BATCH_SIZE = 100; // Try a smaller batch size
+          for (let i = 0; i < items.length; i += BATCH_SIZE) {
+            const batch = items.slice(i, i + BATCH_SIZE);
+
+            // Validate and log the batch
+            for (const [idx, item] of batch.entries()) {
+              if (!item || typeof item !== 'object') {
+                console.error('Invalid item at batch index', idx, item);
+                throw new Error('Invalid item in request_sample_item batch');
+              }
+              // Add more field checks as needed, e.g.:
+              // if (!item.requiredField) { ... }
+            }
+
+            await this.prisma.request_sample_item.createMany({ data: batch });
+          }
         }
         if (chemicals.length > 0) {
           await this.prisma.request_sample_chemical.createMany({ data: chemicals });
