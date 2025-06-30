@@ -350,7 +350,7 @@ export class RequestService {
         const micro = (request_sample_microbiology ?? []).map(m => ({ ...m, request_sample_id: sampleId }));
 
         if (items.length > 0) {
-          const BATCH_SIZE = 100; // Try a smaller batch size
+          const BATCH_SIZE = 1; // Try a smaller batch size
           for (let i = 0; i < items.length; i += BATCH_SIZE) {
             const batch = items.slice(i, i + BATCH_SIZE);
 
@@ -364,7 +364,7 @@ export class RequestService {
               // if (!item.requiredField) { ... }
             }
 
-            await this.prisma.request_sample_item.createMany({ data: batch });
+            await this.prisma.request_sample_item.create({ data: batch });
           }
         }
         if (chemicals.length > 0) {

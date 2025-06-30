@@ -221,9 +221,11 @@ model user {
 }
 
 model user_role {
-  user_id    Int       @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
+  user_id    Int
   role_id    String
   created_on DateTime? @default(now())
+
   user       user?     @relation(fields: [user_id], references: [id])
 }
 

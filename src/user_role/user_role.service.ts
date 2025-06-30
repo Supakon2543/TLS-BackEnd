@@ -14,7 +14,7 @@ export class UserRoleService {
       return this.prisma.user_role.create({ data: createData }); // Create a new record
     }
     return this.prisma.user_role.upsert({
-      where: { user_id: data.id }, // Use user_id for the unique constraint
+      where: { id: data.id }, // Use user_id for the unique constraint
       create: { ...data }, // Create a new record with the provided data
       update: data, // Update the existing record with the provided data
     });
@@ -74,22 +74,22 @@ export class UserRoleService {
     return this.prisma.user_role.findMany();
   }
 
-  async findOne(userId: number) {
+  async findOne(id: number) {
     return this.prisma.user_role.findUnique({
-      where: { user_id: userId }, // Use user_id instead of userId
+      where: { id: id }, // Use user_id instead of userId
     });
   }
 
-  async update(userId: number, updateUserRoleDto: UpdateUserRoleDto) {
+  async update(id: number, updateUserRoleDto: UpdateUserRoleDto) {
     return this.prisma.user_role.update({
-      where: { user_id: userId }, // Use user_id here as well
+      where: { id: id }, // Use user_id here as well
       data: updateUserRoleDto,
     });
   }
 
-  async remove(userId: number) {
+  async remove(id: number) {
     return this.prisma.user_role.delete({
-      where: { user_id: userId }, // Again, use user_id here
+      where: { id: id }, // Again, use user_id here
     });
   }
 }
