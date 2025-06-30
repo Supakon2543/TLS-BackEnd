@@ -4,6 +4,7 @@ import { UpdateRequestDto } from './dto/update-request.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SaveRequestDto } from './dto/save-request.dto';
 import e from 'express';
+import { DuplicateRequestDto } from './dto/duplicate-request.dto';
 
 @Injectable()
 export class RequestService {
@@ -383,8 +384,8 @@ export class RequestService {
       return this.get_info({ id: requestId });
     }
 
-    async duplicate(@Query() payload: { id: number }) {
-      const { id } = payload;
+    async duplicate(@Query() payload: DuplicateRequestDto) {
+      const { id, user_id } = payload;
 
       // 1. Get the original request with all nested data
       const original = await this.prisma.request.findUnique({
@@ -496,12 +497,12 @@ export class RequestService {
 
       temp.request.original_id = payload.id; // Set original_id to the ID of the request being duplicated
       temp.request.id = 0; // Clear the ID to create a new request
-      temp.request.created_by = 0; // Clear created_by for duplication
-      temp.request.updated_by = 0;
+      temp.request.created_by = user_id; // Clear created_by for duplication
+      temp.request.updated_by = user_id;
       temp.request.created_on = new Date(); // Set created_on to now
       temp.request.updated_on = new Date(); // Set updated_on to now
       temp.request.request_date = new Date(); // Clear request_number for duplication
-      temp.request.requester_id = 0; // Clear requester_id for duplication
+      temp.request.requester_id = user_id; // Clear requester_id for duplication
       temp.request.status_request_id = 'DRAFT'; // Set status to DRAFT for duplication
       temp.request.review_role_id = ''; // Set review role to REQ_HEAD for duplication
       temp.request.telephone = ''; // Clear telephone for duplication
@@ -518,6 +519,8 @@ export class RequestService {
         data: {
           ...temp.request_detail,
           request_id: newRequest.id,
+          created_by: user_id,
+          updated_by: user_id,
           // set created_by, created_on as needed
         },
       });
@@ -540,6 +543,8 @@ export class RequestService {
           data: {
             ...sampleData,
             request_id: newRequest.id,
+            created_by: user_id,
+            updated_by: user_id,
             // set created_by, created_on as needed
           },
         });
@@ -560,6 +565,8 @@ export class RequestService {
             data: {
               ...itemData,
               request_sample_id: newSample.id,
+              created_by: user_id,
+              updated_by: user_id,
               // set created_by, created_on as needed
             },
           });
