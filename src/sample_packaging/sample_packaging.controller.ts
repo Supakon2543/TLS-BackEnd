@@ -14,7 +14,7 @@ import { CreateSamplePackagingDto } from './dto/create-sample_packaging.dto';
 import { UpdateSamplePackagingDto } from './dto/update-sample_packaging.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('sample-packaging')
 export class SamplePackagingController {
   constructor(private readonly samplePackagingService: SamplePackagingService) {}

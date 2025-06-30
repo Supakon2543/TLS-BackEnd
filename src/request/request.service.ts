@@ -126,7 +126,55 @@ export class RequestService {
     }
 
     async save(@Body() payload: any) {
-      // Extract main request and nested arrays/objects
+      // Recursively clear every id if id === 0 in the payload and ensure date values are Date objects or null
+      function clearZeroIdsAndDatesAndBy(obj: any) {
+        if (Array.isArray(obj)) {
+          obj.forEach(clearZeroIdsAndDatesAndBy);
+        } else if (obj && typeof obj === 'object') {
+          if ('id' in obj && obj.id === 0) obj.id = undefined;
+          for (const key in obj) {
+            // Set all foreign key fields to null if input as "" or 0 or undefined
+            if (
+              key.endsWith('_id') &&
+              (obj[key] === "" || obj[key] === 0 || obj[key] === undefined)
+            ) {
+              obj[key] = null;
+            }
+            // Set all date fields to null if input as ""
+            if (
+              (key.endsWith('_date') || key.endsWith('_on') || key.endsWith('_time')) &&
+              obj[key] === ""
+            ) {
+              obj[key] = null;
+            }
+            // Ensure all date fields are Date objects if not null
+            if (
+              (key.endsWith('_date') || key.endsWith('_on') || key.endsWith('_time')) &&
+              obj[key] !== null &&
+              obj[key] !== undefined &&
+              obj[key] !== ""
+            ) {
+              // Convert to Date if not already a Date object
+              if (!(obj[key] instanceof Date)) {
+                obj[key] = new Date(obj[key]);
+              }
+            }
+            // Set all *_by fields to null if input as 0
+            if (
+              key.endsWith('_by') &&
+              obj[key] === 0
+            ) {
+              obj[key] = null;
+            }
+          }
+          Object.values(obj).forEach(clearZeroIdsAndDatesAndBy);
+        }
+      }
+
+      clearZeroIdsAndDatesAndBy(payload);
+
+      payload.request.original_id = null; // Ensure original_id is set to 0 for new requests
+      // Ensure all nested objects are properly initialized
       const {
         request,
         request_email,
@@ -136,6 +184,47 @@ export class RequestService {
         request_log,
       } = payload;
 
+      const now = new Date();
+
+      // Only set created_on if this is a new request (id is 0 or undefined)
+      if (!request.id || request.id === 0) {
+        request.created_on = now;
+      }
+      request.updated_on = now;
+
+      if (request_detail) {
+        if (!request_detail.id || request_detail.id === 0) {
+          request_detail.created_on = now;
+        }
+        request_detail.updated_on = now;
+      }
+
+      (request_email ?? []).forEach(e => {
+        if (!e.id || e.id === 0) e.created_on = now;
+      });
+      (request_detail_attachment ?? []).forEach(a => {
+        if (!a.id || a.id === 0) a.created_on = now;
+      });
+      (request_sample ?? []).forEach(s => {
+        if (!s.id || s.id === 0) s.created_on = now;
+        s.updated_on = now;
+        (s.request_sample_chemical ?? []).forEach(c => {
+          if (!c.id || c.id === 0) c.created_on = now;
+        });
+        (s.request_sample_microbiology ?? []).forEach(m => {
+          if (!m.id || m.id === 0) m.created_on = now;
+        });
+        (s.request_sample_item ?? []).forEach(i => {
+          if (!i.id || i.id === 0) i.created_on = now;
+          i.updated_on = now;
+        });
+      });
+
+      if (request_log && (!request_log.id || request_log.id === 0)) {
+        request_log.created_on = now;
+      }
+
+      // ...rest of your save logic remains unchanged...
       if (request_log.activity_request_id == "DRAFT") {
         request.status_request_id = "DRAFT";
       }
@@ -209,7 +298,7 @@ export class RequestService {
   
       // 1. Upsert main request and get the id
       const mainRequest = await this.prisma.request.upsert({
-        where: { id: request.id ?? 0 },
+        where: { id: request.id ?? -1 },
         update: { ...request },
         create: { ...request },
       });
@@ -223,6 +312,7 @@ export class RequestService {
       const samples = (request_sample ?? []).map(s => ({
         ...s,
         request_id: requestId,
+        material_name: undefined, // Clear material_name to avoid duplication
         request_sample_item: s.request_sample_item?.map(i => ({ ...i })) ?? [],
         request_sample_chemical: s.request_sample_chemical?.map(c => ({ ...c })) ?? [],
         request_sample_microbiology: s.request_sample_microbiology?.map(m => ({ ...m })) ?? [],
@@ -251,7 +341,14 @@ export class RequestService {
 
         const sampleId = createdSample.id;
 
-        const items = (request_sample_item ?? []).map(i => ({ ...i, request_sample_id: sampleId }));
+        const items = (request_sample_item ?? []).map(i => {
+          // Remove undefined fields
+          const clean = Object.fromEntries(
+            Object.entries(i).filter(([_, v]) => v !== undefined)
+          );
+          return { ...clean, request_sample_id: sampleId };
+        });
+        console.log('items:', items);
         const chemicals = (request_sample_chemical ?? []).map(c => ({ ...c, request_sample_id: sampleId }));
         const micro = (request_sample_microbiology ?? []).map(m => ({ ...m, request_sample_id: sampleId }));
 

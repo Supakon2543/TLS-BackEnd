@@ -14,7 +14,7 @@ import { CreateMicrobiologyParameterDto } from './dto/create-microbiology_parame
 import { UpdateMicrobiologyParameterDto } from './dto/update-microbiology_parameter.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('microbiology-parameter')
 export class MicrobiologyParameterController {
   constructor(

@@ -5,7 +5,7 @@ import { UpdateCustomerContactInfoDto } from './dto/update-customer_contact_info
 import { AuthGuard } from '@nestjs/passport';
 
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('customer-contact-info')
 export class CustomerContactInfoController {
   constructor(private readonly customerContactInfoService: CustomerContactInfoService) {}

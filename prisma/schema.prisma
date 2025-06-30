@@ -192,7 +192,7 @@ model chemical {
 
 model user {
   id               Int       @id @default(autoincrement())
-  employee_id      String?   @unique @db.VarChar(10)
+  employee_id      String?   @db.VarChar(10)
   username         String    @unique @db.VarChar(50)
   fullname         String    @db.VarChar(100)
   tel              String?   @db.VarChar(12)
@@ -706,7 +706,7 @@ model request_sample_item {
   seq                 Int
   quantity            Int?
   unit_id             Int?
-  time                DateTime?
+  time                String?
   sample_condition_id String?
   lab_test_id         String?
   remark              String?   @db.VarChar(100)

@@ -4,7 +4,7 @@ import { CreateTestReportFormatDto } from './dto/create-test_report_format.dto';
 import { UpdateTestReportFormatDto } from './dto/update-test_report_format.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('test-report_format')
 export class TestReportFormatController {
   constructor(private readonly testReportFormatService: TestReportFormatService) {}

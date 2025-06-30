@@ -3,9 +3,11 @@ import { IsNumber, IsOptional, IsString, MaxLength } from "class-validator";
 export class CreateRequestEmailDto {
 
     @IsNumber()
+    @IsOptional()
     id: number;
 
     @IsNumber()
+    @IsOptional()
     request_id: number;
 
     @IsNumber()

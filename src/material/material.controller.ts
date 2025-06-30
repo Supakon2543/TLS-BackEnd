@@ -15,7 +15,7 @@ import { UpdateMaterialDto } from './dto/update-material.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UpsertMaterialDto } from './dto/upsert-material.dto';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('material')
 export class MaterialController {
   constructor(private readonly materialService: MaterialService) {}

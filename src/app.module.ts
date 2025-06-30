@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -51,6 +51,16 @@ import { CustomerContactInfoModule } from './customer_contact_info/customer_cont
 import { SignatureModule } from './signature/signature.module';
 import { SamplePackagingModule } from './sample_packaging/sample_packaging.module';
 import { PresignModule } from './presign/presign.module';
+import { RequestDetailModule } from './request_detail/request_detail.module';
+import { RequestEmailModule } from './request_email/request_email.module';
+import { RequestDetailAttachmentModule } from './request_detail_attachment/request_detail_attachment.module';
+import { RequestSampleModule } from './request_sample/request_sample.module';
+import { RequestSampleChemicalModule } from './request_sample_chemical/request_sample_chemical.module';
+import { RequestSampleMicrobiologyModule } from './request_sample_microbiology/request_sample_microbiology.module';
+import { RequestSampleItemModule } from './request_sample_item/request_sample_item.module';
+import { RequestLogModule } from './request_log/request_log.module';
+import { DowloadS3Module } from './download_s3/download_s3.module';
+import { AuthApiModule } from './auth_api/auth_api.module';
 
 @Module({
   imports: [
@@ -94,6 +104,7 @@ import { PresignModule } from './presign/presign.module';
     ObjectiveModule,
     BoxModule,
     AuthModule,
+    AuthApiModule,
     SampleDescriptionModule,
     ReportHeadingModule,
     RequestModule,
@@ -103,14 +114,27 @@ import { PresignModule } from './presign/presign.module';
     SignatureModule,
     SamplePackagingModule,
     PresignModule,
+    RequestDetailModule,
+    RequestEmailModule,
+    RequestDetailAttachmentModule,
+    RequestSampleModule,
+    RequestSampleChemicalModule,
+    RequestSampleMicrobiologyModule,
+    RequestSampleItemModule,
+    RequestLogModule,
+    DowloadS3Module
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule /*implements NestModule*/{
-  // configure(consumer: MiddlewareConsumer) {
-  //   consumer
-  //     .apply(AuthMiddleware)
-  //     .forRoutes(); // Or { path: '/api/some', method: RequestMethod.GET }
-  // }
+export class AppModule implements NestModule{
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .exclude(
+        { path: 'auth-api/(.*)', method: RequestMethod.ALL }, // Exclude all routes under /auth-api
+        { path: 'auth/(.*)', method: RequestMethod.ALL }, // Exclude all routes under /auth
+      )
+      .forRoutes('*'); // Apply to all other routes
+  }
 }

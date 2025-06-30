@@ -4,7 +4,7 @@ import { CreateSampleConditionDto } from './dto/create-sample_condition.dto';
 import { UpdateSampleConditionDto } from './dto/update-sample_condition.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 @Controller('sample-condition')
 export class SampleConditionController {
   constructor(private readonly sampleConditionService: SampleConditionService) {}

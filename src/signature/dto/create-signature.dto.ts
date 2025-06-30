@@ -21,6 +21,11 @@ export class CreateSignatureDto {
   @IsString()
   path: string;
 
+  @ApiProperty({ example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...' })
+  @IsOptional()
+  @IsString()
+  base64: string;
+
   @ApiProperty({ type: String, format: 'date-time', required: false })
   @IsOptional()
   created_on?: string;
