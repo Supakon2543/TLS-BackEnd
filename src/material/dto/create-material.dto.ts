@@ -1,8 +1,8 @@
 import { IsBoolean, IsInt, IsOptional, IsString, Length } from "class-validator";
 
 export class CreateMaterialDto {
-  @IsInt()
-  id: number;
+  @IsString()
+  id: string;
 
   @IsString()
   @Length(1, 100)

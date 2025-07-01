@@ -1,11 +1,11 @@
 import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CreateMaterialMicrobiologyDto {
-  @IsInt()
+  @IsString()
   id: number;
   
   @IsInt()
-  material_id: number;
+  material_id: string;
 
   @IsInt()
   microbiology_parameter_id: number;
