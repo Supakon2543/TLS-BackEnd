@@ -39,25 +39,25 @@ export class MaterialController {
   }
 
   @Post('insert')
-  test(@Body() payload: { id: number, name: string, test_report_name: string, status: boolean }) {
+  test(@Body() payload: { id: string, name: string, test_report_name: string, status: boolean }) {
     return this.materialService.insert_material(payload);
   }
 
   @Get('get')
-  get_test(@Body() payload: { id: number, keyword: string, status: number }) {
+  get_test(@Body() payload: { id: string, keyword: string, status: number }) {
     return this.materialService.get_material(payload);
   }
 
   @Get()
   getMaterials(
-    @Query() params: { id?: number; keyword?: string; status?: number },
+    @Query() params: { id?: string; keyword?: string; status?: number },
   ) {
     return this.materialService.getMaterials(params);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.materialService.findOne(+id);
+    return this.materialService.findOne(id);
   }
 
   @Patch(':id')
@@ -65,11 +65,11 @@ export class MaterialController {
     @Param('id') id: string,
     @Body() updateMaterialDto: UpdateMaterialDto,
   ) {
-    return this.materialService.update(+id, updateMaterialDto);
+    return this.materialService.update(id, updateMaterialDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.materialService.remove(+id);
+    return this.materialService.remove(id);
   }
 }
