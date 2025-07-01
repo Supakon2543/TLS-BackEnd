@@ -10,9 +10,10 @@ export class MaterialService {
 
   // Create or update a material
   async createOrUpdate(data: CreateMaterialDto) {
-    if (data.id === null || data.id === undefined || data.id === 0) {
-      const { id, ...createData } = data; // Destructure to exclude id
-      return this.prisma.material.create({ data: createData }); // Create a new record
+    if (data.id === null || data.id === undefined || data.id === '') {
+      // Generate a new id if not provided (assuming id is a string, use uuid or your preferred method)
+      const { id, ...createData } = data;
+      return this.prisma.material.create({ data: { ...createData, id: id } }); // Create a new record with generated id
     }
     return this.prisma.material.upsert({
       where: { id: data.id },
@@ -122,21 +123,20 @@ export class MaterialService {
 
   // Get materials with filters
   async getMaterials(params: {
-    id?: number | string;
+    id?: string;
     keyword?: string;
     status?: number | string;
   }) {
     let { id, keyword, status } = params;
 
     // Convert id and status to numbers if they are strings
-    id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
-    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
+    if (id === '' || id === null || typeof id === 'string') {
       if (keyword || status) {
         const materials = await this.prisma.material.findMany({
           where: {
-            ...(id && { id }),
+            ...(id ? { id } : {}),
             ...(typeof status === 'number' && status !== 0
               ? { status: status === 1 }
               : {}),
@@ -201,7 +201,7 @@ export class MaterialService {
 
     const materials = await this.prisma.material.findMany({
       where: {
-        ...(id && { id }),
+        ...(typeof id === 'string' && id !== '' ? { id } : {}),
         ...(typeof status === 'number' && status !== 0
           ? { status: status === 1 }
           : {}),
@@ -270,7 +270,7 @@ export class MaterialService {
   }
 
   // Get a material by ID
-  async findOne(id: number) {
+  async findOne(id: string) {
     const material = await this.prisma.material.findUnique({
       where: { id },
     });
@@ -283,7 +283,7 @@ export class MaterialService {
   }
 
   // Update a material by ID
-  async update(id: number, updateDto: UpdateMaterialDto) {
+  async update(id: string, updateDto: UpdateMaterialDto) {
     await this.findOne(id); // Ensure the material exists before updating
 
     return this.prisma.material.update({
@@ -293,7 +293,7 @@ export class MaterialService {
   }
 
   // Delete a material by ID
-  async remove(id: number) {
+  async remove(id: string) {
     await this.findOne(id); // Ensure the material exists before deletion
 
     return this.prisma.material.delete({
@@ -304,7 +304,7 @@ export class MaterialService {
   async insert_material(
     @Body()
     payload: {
-      id: number;
+      id: string;
       name: string;
       test_report_name: string;
       status: boolean;
@@ -316,7 +316,7 @@ export class MaterialService {
   }
 
   async get_material(
-    @Body() payload: { id: number; keyword: string; status: number },
+    @Body() payload: { id: string; keyword: string; status: number },
   ) {
     return await this.prisma.$queryRaw`
       SELECT * FROM get_material(${payload.id})
