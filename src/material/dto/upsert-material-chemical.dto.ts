@@ -1,11 +1,11 @@
 import { IsInt, IsString, IsDateString, IsOptional } from 'class-validator';
 
 export class UpsertMaterialChemicalDto {
-  @IsString()
-  id: string;
-
   @IsInt()
-  material_id: number;
+  id: number;
+
+  @IsString()
+  material_id: string;
 
   @IsInt()
   chemical_parameter_id: number;
