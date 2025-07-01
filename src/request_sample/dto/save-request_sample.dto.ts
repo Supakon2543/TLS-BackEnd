@@ -16,9 +16,9 @@ export class SaveRequestSampleDto {
     @IsOptional()
     sample_description_id: string;
 
-    @IsNumber()
+    @IsString()
     @IsOptional()
-    material_id: number;
+    material_id: string;
 
     @IsString()
     @IsOptional()
