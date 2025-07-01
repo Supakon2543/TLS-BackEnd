@@ -1,11 +1,11 @@
-import { IsInt, IsOptional } from 'class-validator';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CreateMaterialChemicalDto {
-  @IsInt()
+  @IsString()
   id: number;
   
   @IsInt()
-  material_id: number;
+  material_id: string;
 
   @IsInt()
   chemical_parameter_id: number;

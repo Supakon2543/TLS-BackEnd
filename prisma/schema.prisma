@@ -353,7 +353,7 @@ model line {
 
 model material_microbiology {
   id                        Int       @id @default(autoincrement())
-  material_id               Int
+  material_id               String
   microbiology_parameter_id Int
   created_on                DateTime? @default(now())
   created_by                Int?
@@ -364,7 +364,7 @@ model material_microbiology {
 
 model material_chemical {
   id                    Int       @id @default(autoincrement())
-  material_id           Int
+  material_id           String
   chemical_parameter_id Int
   created_on            DateTime? @default(now())
   created_by            Int?
@@ -439,7 +439,7 @@ model chemical_parameter {
 }
 
 model material {
-  id                      Int       @id @default(autoincrement())
+  id                      String    @id
   name                    String    @db.VarChar(100)
   test_report_name        String    @db.VarChar(100)
   conclusion              Boolean?   
@@ -665,7 +665,7 @@ model request_sample {
   id                     Int       @id @default(autoincrement())
   request_id             Int
   sample_description_id  String?   @db.VarChar(10)
-  material_id            Int?
+  material_id            String?
   material_code          String?   @db.VarChar(20)
   sample_code            String?   @db.VarChar(10)
   sample_name            String?   @db.VarChar(100)

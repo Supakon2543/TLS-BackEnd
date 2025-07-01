@@ -4,8 +4,8 @@ import { UpsertMaterialChemicalDto } from './upsert-material-chemical.dto';
 import { UpsertMaterialMicrobiologyDto } from './upsert-material-microbiology.dto';
 
 export class UpsertMaterialDto {
-  @IsInt()
-  id: number;
+  @IsString()
+  id: string;
 
   @IsString()
   name: string;
