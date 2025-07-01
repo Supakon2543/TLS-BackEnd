@@ -42,20 +42,20 @@ export class UserRoleController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.userRoleService.findOne(+id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateUserRoleDto: UpdateUserRoleDto,
   ) {
     return this.userRoleService.update(+id, updateUserRoleDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.userRoleService.remove(+id);
   }
 }

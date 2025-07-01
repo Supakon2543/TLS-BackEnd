@@ -54,6 +54,7 @@ export class AuthApiService {
               Authorization: `Bearer ${header_token.data.access_token}`,
             },
           });
+          response_token.data.accessToken = response_login.data.accessToken;
           user_data = response_token.data;
           console.log('User Data:', user_data);
           if (user_data) {
@@ -326,9 +327,16 @@ export class AuthApiService {
             // Delete roles that exist but are not in employee_role_info
             for (const userRole of existingUserRoles) {
               if (!employeeRoleIds.includes(userRole.role_id)) {
-                await tx.user_role.delete({
+                // Find the unique user_role record to get its id
+                const userRoleRecord = await tx.user_role.findFirst({
                   where: { user_id: userRole.user_id, role_id: userRole.role_id },
+                  select: { id: true },
                 });
+                if (userRoleRecord) {
+                  await tx.user_role.delete({
+                    where: { id: userRoleRecord.id },
+                  });
+                }
               }
             }
           }
@@ -577,9 +585,16 @@ export class AuthApiService {
             // Delete roles that exist but are not in employee_role_info
             for (const userRole of existingUserRoles) {
               if (!employeeRoleIds.includes(userRole.role_id)) {
-                await tx.user_role.delete({
+                // Find the unique user_role record to get its id
+                const userRoleRecord = await tx.user_role.findFirst({
                   where: { user_id: userRole.user_id, role_id: userRole.role_id },
+                  select: { id: true },
                 });
+                if (userRoleRecord) {
+                  await tx.user_role.delete({
+                    where: { id: userRoleRecord.id },
+                  });
+                }
               }
             }
           }
@@ -622,7 +637,7 @@ export class AuthApiService {
       });
     } catch (error) {
       console.error('External authentication failed:', error.message);
-      throw new UnauthorizedException('Invalid credentials or external auth failed');
+      throw new UnauthorizedException(error.message /*'Invalid credentials or external auth failed'*/);
     }
   }
 }

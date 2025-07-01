@@ -4,8 +4,8 @@ export class UpsertMaterialMicrobiologyDto {
   @IsInt()
   id: number;
 
-  @IsInt()
-  material_id: number;
+  @IsString()
+  material_id: string;
 
   @IsInt()
   microbiology_parameter_id: number;

@@ -4,8 +4,8 @@ export class UpsertMaterialChemicalDto {
   @IsInt()
   id: number;
 
-  @IsInt()
-  material_id: number;
+  @IsString()
+  material_id: string;
 
   @IsInt()
   chemical_parameter_id: number;

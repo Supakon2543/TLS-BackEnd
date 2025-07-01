@@ -3,6 +3,7 @@ import { RequestService } from './request.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { SaveRequestDto } from './dto/save-request.dto';
+import { DuplicateRequestDto } from './dto/duplicate-request.dto';
 
 @Controller('request')
 export class RequestController {
@@ -48,8 +49,13 @@ export class RequestController {
     return this.requestService.get_info(params);
   }
 
-  @Post('save')
+  @Post('save-request')
   save(@Body() payload: SaveRequestDto) {
     return this.requestService.save(payload);
+  }
+
+  @Post('duplicate-request')
+  duplicate(@Body() payload: DuplicateRequestDto) {
+    return this.requestService.duplicate(payload);
   }
 }

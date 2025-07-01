@@ -127,14 +127,15 @@ import { AuthApiModule } from './auth_api/auth_api.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule implements NestModule{
-  configure(consumer: MiddlewareConsumer) {
+export class AppModule /*implements NestModule*/{
+  /*configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(AuthMiddleware)
       .exclude(
         { path: 'auth-api/(.*)', method: RequestMethod.ALL }, // Exclude all routes under /auth-api
         { path: 'auth/(.*)', method: RequestMethod.ALL }, // Exclude all routes under /auth
+        { path: 'request/(.*)', method: RequestMethod.ALL }, // Exclude all routes under /request
       )
       .forRoutes('*'); // Apply to all other routes
-  }
+  }*/
 }

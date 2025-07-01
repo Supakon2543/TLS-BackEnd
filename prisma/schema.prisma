@@ -221,9 +221,11 @@ model user {
 }
 
 model user_role {
-  user_id    Int       @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
+  user_id    Int
   role_id    String
   created_on DateTime? @default(now())
+
   user       user?     @relation(fields: [user_id], references: [id])
 }
 
@@ -351,7 +353,7 @@ model line {
 
 model material_microbiology {
   id                        Int       @id @default(autoincrement())
-  material_id               Int
+  material_id               String
   microbiology_parameter_id Int
   created_on                DateTime? @default(now())
   created_by                Int?
@@ -362,7 +364,7 @@ model material_microbiology {
 
 model material_chemical {
   id                    Int       @id @default(autoincrement())
-  material_id           Int
+  material_id           String
   chemical_parameter_id Int
   created_on            DateTime? @default(now())
   created_by            Int?
@@ -437,7 +439,7 @@ model chemical_parameter {
 }
 
 model material {
-  id                      Int       @id @default(autoincrement())
+  id                      String    @id
   name                    String    @db.VarChar(100)
   test_report_name        String    @db.VarChar(100)
   conclusion              Boolean?   
@@ -456,6 +458,23 @@ model material {
   material_microbiology material_microbiology[]
 
   request_sample request_sample[]
+}
+
+model staging_material {
+  id                      String    @id
+  name                    String    @db.VarChar(100)
+  test_report_name        String?   @db.VarChar(100)
+  conclusion              Boolean?
+  reg_no                  String?   @db.VarChar(50)
+  is_special_parameter    Boolean?
+  special_parameter_name  String?   @db.VarChar(100)
+  special_parameter_type  String?
+  remark_report           String?   @db.VarChar(200)
+  status                  Boolean
+  created_on              DateTime? @default(now())
+  created_by              Int?
+  updated_on              DateTime? @updatedAt
+  updated_by              Int?
 }
 
 model sample_retaining {
@@ -663,7 +682,7 @@ model request_sample {
   id                     Int       @id @default(autoincrement())
   request_id             Int
   sample_description_id  String?   @db.VarChar(10)
-  material_id            Int?
+  material_id            String?
   material_code          String?   @db.VarChar(20)
   sample_code            String?   @db.VarChar(10)
   sample_name            String?   @db.VarChar(100)
