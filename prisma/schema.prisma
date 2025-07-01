@@ -460,6 +460,23 @@ model material {
   request_sample request_sample[]
 }
 
+model staging_material {
+  id                      String    @id
+  name                    String    @db.VarChar(100)
+  test_report_name        String?   @db.VarChar(100)
+  conclusion              Boolean?
+  reg_no                  String?   @db.VarChar(50)
+  is_special_parameter    Boolean?
+  special_parameter_name  String?   @db.VarChar(100)
+  special_parameter_type  String?
+  remark_report           String?   @db.VarChar(200)
+  status                  Boolean
+  created_on              DateTime? @default(now())
+  created_by              Int?
+  updated_on              DateTime? @updatedAt
+  updated_by              Int?
+}
+
 model sample_retaining {
   id         Int       @id @default(autoincrement())
   order      Int
