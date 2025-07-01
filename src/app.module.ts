@@ -61,6 +61,8 @@ import { RequestSampleItemModule } from './request_sample_item/request_sample_it
 import { RequestLogModule } from './request_log/request_log.module';
 import { DowloadS3Module } from './download_s3/download_s3.module';
 import { AuthApiModule } from './auth_api/auth_api.module';
+import { StockRetainModule } from './stock_retain/stock_retain.module';
+
 
 @Module({
   imports: [
@@ -122,7 +124,8 @@ import { AuthApiModule } from './auth_api/auth_api.module';
     RequestSampleMicrobiologyModule,
     RequestSampleItemModule,
     RequestLogModule,
-    DowloadS3Module
+    DowloadS3Module,
+    StockRetainModule, // Importing the StockRetainModule
   ],
   controllers: [AppController],
   providers: [AppService],
