@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateStockRetainDto } from './dto/create-stock_retain.dto';
 import { UpdateStockRetainDto } from './dto/update-stock_retain.dto';
+import { FilterRequestSamplesDto } from './dto/filter-request-samples.dto';
 
 @Injectable()
 export class StockRetainService {
@@ -28,23 +29,23 @@ export class StockRetainService {
   }
 
   async findOne(id: number) {
-  // Add validation to ensure id is valid
-  if (!id || isNaN(id) || id <= 0) {
-    throw new NotFoundException(`Invalid StockRetain ID: ${id}`);
-  }
+    // Add validation to ensure id is valid
+    if (!id || isNaN(id) || id <= 0) {
+      throw new NotFoundException(`Invalid StockRetain ID: ${id}`);
+    }
 
-  const stockRetain = await this.prisma.stock_retain.findUnique({
-    where: { 
-      id: id 
-    },
-  });
-  
-  if (!stockRetain) {
-    throw new NotFoundException(`StockRetain ID ${id} not found`);
+    const stockRetain = await this.prisma.stock_retain.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!stockRetain) {
+      throw new NotFoundException(`StockRetain ID ${id} not found`);
+    }
+
+    return stockRetain;
   }
-  
-  return stockRetain;
-}
 
   async update(id: number, data: UpdateStockRetainDto) {
     await this.findOne(id);
@@ -151,13 +152,14 @@ export class StockRetainService {
   }
 
   async getDropdownData() {
-    const [samples, materials, locations, statusRetain, labSites] = await Promise.all([
-      this.listSamples(),
-      this.listMaterials(),
-      this.listLocations(),
-      this.listStatusRetain(),
-      this.listLabSites(),
-    ]);
+    const [samples, materials, locations, statusRetain, labSites] =
+      await Promise.all([
+        this.listSamples(),
+        this.listMaterials(),
+        this.listLocations(),
+        this.listStatusRetain(),
+        this.listLabSites(),
+      ]);
 
     return {
       samples,
@@ -166,5 +168,854 @@ export class StockRetainService {
       statusRetain,
       labSites,
     };
+  }
+  async getRequestSamples(filters?: FilterRequestSamplesDto) {
+    // Build where clause for stock_retain
+    const stockRetainWhere: any = {};
+
+    // Location filter - ensure IDs are converted to proper type
+    if (filters?.location && filters.location.length > 0) {
+      stockRetainWhere.location_id = {
+        in: filters.location.map((l) => Number(l.id)), // Ensure it's a number
+      };
+    }
+
+    // Build where clause for request_sample
+    const requestSampleWhere: any = {};
+
+    // Sample name filter
+    if (filters?.sample && filters.sample.length > 0) {
+      requestSampleWhere.sample_name = {
+        in: filters.sample.map((s) => s.name),
+      };
+    }
+
+    // Material code filter
+    if (filters?.material_code && filters.material_code.length > 0) {
+      requestSampleWhere.material_code = {
+        in: filters.material_code.map((mc) => mc.code),
+      };
+    }
+
+    // Status filter - check if this should be String or Int
+    if (filters?.status && filters.status.length > 0) {
+      requestSampleWhere.status_sample_id = {
+        in: filters.status.map((s) => s.id), // Keep as string if status IDs are strings
+      };
+    }
+
+    // Date filters for request_sample
+    if (
+      filters?.received_date &&
+      (filters.received_date.start || filters.received_date.end)
+    ) {
+      requestSampleWhere.created_on = {};
+      if (filters.received_date.start) {
+        requestSampleWhere.created_on.gte = new Date(
+          filters.received_date.start,
+        );
+      }
+      if (filters.received_date.end) {
+        requestSampleWhere.created_on.lte = new Date(filters.received_date.end);
+      }
+    }
+
+    if (filters?.mfg_date && (filters.mfg_date.start || filters.mfg_date.end)) {
+      requestSampleWhere.sampling_date = {};
+      if (filters.mfg_date.start) {
+        requestSampleWhere.sampling_date.gte = new Date(filters.mfg_date.start);
+      }
+      if (filters.mfg_date.end) {
+        requestSampleWhere.sampling_date.lte = new Date(filters.mfg_date.end);
+      }
+    }
+
+    if (
+      filters?.expiry_date &&
+      (filters.expiry_date.start || filters.expiry_date.end)
+    ) {
+      requestSampleWhere.expiry_date = {};
+      if (filters.expiry_date.start) {
+        requestSampleWhere.expiry_date.gte = new Date(
+          filters.expiry_date.start,
+        );
+      }
+      if (filters.expiry_date.end) {
+        requestSampleWhere.expiry_date.lte = new Date(filters.expiry_date.end);
+      }
+    }
+
+    // Lab filter - ensure IDs are converted to proper type
+    if (filters?.lab && filters.lab.length > 0) {
+      requestSampleWhere.request = {
+        lab_site_id: {
+          in: filters.lab.map((l) => l.id), // Keep original type
+        },
+      };
+    }
+
+    // Keyword search across multiple fields
+    if (filters?.keyword && filters.keyword.trim() !== '') {
+      const keywordConditions = [
+        { sample_code: { contains: filters.keyword, mode: 'insensitive' } },
+        { sample_name: { contains: filters.keyword, mode: 'insensitive' } },
+        { material_code: { contains: filters.keyword, mode: 'insensitive' } },
+        { batch_no: { contains: filters.keyword, mode: 'insensitive' } },
+        {
+          material: {
+            name: { contains: filters.keyword, mode: 'insensitive' },
+          },
+        },
+      ];
+
+      requestSampleWhere.OR = keywordConditions;
+    }
+
+    // Apply filters to the main query only if there are conditions
+    if (Object.keys(requestSampleWhere).length > 0) {
+      stockRetainWhere.request_sample = requestSampleWhere;
+    }
+
+    const stockRetains = await this.prisma.stock_retain.findMany({
+      where:
+        Object.keys(stockRetainWhere).length > 0 ? stockRetainWhere : undefined,
+      select: {
+        id: true,
+        created_on: true,
+        location: {
+          select: {
+            name: true,
+          },
+        },
+        request_sample: {
+          select: {
+            id: true,
+            request_id: true,
+            sample_code: true,
+            sample_name: true,
+            material_code: true,
+            batch_no: true,
+            sampling_date: true,
+            expiry_date: true,
+            created_on: true,
+            material: {
+              select: {
+                name: true,
+              },
+            },
+            status_sample: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            request: {
+              select: {
+                id: true,
+                lab_site_id: true,
+                lab_site: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        created_on: 'desc',
+      },
+    });
+
+    // Get item counts separately
+    const stockRetainIds = stockRetains.map((sr) => sr.id);
+    const itemCounts =
+      stockRetainIds.length > 0
+        ? await this.prisma.stock_retain_item.groupBy({
+            by: ['stock_retain_id'],
+            where: {
+              stock_retain_id: { in: stockRetainIds },
+            },
+            _count: {
+              id: true,
+            },
+          })
+        : [];
+
+    return stockRetains.map((stockRetain) => {
+      const sample = stockRetain.request_sample;
+      const itemCount =
+        itemCounts.find((ic) => ic.stock_retain_id === stockRetain.id)?._count
+          .id || 0;
+
+      return {
+        sample_id: sample?.id,
+        sample_code: sample?.sample_code,
+        sample_name: sample?.sample_name,
+        material_code: sample?.material_code,
+        material_name: sample?.material?.name,
+        batch_no: sample?.batch_no,
+        received_date: sample?.created_on,
+        location_name: stockRetain.location?.name,
+        mfg_date: sample?.sampling_date,
+        expiry_date: sample?.expiry_date,
+        amount: itemCount,
+        status_id: sample?.status_sample?.id,
+        status_name: sample?.status_sample?.name,
+        lab_id: sample?.request?.lab_site_id,
+        lab_name: sample?.request?.lab_site?.name,
+      };
+    });
+  }
+  async getRequestSampleById(sampleId: number) {
+    // Get the request sample with basic info
+    const requestSample = await this.prisma.request_sample.findUnique({
+      where: { id: sampleId },
+      include: {
+        material: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        status_sample: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        request: {
+          select: {
+            id: true,
+            request_number: true,
+            lab_site_id: true,
+            lab_site: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!requestSample) {
+      throw new NotFoundException(
+        `Request Sample with ID ${sampleId} not found`,
+      );
+    }
+
+    // Get stock_retain records for this sample
+    const stockRetains = await this.prisma.stock_retain.findMany({
+      where: { request_sample_id: sampleId },
+      include: {
+        location: true,
+        section: true,
+        box: true,
+      },
+    });
+
+    // Get request_sample_item data from request_sample_item table
+    const requestSampleItems = await this.prisma.request_sample_item.findMany({
+      where: {
+        request_sample_id: sampleId, // Get items for this specific request_sample
+      },
+      include: {
+        unit: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        seq: 'asc', // Order by sequence
+      },
+    });
+
+    // Get stock_retain_item data for activity logs
+    const stockRetainIds = stockRetains.map((sr) => sr.id);
+    const stockRetainItems =
+      stockRetainIds.length > 0
+        ? await this.prisma.stock_retain_item.findMany({
+            where: {
+              stock_retain_id: { in: stockRetainIds },
+            },
+          })
+        : [];
+
+    // Get unique location, section, and box IDs for calculations
+    const locationIds = [...new Set(stockRetains.map((sr) => sr.location_id))];
+    const sectionIds = [...new Set(stockRetains.map((sr) => sr.section_id))];
+    const boxIds = [...new Set(stockRetains.map((sr) => sr.box_id))];
+
+    // Calculate location data with bottle counts
+    const locations = await Promise.all(
+      locationIds.map(async (locationId) => {
+        const location = await this.prisma.location.findUnique({
+          where: { id: locationId },
+        });
+
+        // Sum number_of_bottle from sections in this location
+        const sectionsInLocation = await this.prisma.section.findMany({
+          where: { location_id: locationId },
+          select: { number_of_box: true },
+        });
+
+        const totalBottlesFromSections = sectionsInLocation.reduce(
+          (sum, section) => sum + (section.number_of_box || 0),
+          0,
+        );
+
+        // Count stock_retain_items in this location
+        const bottleUseCount = await this.prisma.stock_retain_item.count({
+          where: {
+            stock_retain: {
+              location_id: locationId,
+            },
+          },
+        });
+
+        return {
+          id: location?.id,
+          name: location?.name,
+          number_of_bottle: totalBottlesFromSections,
+          bottle_use: bottleUseCount,
+        };
+      }),
+    );
+
+    // Calculate section data with bottle counts
+    const sections = await Promise.all(
+      sectionIds.map(async (sectionId) => {
+        const section = await this.prisma.section.findUnique({
+          where: { id: sectionId },
+        });
+
+        // Count stock_retain_items in this section
+        const bottleUseCount = await this.prisma.stock_retain_item.count({
+          where: {
+            stock_retain: {
+              section_id: sectionId,
+            },
+          },
+        });
+
+        return {
+          id: section?.id,
+          name: section?.name,
+          number_of_bottle: section?.number_of_box || 0,
+          bottle_use: bottleUseCount,
+        };
+      }),
+    );
+
+    // Calculate box data with bottle counts
+    const boxes = await Promise.all(
+      boxIds.map(async (boxId) => {
+        const box = await this.prisma.box.findUnique({
+          where: { id: boxId },
+        });
+
+        // Count stock_retain_items in this box
+        const bottleUseCount = await this.prisma.stock_retain_item.count({
+          where: {
+            stock_retain: {
+              box_id: boxId,
+            },
+          },
+        });
+
+        return {
+          id: box?.id,
+          name: box?.name,
+          number_of_bottle: box?.number_of_bottle || 0,
+          bottle_use: bottleUseCount,
+        };
+      }),
+    );
+
+    // Get activity logs from stock_retain_item_log table
+    const activityLogs =
+      stockRetainItems.length > 0
+        ? await this.prisma.stock_retain_item_log.findMany({
+            where: {
+              stock_retain_item_id: {
+                in: stockRetainItems.map((item) => item.id),
+              },
+            },
+            include: {
+              activity_retain: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+            orderBy: {
+              timestamp: 'desc',
+            },
+          })
+        : [];
+
+    return {
+      stock_retain: stockRetains.map((sr) => ({
+        id: sr.id,
+        request_sample_id: sr.request_sample_id,
+        location_id: sr.location_id,
+        section_id: sr.section_id,
+        box_id: sr.box_id,
+        status_retain_id: sr.status_retain_id,
+      })),
+      request_sample: {
+        sample_id: requestSample.id,
+        sample_code: requestSample.sample_code,
+        sample_name: requestSample.sample_name,
+        material_code: requestSample.material_code,
+        material_name: requestSample.material?.name,
+        batch_no: requestSample.batch_no,
+        mfg_date: requestSample.sampling_date,
+        expiry_date: requestSample.expiry_date,
+        request_no: requestSample.request?.request_number,
+      },
+      request_sample_item: requestSampleItems.map((item) => ({
+        id: item.id,
+        seq: item.seq,
+        quantity: item.quantity,
+        unit: item.unit?.name,
+        time: item.time,
+      })),
+      location: locations,
+      section: sections,
+      box: boxes,
+      activity_log: activityLogs.map((log) => ({
+        id: log.id,
+        stock_retain_item_id: log.stock_retain_item_id,
+        stock_retain_id: log.stock_retain_id,
+        activity: log.activity,
+        user_id: log.user_id,
+        timestamp: log.timestamp,
+        remark: log.remark,
+      })),
+    };
+  }
+
+async getRequestSampleDetails(sampleId: number, isSelect?: boolean) {
+  // Get the request sample with basic info
+  const requestSample = await this.prisma.request_sample.findUnique({
+    where: { id: sampleId },
+    include: {
+      material: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      status_sample: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      request: {
+        select: {
+          id: true,
+          request_number: true,
+          lab_site_id: true,
+          lab_site: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!requestSample) {
+    throw new NotFoundException(
+      `Request Sample with ID ${sampleId} not found`,
+    );
+  }
+
+  // Get stock_retain records for this sample
+  const stockRetains = await this.prisma.stock_retain.findMany({
+    where: { request_sample_id: sampleId },
+    include: {
+      location: true,
+      section: true,
+      box: true,
+    },
+  });
+
+  // Get request_sample_item data from request_sample_item table
+  const requestSampleItems = await this.prisma.request_sample_item.findMany({
+    where: {
+      request_sample_id: sampleId,
+    },
+    include: {
+      unit: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      seq: 'asc',
+    },
+  });
+
+  // Get stock_retain_item data for activity logs
+  const stockRetainIds = stockRetains.map((sr) => sr.id);
+  const stockRetainItems =
+    stockRetainIds.length > 0
+      ? await this.prisma.stock_retain_item.findMany({
+          where: {
+            stock_retain_id: { in: stockRetainIds },
+          },
+        })
+      : [];
+
+  // Build sample array
+  const sampleArray = stockRetains.map((stockRetain) => {
+    const sampleItem = requestSampleItems.find((item) =>
+      stockRetainItems.some(
+        (sri) =>
+          sri.sample_item_id === item.id &&
+          sri.stock_retain_id === stockRetain.id,
+      ),
+    );
+
+    return {
+      sample_id: requestSample.id,
+      sample_code: requestSample.sample_code,
+      material_code: requestSample.material_code,
+      material_name: requestSample.material?.name,
+      batch_no: requestSample.batch_no,
+      location: stockRetain.location?.name,
+      mfg_date: requestSample.sampling_date,
+      expiry_date: requestSample.expiry_date,
+      no_bottle: stockRetainItems.filter(
+        (sri) => sri.stock_retain_id === stockRetain.id,
+      ).length,
+      time: sampleItem?.created_on,
+      sample_item_id: sampleItem?.id,
+      stock_retain_id: stockRetain.id,
+      location_id: stockRetain.location_id,
+      location_name: stockRetain.location?.name,
+      section_id: stockRetain.section_id,
+      section_name: stockRetain.section?.name,
+      box_id: stockRetain.box_id,
+      box_name: stockRetain.box?.name,
+    };
+  });
+
+  // Base response with sample data
+  const response: any = {
+    sample: sampleArray,
+  };
+
+  // Conditionally add location, section, box data based on isSelect parameter
+  if (isSelect === true) {
+    // Get unique location, section, and box IDs for calculations
+    const locationIds = [...new Set(stockRetains.map((sr) => sr.location_id))];
+    const sectionIds = [...new Set(stockRetains.map((sr) => sr.section_id))];
+    const boxIds = [...new Set(stockRetains.map((sr) => sr.box_id))];
+
+    // Calculate location data with bottle counts
+    const locations = await Promise.all(
+      locationIds.map(async (locationId) => {
+        const location = await this.prisma.location.findUnique({
+          where: { id: locationId },
+        });
+
+        // Count stock_retain_items in this location
+        const bottleUseCount = await this.prisma.stock_retain_item.count({
+          where: {
+            stock_retain: {
+              location_id: locationId,
+            },
+          },
+        });
+
+        // Sum number_of_bottle from sections in this location
+        const sectionsInLocation = await this.prisma.section.findMany({
+          where: { location_id: locationId },
+          select: { number_of_box: true },
+        });
+
+        const totalBottlesFromSections = sectionsInLocation.reduce(
+          (sum, section) => sum + (section.number_of_box || 0),
+          0,
+        );
+
+        return {
+          id: location?.id,
+          name: location?.name,
+          number_of_bottle: totalBottlesFromSections,
+          bottle_use: bottleUseCount,
+        };
+      }),
+    );
+
+    // Calculate section data with bottle counts
+    const sections = await Promise.all(
+      sectionIds.map(async (sectionId) => {
+        const section = await this.prisma.section.findUnique({
+          where: { id: sectionId },
+        });
+
+        // Count stock_retain_items in this section
+        const bottleUseCount = await this.prisma.stock_retain_item.count({
+          where: {
+            stock_retain: {
+              section_id: sectionId,
+            },
+          },
+        });
+
+        return {
+          id: section?.id,
+          name: section?.name,
+          number_of_bottle: section?.number_of_box || 0,
+          bottle_use: bottleUseCount,
+        };
+      }),
+    );
+
+    // Calculate box data with bottle counts
+    const boxes = await Promise.all(
+      boxIds.map(async (boxId) => {
+        const box = await this.prisma.box.findUnique({
+          where: { id: boxId },
+        });
+
+        // Count stock_retain_items in this box
+        const bottleUseCount = await this.prisma.stock_retain_item.count({
+          where: {
+            stock_retain: {
+              box_id: boxId,
+            },
+          },
+        });
+
+        return {
+          id: box?.id,
+          name: box?.name,
+          number_of_bottle: box?.number_of_bottle || 0,
+          bottle_use: bottleUseCount,
+        };
+      }),
+    );
+
+    // Add location, section, box data to response
+    response.location = locations;
+    response.section = sections;
+    response.box = boxes;
+  }
+
+  return response;
+}
+
+
+  async getSampleByIdWithOptions(
+    sampleId: number,
+    options?: {
+      includeLocations?: boolean;
+      includeSections?: boolean;
+      includeBoxes?: boolean;
+      includeActivityLogs?: boolean;
+    },
+  ) {
+    const {
+      includeLocations = true,
+      includeSections = true,
+      includeBoxes = true,
+      includeActivityLogs = false,
+    } = options || {};
+
+    // Get the request sample with basic info
+    const requestSample = await this.prisma.request_sample.findUnique({
+      where: { id: sampleId },
+      include: {
+        material: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        status_sample: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        request: {
+          select: {
+            id: true,
+            request_number: true,
+            lab_site_id: true,
+            lab_site: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!requestSample) {
+      throw new NotFoundException(
+        `Request Sample with ID ${sampleId} not found`,
+      );
+    }
+
+    // Get stock_retain records for this sample
+    const stockRetains = await this.prisma.stock_retain.findMany({
+      where: { request_sample_id: sampleId },
+      include: {
+        location: includeLocations,
+        section: includeSections,
+        box: includeBoxes,
+      },
+    });
+
+    // Get request_sample_item data
+    const requestSampleItems = await this.prisma.request_sample_item.findMany({
+      where: {
+        request_sample_id: sampleId,
+      },
+      include: {
+        unit: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        seq: 'asc',
+      },
+    });
+
+    const response: any = {
+      sample: stockRetains.map((stockRetain) => ({
+        sample_id: requestSample.id,
+        sample_code: requestSample.sample_code,
+        material_code: requestSample.material_code,
+        material_name: requestSample.material?.name,
+        batch_no: requestSample.batch_no,
+        location: stockRetain.location?.name,
+        mfg_date: requestSample.sampling_date,
+        expiry_date: requestSample.expiry_date,
+        stock_retain_id: stockRetain.id,
+        location_id: stockRetain.location_id,
+        location_name: stockRetain.location?.name,
+        section_id: stockRetain.section_id,
+        section_name: stockRetain.section?.name,
+        box_id: stockRetain.box_id,
+        box_name: stockRetain.box?.name,
+      })),
+    };
+
+    // Conditionally add location, section, box data
+    if (includeLocations) {
+      const locationIds = [
+        ...new Set(stockRetains.map((sr) => sr.location_id)),
+      ];
+      response.location = await Promise.all(
+        locationIds.map(async (locationId) => {
+          const location = await this.prisma.location.findUnique({
+            where: { id: locationId },
+          });
+
+          const bottleUseCount = await this.prisma.stock_retain_item.count({
+            where: {
+              stock_retain: {
+                location_id: locationId,
+              },
+            },
+          });
+
+          const sectionsInLocation = await this.prisma.section.findMany({
+            where: { location_id: locationId },
+            select: { number_of_box: true },
+          });
+
+          const totalBottles = sectionsInLocation.reduce(
+            (sum, section) => sum + (section.number_of_box || 0),
+            0,
+          );
+
+          return {
+            id: location?.id,
+            name: location?.name,
+            number_of_bottle: totalBottles,
+            bottle_use: bottleUseCount,
+          };
+        }),
+      );
+    }
+
+    if (includeSections) {
+      const sectionIds = [...new Set(stockRetains.map((sr) => sr.section_id))];
+      response.section = await Promise.all(
+        sectionIds.map(async (sectionId) => {
+          const section = await this.prisma.section.findUnique({
+            where: { id: sectionId },
+          });
+
+          const bottleUseCount = await this.prisma.stock_retain_item.count({
+            where: {
+              stock_retain: {
+                section_id: sectionId,
+              },
+            },
+          });
+
+          return {
+            id: section?.id,
+            name: section?.name,
+            number_of_bottle: section?.number_of_box || 0,
+            bottle_use: bottleUseCount,
+          };
+        }),
+      );
+    }
+
+    if (includeBoxes) {
+      const boxIds = [...new Set(stockRetains.map((sr) => sr.box_id))];
+      response.box = await Promise.all(
+        boxIds.map(async (boxId) => {
+          const box = await this.prisma.box.findUnique({
+            where: { id: boxId },
+          });
+
+          const bottleUseCount = await this.prisma.stock_retain_item.count({
+            where: {
+              stock_retain: {
+                box_id: boxId,
+              },
+            },
+          });
+
+          return {
+            id: box?.id,
+            name: box?.name,
+            number_of_bottle: box?.number_of_bottle || 0,
+            bottle_use: bottleUseCount,
+          };
+        }),
+      );
+    }
+
+    return response;
   }
 }

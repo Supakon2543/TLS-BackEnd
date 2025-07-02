@@ -99,6 +99,7 @@ async function clearOldData() {
   await prisma.request_sample.deleteMany();
   await prisma.stock_retain.deleteMany();
   await prisma.stock_retain_item.deleteMany();
+  await prisma.request_sample_item.deleteMany();
 
   // Add any other models you want to clear here
   console.log('🧹 Old data deleted');
@@ -1457,6 +1458,56 @@ async function create_request_detail() {
   }
 }
 
+async function create_request_sample_item() {
+  // Get existing request_sample IDs and unit IDs to reference
+  const requestSamples = await prisma.request_sample.findMany({
+    select: { id: true },
+  });
+
+  const units = await prisma.unit.findMany({
+    select: { id: true },
+  });
+
+  const statusSampleItems = await prisma.status_sample.findMany({
+    select: { id: true },
+  });
+
+  if (requestSamples.length === 0) {
+    console.error('No request_sample records found. Please seed request_sample first.');
+    return;
+  }
+
+  if (units.length === 0) {
+    console.error('No unit records found. Please seed units first.');
+    return;
+  }
+
+  // Create 20 request_sample_item records
+  for (let i = 1; i <= 20; i++) {
+    const randomRequestSample = requestSamples[randomInt(0, requestSamples.length - 1)];
+    const randomUnit = units[randomInt(0, units.length - 1)];
+    const randomStatus = statusSampleItems.length > 0 
+      ? statusSampleItems[randomInt(0, statusSampleItems.length - 1)] 
+      : null;
+
+    await prisma.request_sample_item.create({
+      data: {
+        request_sample_id: randomRequestSample.id,  
+        seq: i, // Sequential number
+        quantity: randomInt(1, 20), // Random quantity between 1-100
+        unit_id: randomUnit.id,
+        time:  randomInt(1, 24).toString(), // Random time between 1-24 hours
+        created_on: new Date(),
+        created_by: randomInt(1, 10),
+        updated_on: new Date(),
+        updated_by: randomInt(1, 10),
+      },
+    });
+  }
+
+  console.log('✅ request_sample_item seeding complete!');
+}
+
 
 
 /* ---------- main runner ---------- */
@@ -1508,6 +1559,7 @@ async function main() {
   await create_request_sample();
   await create_stock_retain();
   await create_stock_retain_item();
+  await create_request_sample_item();
 
 
   console.log('✅ All data seeded successfully');

@@ -67,6 +67,8 @@ model status_retain {
   order  Int
   name   String  @db.VarChar(50)
   status Boolean
+
+  stock_retain_item stock_retain_item[]
 }
 
 model status_equipment {
@@ -293,6 +295,7 @@ model section {
 
   location location? @relation(fields: [location_id], references: [id])
   boxes    box[]
+  stock_retain stock_retain[]
 }
 
 model location {
@@ -306,6 +309,7 @@ model location {
 
   sections section[]
   boxes    box[]
+  stock_retain stock_retain[]
 }
 
 model category_edit {
@@ -547,6 +551,7 @@ model box {
 
   location location? @relation(fields: [location_id], references: [id])
   section  section?  @relation(fields: [section_id], references: [id])
+  stock_retain stock_retain[]
 }
 
 model sample_description {
@@ -711,6 +716,7 @@ model request_sample {
   line               line?               @relation(fields: [line_id], references: [id])
   status_sample      status_sample?      @relation(fields: [status_sample_id], references: [id])
   category_edit      category_edit?      @relation(fields: [category_edit_id], references: [id])
+  stock_retain stock_retain[]
 
   request_sample_item request_sample_item[]
 
@@ -735,6 +741,8 @@ model request_sample_item {
   updated_on          DateTime? @updatedAt
   updated_by          Int?
 
+
+  stock_retain_item stock_retain_item[]
   request_sample   request_sample    @relation(fields: [request_sample_id], references: [id])
   unit             unit?             @relation(fields: [unit_id], references: [id])
   sample_condition sample_condition? @relation(fields: [sample_condition_id], references: [id])
@@ -847,6 +855,16 @@ model stock_retain {
   created_by        Int?
   updated_on        DateTime? @db.Timestamptz
   updated_by        Int?
+
+  request_sample    request_sample @relation(fields: [request_sample_id], references: [id])
+  location          location @relation(fields: [location_id], references: [id])
+  section           section @relation(fields: [section_id], references: [id])
+  box               box @relation(fields: [box_id], references: [id])
+  stock_retain_item stock_retain_item[]
+  
+
+  
+
 }
 
 model stock_retain_item {
@@ -861,6 +879,11 @@ model stock_retain_item {
   created_by       Int?
   updated_on       DateTime? @db.Timestamptz
   updated_by       Int?
+
+  stock_retain     stock_retain @relation(fields: [stock_retain_id], references: [id])
+  sample_item      request_sample_item @relation(fields: [sample_item_id], references: [id])
+  status_retain    status_retain? @relation(fields: [status_retain_id], references: [id])
+
 }
 
 model stock_retain_item_log {
@@ -871,6 +894,8 @@ model stock_retain_item_log {
   user_id              Int
   timestamp            DateTime @db.Timestamptz
   remark               String?  @db.VarChar(200)
+
+  activity_retain activity_retain? @relation(fields: [activity], references: [id])
 }
 
 model stock_chemical {
@@ -938,3 +963,15 @@ model stock_equipment_log {
   timestamp            DateTime  @db.Timestamptz
   note                 String?   @db.VarChar(200)
 }
+
+// Add these models to your existing schema.prisma file
+
+model activity_retain {
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  stock_retain_item_log stock_retain_item_log[]
+}
+
