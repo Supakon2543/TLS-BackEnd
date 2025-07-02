@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateStockRetainDto } from './dto/create-stock_retain.dto';
 import { UpdateStockRetainDto } from './dto/update-stock_retain.dto';
 import { FilterRequestSamplesDto } from './dto/filter-request-samples.dto';
+import { time } from 'console';
 
 @Injectable()
 export class StockRetainService {
@@ -603,10 +604,21 @@ export class StockRetainService {
     };
   }
 
-async getRequestSampleDetails(sampleId: number, isSelect?: boolean) {
-  // Get the request sample with basic info
-  const requestSample = await this.prisma.request_sample.findUnique({
-    where: { id: sampleId },
+  // ...existing code...
+
+async getRequestSampleDetails(sampleIds: number[], isSelect?: boolean) {
+  // Validate input
+  if (!sampleIds || sampleIds.length === 0) {
+    throw new NotFoundException('Sample IDs array cannot be empty');
+  }
+
+  // Get the request samples with basic info
+  const requestSamples = await this.prisma.request_sample.findMany({
+    where: { 
+      id: { 
+        in: sampleIds // Use 'in' operator for multiple IDs
+      } 
+    },
     include: {
       material: {
         select: {
@@ -636,15 +648,19 @@ async getRequestSampleDetails(sampleId: number, isSelect?: boolean) {
     },
   });
 
-  if (!requestSample) {
+  if (!requestSamples || requestSamples.length === 0) {
     throw new NotFoundException(
-      `Request Sample with ID ${sampleId} not found`,
+      `Request Samples with IDs ${sampleIds.join(', ')} not found`,
     );
   }
 
-  // Get stock_retain records for this sample
+  // Get stock_retain records for these samples
   const stockRetains = await this.prisma.stock_retain.findMany({
-    where: { request_sample_id: sampleId },
+    where: { 
+      request_sample_id: { 
+        in: sampleIds // Use 'in' operator for multiple sample IDs
+      } 
+    },
     include: {
       location: true,
       section: true,
@@ -655,9 +671,16 @@ async getRequestSampleDetails(sampleId: number, isSelect?: boolean) {
   // Get request_sample_item data from request_sample_item table
   const requestSampleItems = await this.prisma.request_sample_item.findMany({
     where: {
-      request_sample_id: sampleId,
+      request_sample_id: { 
+        in: sampleIds // Use 'in' operator for multiple sample IDs
+      },
     },
-    include: {
+    select: {
+      id: true,
+      seq: true,
+      quantity: true,
+      time: true,
+      request_sample_id: true, // Add this to group by sample
       unit: {
         select: {
           id: true,
@@ -681,30 +704,33 @@ async getRequestSampleDetails(sampleId: number, isSelect?: boolean) {
         })
       : [];
 
-  // Build sample array
+  // Build sample array for all samples
   const sampleArray = stockRetains.map((stockRetain) => {
-    const sampleItem = requestSampleItems.find((item) =>
-      stockRetainItems.some(
-        (sri) =>
-          sri.sample_item_id === item.id &&
-          sri.stock_retain_id === stockRetain.id,
-      ),
+    // Find the corresponding request sample
+    const requestSample = requestSamples.find(
+      (rs) => rs.id === stockRetain.request_sample_id,
     );
 
+    // Find items for this specific sample
+    const sampleItems = requestSampleItems.filter(
+      (item) => item.request_sample_id === stockRetain.request_sample_id,
+    );
+    const firstItem = sampleItems[0]; // Get first item for time
+
     return {
-      sample_id: requestSample.id,
-      sample_code: requestSample.sample_code,
-      material_code: requestSample.material_code,
-      material_name: requestSample.material?.name,
-      batch_no: requestSample.batch_no,
+      sample_id: requestSample?.id,
+      sample_code: requestSample?.sample_code,
+      material_code: requestSample?.material_code,
+      material_name: requestSample?.material?.name,
+      batch_no: requestSample?.batch_no,
       location: stockRetain.location?.name,
-      mfg_date: requestSample.sampling_date,
-      expiry_date: requestSample.expiry_date,
+      mfg_date: requestSample?.sampling_date,
+      expiry_date: requestSample?.expiry_date,
       no_bottle: stockRetainItems.filter(
         (sri) => sri.stock_retain_id === stockRetain.id,
       ).length,
-      time: sampleItem?.created_on,
-      sample_item_id: sampleItem?.id,
+      time: firstItem?.time, // Get time from request_sample_item
+      sample_item_id: firstItem?.id,
       stock_retain_id: stockRetain.id,
       location_id: stockRetain.location_id,
       location_name: stockRetain.location?.name,
@@ -822,200 +848,5 @@ async getRequestSampleDetails(sampleId: number, isSelect?: boolean) {
   return response;
 }
 
-
-  async getSampleByIdWithOptions(
-    sampleId: number,
-    options?: {
-      includeLocations?: boolean;
-      includeSections?: boolean;
-      includeBoxes?: boolean;
-      includeActivityLogs?: boolean;
-    },
-  ) {
-    const {
-      includeLocations = true,
-      includeSections = true,
-      includeBoxes = true,
-      includeActivityLogs = false,
-    } = options || {};
-
-    // Get the request sample with basic info
-    const requestSample = await this.prisma.request_sample.findUnique({
-      where: { id: sampleId },
-      include: {
-        material: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        status_sample: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        request: {
-          select: {
-            id: true,
-            request_number: true,
-            lab_site_id: true,
-            lab_site: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!requestSample) {
-      throw new NotFoundException(
-        `Request Sample with ID ${sampleId} not found`,
-      );
-    }
-
-    // Get stock_retain records for this sample
-    const stockRetains = await this.prisma.stock_retain.findMany({
-      where: { request_sample_id: sampleId },
-      include: {
-        location: includeLocations,
-        section: includeSections,
-        box: includeBoxes,
-      },
-    });
-
-    // Get request_sample_item data
-    const requestSampleItems = await this.prisma.request_sample_item.findMany({
-      where: {
-        request_sample_id: sampleId,
-      },
-      include: {
-        unit: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: {
-        seq: 'asc',
-      },
-    });
-
-    const response: any = {
-      sample: stockRetains.map((stockRetain) => ({
-        sample_id: requestSample.id,
-        sample_code: requestSample.sample_code,
-        material_code: requestSample.material_code,
-        material_name: requestSample.material?.name,
-        batch_no: requestSample.batch_no,
-        location: stockRetain.location?.name,
-        mfg_date: requestSample.sampling_date,
-        expiry_date: requestSample.expiry_date,
-        stock_retain_id: stockRetain.id,
-        location_id: stockRetain.location_id,
-        location_name: stockRetain.location?.name,
-        section_id: stockRetain.section_id,
-        section_name: stockRetain.section?.name,
-        box_id: stockRetain.box_id,
-        box_name: stockRetain.box?.name,
-      })),
-    };
-
-    // Conditionally add location, section, box data
-    if (includeLocations) {
-      const locationIds = [
-        ...new Set(stockRetains.map((sr) => sr.location_id)),
-      ];
-      response.location = await Promise.all(
-        locationIds.map(async (locationId) => {
-          const location = await this.prisma.location.findUnique({
-            where: { id: locationId },
-          });
-
-          const bottleUseCount = await this.prisma.stock_retain_item.count({
-            where: {
-              stock_retain: {
-                location_id: locationId,
-              },
-            },
-          });
-
-          const sectionsInLocation = await this.prisma.section.findMany({
-            where: { location_id: locationId },
-            select: { number_of_box: true },
-          });
-
-          const totalBottles = sectionsInLocation.reduce(
-            (sum, section) => sum + (section.number_of_box || 0),
-            0,
-          );
-
-          return {
-            id: location?.id,
-            name: location?.name,
-            number_of_bottle: totalBottles,
-            bottle_use: bottleUseCount,
-          };
-        }),
-      );
-    }
-
-    if (includeSections) {
-      const sectionIds = [...new Set(stockRetains.map((sr) => sr.section_id))];
-      response.section = await Promise.all(
-        sectionIds.map(async (sectionId) => {
-          const section = await this.prisma.section.findUnique({
-            where: { id: sectionId },
-          });
-
-          const bottleUseCount = await this.prisma.stock_retain_item.count({
-            where: {
-              stock_retain: {
-                section_id: sectionId,
-              },
-            },
-          });
-
-          return {
-            id: section?.id,
-            name: section?.name,
-            number_of_bottle: section?.number_of_box || 0,
-            bottle_use: bottleUseCount,
-          };
-        }),
-      );
-    }
-
-    if (includeBoxes) {
-      const boxIds = [...new Set(stockRetains.map((sr) => sr.box_id))];
-      response.box = await Promise.all(
-        boxIds.map(async (boxId) => {
-          const box = await this.prisma.box.findUnique({
-            where: { id: boxId },
-          });
-
-          const bottleUseCount = await this.prisma.stock_retain_item.count({
-            where: {
-              stock_retain: {
-                box_id: boxId,
-              },
-            },
-          });
-
-          return {
-            id: box?.id,
-            name: box?.name,
-            number_of_bottle: box?.number_of_bottle || 0,
-            bottle_use: bottleUseCount,
-          };
-        }),
-      );
-    }
-
-    return response;
-  }
+// ...existing code...
 }

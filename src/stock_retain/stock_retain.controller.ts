@@ -95,30 +95,34 @@ export class StockRetainController {
     return this.stockRetainService.getDropdownData();
   }
 
-  @Get('multi')
-  async getRequestSampleDetails(
-    @Query('id') id: string, // Change from number to string
-    @Query('is_select') isSelect?: string, // Change from boolean to string
-  ) {
-    // Add validation for missing id
-    if (!id) {
-      throw new BadRequestException('Sample ID is required');
-    }
-
-    const sampleId = parseInt(id, 10); // Convert string to number
-    console.log('Sample ID:', sampleId, 'Type:', typeof sampleId);
-
-    if (isNaN(sampleId)) {
-      throw new BadRequestException('Invalid sample ID. Must be a number.');
-    }
-
-    const isSelectBoolean = isSelect === 'true'; // Convert string to boolean
-
-    return await this.stockRetainService.getRequestSampleDetails(
-      sampleId, // This is now a proper number
-      isSelectBoolean,
-    );
+ @Get('multi')
+async getRequestSampleDetails(
+  @Query('id') id: string, // Accept comma-separated string of IDs
+  @Query('is_select') isSelect?: string,
+) {
+  // Add validation for missing id
+  if (!id) {
+    throw new BadRequestException('Sample ID(s) are required');
   }
+
+  // Parse comma-separated IDs into array of numbers
+  const sampleIds = id.split(',').map(idStr => {
+    const parsedId = parseInt(idStr.trim(), 10);
+    if (isNaN(parsedId)) {
+      throw new BadRequestException(`Invalid sample ID: ${idStr.trim()}`);
+    }
+    return parsedId;
+  });
+
+  console.log('Sample IDs:', sampleIds, 'Type:', typeof sampleIds);
+
+  const isSelectBoolean = isSelect === 'true';
+
+  return await this.stockRetainService.getRequestSampleDetails(
+    sampleIds, // Pass the array of numbers
+    isSelectBoolean,
+  );
+}
 
   @Get()
   async getRequestSamplesWithFilter(@Body() filters?: FilterRequestSamplesDto) {
