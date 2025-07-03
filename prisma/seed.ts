@@ -94,6 +94,12 @@ async function clearOldData() {
   await prisma.manufacturer.deleteMany(); //   5/27/2025
   await prisma.equipment_type.deleteMany();
   await prisma.location_email.deleteMany();
+  await prisma.request.deleteMany();
+  await prisma.request_detail.deleteMany();
+  await prisma.request_sample.deleteMany();
+  await prisma.stock_retain.deleteMany();
+  await prisma.stock_retain_item.deleteMany();
+  await prisma.request_sample_item.deleteMany();
 
   // Add any other models you want to clear here
   console.log('🧹 Old data deleted');
@@ -513,6 +519,45 @@ async function seedObjectiveFromNew() {
     }
   }
   console.log('✅ Objective (from 001 - Objective.xlsx) seeded');
+}
+
+async function create_stock_retain() {
+  // --- Seed stock_retain ---
+  for (let i = 1; i <= 20; i++) {
+    await prisma.stock_retain.create({
+      data: {
+        request_sample_id: i, // Make sure these IDs exist in request_sample
+        location_id: 1,
+        section_id: 1,
+        box_id: 1,
+        status_retain_id: 'SR01',
+        created_on: new Date(),
+        created_by: 1,
+        updated_on: new Date(),
+        updated_by: 1,
+      },
+    });
+  }
+}
+
+async function create_stock_retain_item() {
+  // --- Seed stock_retain_item ---
+  for (let i = 1; i <= 20; i++) {
+    await prisma.stock_retain_item.create({
+      data: {
+        stock_retain_id: i, // Make sure these IDs exist in stock_retain
+        sample_item_id: i,  // Make sure these IDs exist in sample_item (or adjust as needed)
+        status_retain_id: 'SR01',
+        approve_role_id: 'ROLE01',
+        plan_return_date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // +30 days
+        return_date: null,
+        created_on: new Date(),
+        created_by: 1,
+        updated_on: new Date(),
+        updated_by: 1,
+      },
+    });
+  }
 }
 
 // Sample State
@@ -1046,20 +1091,7 @@ async function seedSectionFromNew() {
   });
 
   for (const r of rows) {
-    // Resolve location_id by name or code if needed
     let locationId = r.location_id;
-    // if (locationId && isNaN(Number(locationId))) {  //commented เพื่อใช้ในกรณีที่ location_id เป็นnull
-    //   // If not a number, assume it's a name or code and look up the id
-    //   const location = await prisma.location.findFirst({
-    //     where: {
-    //       OR: [
-    //         { name: locationId },
-    //       ]
-    //     },
-    //     select: { id: true },
-    //   });
-    //   locationId = location ? location.id : null;
-    // }
 
     const location = await prisma.location.findFirst({
       where: {
@@ -1285,6 +1317,199 @@ async function seedLocationEmailFromEquipmentDueDate() {
     '✅ location_email (from 019 - Equipment Due Date Notification.xlsx) seeded',
   );
 }
+
+
+async function create_request_sample() {
+  // You may want to ensure these IDs exist in your DB before running this seed!
+  const requestId = 1;
+  const materialId = 1;
+  const lineId = 1;
+  const statusSampleId = 'SS01';
+  const categoryEditId = 1;
+
+  for (let i = 1; i <= 20; i++) {
+    await prisma.request_sample.create({
+      data: {
+        request_id: requestId,
+        material_code: `MAT-${i}`,
+        sample_code: `SMP-${i}`,
+        sample_name: `Sample Name ${i}`,
+        sampling_date: new Date(),
+        expiry_date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // +30 days
+        batch_no: `BATCH${i}`,
+        is_display_special: false,
+        special_test_time: null,
+        due_date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // +7 days
+        note: `Seeded sample ${i}`,
+        certificate_name: `Certificate ${i}`,
+        path: `/uploads/sample_${i}.pdf`,
+        revision: 1,
+        is_parameter_completed: false,
+        created_on: new Date(),
+        created_by: 1,
+        updated_on: new Date(),
+        updated_by: 1,
+      },
+    });
+  }
+}
+
+
+function randomString(length: number) {
+  return Math.random().toString(36).substring(2, 2 + length);
+}
+
+function randomInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomDate(start: Date, end: Date): Date {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
+
+function randomEmail(name: string) {
+  return `${name.toLowerCase()}@example.com`;
+}
+
+function randomPhone() {
+  return `08${randomInt(10000000, 99999999)}`;
+}
+
+function randomLocation(): string {
+  const locations = ['AY', 'HM', 'HCC', 'QAC AY', 'QAC HM', 'Incoming HM'];
+  return locations[randomInt(0, locations.length - 1)];
+}
+
+async function create_user() {
+  // Seed 20 Users
+  for (let i = 1; i <= 20; i++) {
+    const username = `user${i}`;
+    await prisma.user.create({
+      data: {
+        employee_id: `EMP${i.toString().padStart(4, '0')}`,
+        username,
+        fullname: `User Fullname ${i}`,
+        tel: randomPhone(),
+        email: randomEmail(username),
+        company: `Company ${randomInt(1, 5)}`,
+        dept_code: `DPT${randomInt(1, 9)}`,
+        dept_name: `Department ${randomInt(1, 10)}`,
+        user_location_id: randomLocation(),
+        supervisor_id: randomInt(1, 10),
+        position_name: `Position ${randomInt(1, 5)}`,
+      },
+    });
+  }
+
+  console.log('User seeding complete!');
+}
+
+async function create_request() {
+  const users = await prisma.user.findMany({
+    select: { id: true },
+  });
+
+  if (users.length === 0) {
+    console.error('No users found. Please seed users first.');
+    return;
+  }
+  const randomUser = users[randomInt(0, users.length - 1)];
+  // Create 20 `request` records
+  for (let i = 1; i <= 20; i++) {
+    await prisma.request.create({
+      data: {
+        request_number: `REQ-${i.toString().padStart(4, '0')}`,
+        lab_site_id: "AY",
+        request_type_id: "REQUEST",
+        requester_id: randomUser.id,
+        request_date: randomDate(new Date(2023, 0, 1), new Date()),
+        due_date: randomDate(new Date(), new Date(2026, 0, 1)),
+        telephone: `08${randomInt(10000000, 99999999)}`,
+        status_request_id: "REVIEW",
+        status_sample_id: "TESTING",
+        review_role_id: "LAB_LEAD",
+        created_by: randomInt(1, 10),
+        updated_by: randomInt(1, 10),
+      },
+    });
+  }
+}
+
+async function create_request_detail() {
+
+  const request = await prisma.request.findMany({
+    select: { id: true },
+  });
+
+  const randomRequest = request[randomInt(0, request.length - 1)];
+  // Create 20 `request_detail` records
+
+  for (let i = 1; i <= 20; i++) {
+    await prisma.request_detail.create({
+      data: {
+        request_id: randomRequest.id, // assumes request_id between 1–20 exists
+        note: `Sample note ${i}`,
+        received_date: randomDate(new Date(2023, 0, 1), new Date()),
+        lab_note: `Lab note ${i}`,
+        created_by: randomInt(1, 10),
+        updated_by: randomInt(1, 10),
+      },
+    });
+  }
+}
+
+async function create_request_sample_item() {
+  // Get existing request_sample IDs and unit IDs to reference
+  const requestSamples = await prisma.request_sample.findMany({
+    select: { id: true },
+  });
+
+  const units = await prisma.unit.findMany({
+    select: { id: true },
+  });
+
+  const statusSampleItems = await prisma.status_sample.findMany({
+    select: { id: true },
+  });
+
+  if (requestSamples.length === 0) {
+    console.error('No request_sample records found. Please seed request_sample first.');
+    return;
+  }
+
+  if (units.length === 0) {
+    console.error('No unit records found. Please seed units first.');
+    return;
+  }
+
+  // Create 20 request_sample_item records
+  for (let i = 1; i <= 20; i++) {
+    const randomRequestSample = requestSamples[randomInt(0, requestSamples.length - 1)];
+    const randomUnit = units[randomInt(0, units.length - 1)];
+    const randomStatus = statusSampleItems.length > 0 
+      ? statusSampleItems[randomInt(0, statusSampleItems.length - 1)] 
+      : null;
+
+    await prisma.request_sample_item.create({
+      data: {
+        request_sample_id: randomRequestSample.id,  
+        seq: i, // Sequential number
+        quantity: randomInt(1, 20), // Random quantity between 1-100
+        unit_id: randomUnit.id,
+        time:  randomInt(1, 24).toString(), // Random time between 1-24 hours
+        created_on: new Date(),
+        created_by: randomInt(1, 10),
+        updated_on: new Date(),
+        updated_by: randomInt(1, 10),
+      },
+    });
+  }
+
+  console.log('✅ request_sample_item seeding complete!');
+}
+
+
+
 /* ---------- main runner ---------- */
 
 async function main() {
@@ -1328,6 +1553,15 @@ async function main() {
   await seedManufacturerFromBrand();
   await seedEquipmentTypeFromNew();
   await seedLocationEmailFromEquipmentDueDate();
+  await create_user();
+  await create_request();
+  await create_request_detail();
+  await create_request_sample();
+  await create_stock_retain();
+  await create_stock_retain_item();
+  await create_request_sample_item();
+
+
   console.log('✅ All data seeded successfully');
 }
 
