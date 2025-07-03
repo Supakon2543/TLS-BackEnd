@@ -896,6 +896,8 @@ async function seedMicrobiologyParameterFromNew() {
 
 // material
 
+// ...existing code...
+
 async function seedMaterialFromNew() {
   const fileName = 'material.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
@@ -909,8 +911,8 @@ async function seedMaterialFromNew() {
     try {
       await prisma.material.create({
         data: {
-          // Replace these fields with the actual required fields from your Prisma schema
-          id: r.id,
+          // ✅ Convert id to String
+          id: String(r.id),
           name: r.name,
           test_report_name: r.test_report_name ?? '', // Ensure this field is provided
           status:
@@ -930,7 +932,8 @@ async function seedMaterialFromNew() {
   console.log('✅ material (from material.xlsx) seeded');
 }
 
-// MaterialChemicalParameter
+// ...existing code...
+
 
 async function seedMaterialChemicalParameterFromNew() {
   const fileName = 'Material_ChemicalParameter.xlsx';
@@ -957,7 +960,7 @@ async function seedMaterialChemicalParameterFromNew() {
       await prisma.material_chemical.create({
         data: {
           id: r.id,
-          material_id: r.material_id,
+          material_id: String(r.material_id), // ✅ Convert to String
           chemical_parameter_id: chemicalParameterId,
           created_by: r.created_by ? Number(r.created_by) : 0,
           // Add other fields as needed
@@ -976,7 +979,6 @@ async function seedMaterialChemicalParameterFromNew() {
   );
 }
 
-// MaterialMicrobiologyParameter
 
 async function seedMaterialMicrobiologyParameterFromNew() {
   const fileName = 'Material_MicrobiologyParameter.xlsx';
@@ -988,10 +990,15 @@ async function seedMaterialMicrobiologyParameterFromNew() {
   });
 
   for (const r of rows) {
+    // Skip rows with missing material_id
+    if (!r.material_id) {
+      console.warn('⚠️ Skipping row with missing material_id:', r);
+      continue;
+    }
+
     // Resolve microbiology_parameter_id by name if needed
     let microbiologyParameterId = r.microbiology_parameter_id;
     if (microbiologyParameterId && isNaN(Number(microbiologyParameterId))) {
-      // If not a number, assume it's a name and look up the id
       const microbiologyParameter =
         await prisma.microbiology_parameter.findFirst({
           where: { name: microbiologyParameterId },
@@ -1002,14 +1009,19 @@ async function seedMaterialMicrobiologyParameterFromNew() {
         : null;
     }
 
+    // Skip if no valid microbiology_parameter_id found
+    if (!microbiologyParameterId) {
+      console.warn('⚠️ Skipping row with invalid microbiology_parameter_id:', r);
+      continue;
+    }
+
     try {
       await prisma.material_microbiology.create({
         data: {
           id: r.id,
-          material_id: r.material_id,
+          material_id: String(r.material_id), // ✅ Convert to String
           microbiology_parameter_id: microbiologyParameterId,
           created_by: r.created_by ? Number(r.created_by) : 0,
-          // Add other fields as needed
         },
       });
     } catch (e) {
@@ -1020,6 +1032,8 @@ async function seedMaterialMicrobiologyParameterFromNew() {
     '✅ material_microbiology (from Material_MicrobiologyParameter.xlsx) seeded',
   );
 }
+
+
 
 async function seedEditCategoryFromNew() {
   const fileName = 'Edit_Category.xlsx';

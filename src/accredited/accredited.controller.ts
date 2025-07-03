@@ -1,8 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { AccreditedService } from './accredited.service';
 import { CreateAccreditedDto } from './dto/create-accredited.dto';
 import { UpdateAccreditedDto } from './dto/update-accredited.dto';
-import { AuthGuard } from '@nestjs/passport';
 
 // @UseGuards(AuthGuard('jwt'))
 @Controller('accredited')
