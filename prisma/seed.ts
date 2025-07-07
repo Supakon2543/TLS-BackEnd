@@ -546,7 +546,7 @@ async function create_stock_retain_item() {
     await prisma.stock_retain_item.create({
       data: {
         stock_retain_id: i, // Make sure these IDs exist in stock_retain
-        sample_item_id: i,  // Make sure these IDs exist in sample_item (or adjust as needed)
+        sample_item_id: i, // Make sure these IDs exist in sample_item (or adjust as needed)
         status_retain_id: 'SR01',
         approve_role_id: 'ROLE01',
         plan_return_date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // +30 days
@@ -738,7 +738,7 @@ async function seedChemicalParameterFromNew() {
           name: r.name,
           name_abb: r.name_abb,
           request_min: r.request_min !== null ? Number(r.request_min) : null,
-          unit_id: unitId,
+          unit_id: unitId ?? undefined,
           sample_type_id: sampleTypeId,
           spec_type_id: specTypeId,
           spec: r.spec,
@@ -896,6 +896,8 @@ async function seedMicrobiologyParameterFromNew() {
 
 // material
 
+// ...existing code...
+
 async function seedMaterialFromNew() {
   const fileName = 'material.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
@@ -927,7 +929,6 @@ async function seedMaterialFromNew() {
   }
   console.log('✅ material (from material.xlsx) seeded');
 }
-
 async function seedMaterialChemicalParameterFromNew() {
   const fileName = 'Material_ChemicalParameter.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
@@ -989,6 +990,15 @@ async function seedMaterialMicrobiologyParameterFromNew() {
       microbiologyParameterId = microbiologyParameter
         ? microbiologyParameter.id
         : null;
+    }
+
+    // Skip if no valid microbiology_parameter_id found
+    if (!microbiologyParameterId) {
+      console.warn(
+        '⚠️ Skipping row with invalid microbiology_parameter_id:',
+        r,
+      );
+      continue;
     }
 
     try {
@@ -1181,6 +1191,10 @@ async function seedBoxFromNew() {
   console.log('✅ box (from box.xlsx) seeded');
 }
 
+// Add this function to your seed.ts file
+
+
+
 async function seedManufacturerFromBrand() {
   const fileName = 'Brand.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
@@ -1306,19 +1320,45 @@ async function seedLocationEmailFromEquipmentDueDate() {
   );
 }
 
+// ...existing code...
 
 async function create_request_sample() {
-  // You may want to ensure these IDs exist in your DB before running this seed!
+  // Get existing material IDs to reference
+  const materials = await prisma.material.findMany({
+    select: { id: true },
+  });
+
+  // Get existing status_sample IDs to reference
+  const statusSamples = await prisma.status_sample.findMany({
+    select: { id: true },
+  });
+
+  if (materials.length === 0) {
+    console.error('No material records found. Please seed material first.');
+    return;
+  }
+
+  if (statusSamples.length === 0) {
+    console.error(
+      'No status_sample records found. Please seed status_sample first.',
+    );
+    return;
+  }
+
   const requestId = 1;
-  const materialId = 1;
   const lineId = 1;
-  const statusSampleId = 'SS01';
   const categoryEditId = 1;
 
   for (let i = 1; i <= 20; i++) {
+    // Get random material and status_sample from the arrays
+    const randomMaterial = materials[randomInt(0, materials.length - 1)];
+    const randomStatusSample =
+      statusSamples[randomInt(0, statusSamples.length - 1)];
+
     await prisma.request_sample.create({
       data: {
         request_id: requestId,
+        material_id: randomMaterial.id, // ✅ Use random material ID from database
         material_code: `MAT-${i}`,
         sample_code: `SMP-${i}`,
         sample_name: `Sample Name ${i}`,
@@ -1328,6 +1368,7 @@ async function create_request_sample() {
         is_display_special: false,
         special_test_time: null,
         due_date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // +7 days
+        status_sample_id: randomStatusSample.id, // ✅ Use random status_sample ID from database
         note: `Seeded sample ${i}`,
         certificate_name: `Certificate ${i}`,
         path: `/uploads/sample_${i}.pdf`,
@@ -1340,11 +1381,16 @@ async function create_request_sample() {
       },
     });
   }
+
+  console.log('✅ request_sample seeding complete!');
 }
 
+// ...existing code...
 
 function randomString(length: number) {
-  return Math.random().toString(36).substring(2, 2 + length);
+  return Math.random()
+    .toString(36)
+    .substring(2, 2 + length);
 }
 
 function randomInt(min: number, max: number) {
@@ -1352,7 +1398,9 @@ function randomInt(min: number, max: number) {
 }
 
 function randomDate(start: Date, end: Date): Date {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+  return new Date(
+    start.getTime() + Math.random() * (end.getTime() - start.getTime()),
+  );
 }
 
 function randomEmail(name: string) {
@@ -1407,15 +1455,15 @@ async function create_request() {
     await prisma.request.create({
       data: {
         request_number: `REQ-${i.toString().padStart(4, '0')}`,
-        lab_site_id: "AY",
-        request_type_id: "REQUEST",
+        lab_site_id: 'AY',
+        request_type_id: 'REQUEST',
         requester_id: randomUser.id,
         request_date: randomDate(new Date(2023, 0, 1), new Date()),
         due_date: randomDate(new Date(), new Date(2026, 0, 1)),
         telephone: `08${randomInt(10000000, 99999999)}`,
-        status_request_id: "REVIEW",
-        status_sample_id: "TESTING",
-        review_role_id: "LAB_LEAD",
+        status_request_id: 'REVIEW',
+        status_sample_id: 'TESTING',
+        review_role_id: 'LAB_LEAD',
         created_by: randomInt(1, 10),
         updated_by: randomInt(1, 10),
       },
@@ -1424,7 +1472,6 @@ async function create_request() {
 }
 
 async function create_request_detail() {
-
   const request = await prisma.request.findMany({
     select: { id: true },
   });
@@ -1461,7 +1508,9 @@ async function create_request_sample_item() {
   });
 
   if (requestSamples.length === 0) {
-    console.error('No request_sample records found. Please seed request_sample first.');
+    console.error(
+      'No request_sample records found. Please seed request_sample first.',
+    );
     return;
   }
 
@@ -1472,19 +1521,21 @@ async function create_request_sample_item() {
 
   // Create 20 request_sample_item records
   for (let i = 1; i <= 20; i++) {
-    const randomRequestSample = requestSamples[randomInt(0, requestSamples.length - 1)];
+    const randomRequestSample =
+      requestSamples[randomInt(0, requestSamples.length - 1)];
     const randomUnit = units[randomInt(0, units.length - 1)];
-    const randomStatus = statusSampleItems.length > 0 
-      ? statusSampleItems[randomInt(0, statusSampleItems.length - 1)] 
-      : null;
+    const randomStatus =
+      statusSampleItems.length > 0
+        ? statusSampleItems[randomInt(0, statusSampleItems.length - 1)]
+        : null;
 
     await prisma.request_sample_item.create({
       data: {
-        request_sample_id: randomRequestSample.id,  
+        request_sample_id: randomRequestSample.id,
         seq: i, // Sequential number
         quantity: randomInt(1, 20), // Random quantity between 1-100
         unit_id: randomUnit.id,
-        time:  randomInt(1, 24).toString(), // Random time between 1-24 hours
+        time: randomInt(1, 24).toString(), // Random time between 1-24 hours
         created_on: new Date(),
         created_by: randomInt(1, 10),
         updated_on: new Date(),
@@ -1495,8 +1546,6 @@ async function create_request_sample_item() {
 
   console.log('✅ request_sample_item seeding complete!');
 }
-
-
 
 /* ---------- main runner ---------- */
 
@@ -1548,7 +1597,6 @@ async function main() {
   await create_stock_retain();
   await create_stock_retain_item();
   await create_request_sample_item();
-
 
   console.log('✅ All data seeded successfully');
 }

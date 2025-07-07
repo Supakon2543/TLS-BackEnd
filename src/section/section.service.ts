@@ -7,66 +7,62 @@ import { UpdateSectionDto } from './dto/update-section.dto';
 export class SectionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Retrieve sections with filters
   async getSections(params: {
-    id?: number;
-    keyword?: string;
-    status?: number | string;
-  }) {
-    let { id, keyword, status } = params;
+  id?: number;
+  keyword?: string;
+  status?: number | string; // This parameter will be ignored
+}) {
+  let { id, keyword } = params; // Remove status from destructuring
 
-    // Convert id and status to numbers if they are strings
-    id = id !== undefined ? +id : undefined;
-    status = status !== undefined ? +status : undefined;
+  // Convert id to number if it's a string
+  id = id !== undefined ? +id : undefined;
 
-    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
-      if (keyword || status) {
-        return this.prisma.section.findMany({
-          where: {
-            ...(id && { id }),
-            ...(typeof status === 'number' && status !== 0
-              ? { status: status === 1 }
-              : {}),
-            ...(keyword && {
-              name: { contains: keyword, mode: 'insensitive' },
-            }),
-          },
-          orderBy: { name: 'asc' },
-          include: {
-            location: {
-              select: { name: true },
-            },
-          },
-        });
-      }
-      return [];
-    }
+  // Build where clause
+  const whereClause: any = {};
 
-     const section = await this.prisma.section.findMany({
-      where: {
-        ...(id && { id }),
-        ...(typeof status === 'number' && status !== 0
-          ? { status: status === 1 }
-          : {}),
-        ...(keyword && {
-          name: { contains: keyword, mode: 'insensitive' },
-        }),
-      },
-      orderBy: { name: 'asc' },
-      include: {
+  // ✅ Always filter for active sections only (cannot be overridden)
+  whereClause.status = true;
+
+  // Add id filter
+  if (typeof id === 'number' && !isNaN(id) && id !== 0) {
+    whereClause.id = id;
+  }
+
+  // Add keyword filter for section name
+  if (keyword && keyword.trim() !== '') {
+    whereClause.name = {
+      contains: keyword.trim(),
+      mode: 'insensitive',
+    };
+  }
+
+  // Get sections with filters and sort by location name
+  const sections = await this.prisma.section.findMany({
+    where: whereClause,
+    orderBy: [
+      {
         location: {
-          select: { name: true },
+          name: 'asc',
         },
       },
-    });
+      {
+        name: 'asc',
+      },
+    ],
+    include: {
+      location: {
+        select: { name: true },
+      },
+    },
+  });
 
-    return section.map(s => ({
-      ...s,
-      location_name: s.location?.name ?? null,
-      location: undefined, // Optionally remove the nested object
-    })); 
-
-  }
+  // Transform the response to include location_name at the top level
+  return sections.map((s) => ({
+    ...s,
+    location_name: s.location?.name ?? null,
+    location: undefined,
+  }));
+}
 
   // Create or update a record
   async createOrUpdate(data: CreateSectionDto) {

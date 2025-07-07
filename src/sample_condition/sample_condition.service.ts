@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class SampleConditionService {
-  constructor(private prisma: PrismaService){}
+  constructor(private readonly prisma: PrismaService){}
     async create(/*@Request() req: Request, */@Body() payload: CreateSampleConditionDto/*, @Response() res: Response*/) {
       return await this.prisma.sample_condition.create({
         data: payload,

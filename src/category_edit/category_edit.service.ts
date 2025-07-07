@@ -42,7 +42,10 @@ export class CategoryEditService {
               name: { contains: keyword, mode: 'insensitive' },
             }),
           },
-          orderBy: { order: 'asc' }, // Sorting by order or any field as needed
+          orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ], // Sorting by order or any field as needed
         });
       }
       return [];
@@ -58,7 +61,10 @@ export class CategoryEditService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { order: 'asc' },
+      orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
     });
   }
   async create(data: CreateCategoryEditDto) {
