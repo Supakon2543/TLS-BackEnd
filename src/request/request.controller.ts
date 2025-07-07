@@ -50,19 +50,19 @@ export class RequestController {
     return this.requestService.get_info(params);
   }
 
-  @Post('save-request')
+  @Post('save')
   async save(@Body() payload: SaveRequestDto, @Res() res: Response) {
     const result = await this.requestService.save(payload);
     return res.status(200).json(result);
   }
 
-  @Post('duplicate-request')
+  @Post('duplicate')
   async duplicate(@Body() payload: DuplicateRequestDto, @Res() res: Response) {
     const result = await this.requestService.duplicate(payload);
     return res.status(200).json(result);
   }
 
-  @Post('cancel-request')
+  @Post('cancel')
   async cancel(@Body() payload: any, @Res() res: Response) {
     const result = await this.requestService.cancel(payload);
     return res.status(200).json(result);
