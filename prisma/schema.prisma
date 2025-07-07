@@ -445,7 +445,7 @@ model chemical_parameter {
 model material {
   id                      String    @id
   name                    String    @db.VarChar(100)
-  test_report_name        String    @db.VarChar(100)
+  test_report_name        String?   @db.VarChar(100)
   conclusion              Boolean?   
   reg_no                  String?   @db.VarChar(50)
   is_special_parameter    Boolean?

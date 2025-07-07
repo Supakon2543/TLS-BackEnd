@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { RequestService } from './request.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
@@ -36,12 +37,12 @@ export class RequestController {
 
   @Patch(':id')
   update(@Param('id') id: number, @Body() payload: UpdateRequestDto) {
-    return this.requestService.update(id, payload);
+    return this.requestService.update(+id, payload);
   }
 
   @Delete(':id')
   remove(@Param('id') id: number) {
-    return this.requestService.remove(id);
+    return this.requestService.remove(+id);
   }
 
   @Get('')
@@ -49,13 +50,21 @@ export class RequestController {
     return this.requestService.get_info(params);
   }
 
-  @Post('save-request')
-  save(@Body() payload: SaveRequestDto) {
-    return this.requestService.save(payload);
+  @Post('save')
+  async save(@Body() payload: SaveRequestDto, @Res() res: Response) {
+    const result = await this.requestService.save(payload);
+    return res.status(200).json(result);
   }
 
-  @Post('duplicate-request')
-  duplicate(@Body() payload: DuplicateRequestDto) {
-    return this.requestService.duplicate(payload);
+  @Post('duplicate')
+  async duplicate(@Body() payload: DuplicateRequestDto, @Res() res: Response) {
+    const result = await this.requestService.duplicate(payload);
+    return res.status(200).json(result);
+  }
+
+  @Post('cancel')
+  async cancel(@Body() payload: any, @Res() res: Response) {
+    const result = await this.requestService.cancel(payload);
+    return res.status(200).json(result);
   }
 }
