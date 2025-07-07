@@ -53,6 +53,8 @@ function readExcel<T>(fileName: string): T[] {
 /* ---------- delete existing data ---------- */
 
 async function clearOldData() {
+  await prisma.material_chemical.deleteMany();
+  await prisma.material_microbiology.deleteMany();
   await prisma.chemical_sample_description.deleteMany();
   await prisma.chemical_parameter.deleteMany();
   await prisma.sample_description.deleteMany();
@@ -85,8 +87,6 @@ async function clearOldData() {
   await prisma.chemical.deleteMany();
   await prisma.microbiology_parameter.deleteMany();
   await prisma.material.deleteMany();
-  await prisma.material_chemical.deleteMany();
-  await prisma.material_microbiology.deleteMany();
   await prisma.category_edit.deleteMany();
   await prisma.location.deleteMany();
   await prisma.section.deleteMany();
