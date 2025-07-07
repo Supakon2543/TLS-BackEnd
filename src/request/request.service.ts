@@ -5,9 +5,18 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SaveRequestDto } from './dto/save-request.dto';
 import e from 'express';
 import { DuplicateRequestDto } from './dto/duplicate-request.dto';
+import { GetObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { CancelRequestDto } from './dto/cancel-request.dto';
 
 @Injectable()
 export class RequestService {
+  private readonly s3 = new S3Client({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      },
+  });
   constructor(private readonly prisma: PrismaService){}
     async create(/*@Request() req: Request, */@Body() payload: CreateRequestDto/*, @Response() res: Response*/) {
       return await this.prisma.request.create({
@@ -124,7 +133,7 @@ export class RequestService {
     }
 
     async save(@Body() payload: any) {
-      return await this.prisma.$transaction(async (tx) => {
+      const request_id = await this.prisma.$transaction(async (tx) => {
         // Recursively clear every id if id === 0 in the payload and ensure date values are Date objects or null
         function clearZeroIdsAndDatesAndBy(obj: any) {
           if (Array.isArray(obj)) {
@@ -324,6 +333,32 @@ export class RequestService {
           : undefined;
 
         // 3. Upsert or replace nested entities
+        let s3Path = `tls/${process.env.ENVNAME}/request-detail-attachment/${requestId}/${attachments.filename}`;
+        let filename = attachments.filename;
+
+        // 1. Fetch all attachments for the request
+        const attachmentsToDelete = await this.prisma.request_detail_attachment.findMany({
+          where: { request_id: requestId }
+        });
+  
+        // 2. Loop and delete each file from S3
+        for (const attachment of attachmentsToDelete) {
+          if (attachment.path && typeof attachment.path === 'string' && attachment.path.trim() !== '') {
+            // Remove leading slash if present
+            const s3Key = attachment.path.startsWith('/') ? attachment.path.slice(1) : attachment.path;
+            try {
+              await this.s3.send(
+                new (await import('@aws-sdk/client-s3')).DeleteObjectCommand({
+                  Bucket: process.env.AWS_S3_BUCKET!,
+                  Key: s3Key,
+                }),
+              );
+            } catch (err) {
+              // Log but don't throw, so the process continues
+              console.warn('Failed to delete S3 file:', s3Key, err?.message || err);
+            }
+          }
+        }
         await tx.request_email.deleteMany({ where: { request_id: requestId } });
         await tx.request_detail_attachment.deleteMany({ where: { request_id: requestId } });
         await tx.request_sample.deleteMany({ where: { request_id: requestId } });
@@ -332,6 +367,51 @@ export class RequestService {
 
         await tx.request_email.createMany({ data: emails });
         if (detail) await tx.request_detail.create({ data: detail });
+        // If base64 is provided (raw, not data URL), upload to S3
+        for (const attachment of attachments) {
+          if (attachment.base64 && attachment.base64 !== '') {
+            let buffer: Buffer;
+            let mimeType = 'application/octet-stream';
+            let filename = attachment.filename || `file_${Date.now()}`;
+            let s3Key = `tls/${process.env.ENVNAME}/request-detail-attachment/${requestId}/${filename}`;
+
+            if (attachment.base64.startsWith('data:')) {
+              const matches = attachment.base64.match(/^data:(.+);base64,(.+)$/);
+              if (!matches) throw new Error('Invalid base64 format');
+              mimeType = matches[1];
+              buffer = Buffer.from(matches[2], 'base64');
+            } else {
+              buffer = Buffer.from(attachment.base64, 'base64');
+              // Optionally, set mimeType based on file extension
+              if (filename.endsWith('.pdf')) {
+                mimeType = 'application/pdf';
+              } else if (filename.endsWith('.png')) {
+                mimeType = 'image/png';
+              } else if (filename.endsWith('.jpg') || filename.endsWith('.jpeg')) {
+                mimeType = 'image/jpeg';
+              } else if (filename.endsWith('.txt')) {
+                mimeType = 'text/plain';
+              } else if (filename.endsWith('.docx')) {
+                mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+              } else if (filename.endsWith('.xlsx')) {
+                mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+              }
+            }
+
+            await this.s3.send(
+              new PutObjectCommand({
+                Bucket: process.env.AWS_S3_BUCKET!,
+                Key: s3Key,
+                Body: buffer,
+                ContentType: mimeType,
+              }),
+            );
+            // Set the S3 path for later DB insert
+            attachment.path = `/${s3Key}`;
+            // Optionally, remove base64 to avoid storing it in DB
+            delete attachment.base64;
+          }
+        }
         await tx.request_detail_attachment.createMany({ data: attachments });
 
         for (const sample of samples) {
@@ -385,10 +465,16 @@ export class RequestService {
         if (record) {
           await tx.request_log.create({ data: record });
         }
-
-        // 4. Return the full request info
-        return this.get_info({ id: requestId });
+        return requestId;
       });
+      console.log('request_id:', request_id);
+      console.log('get_info:', await this.get_info({ id: request_id }));
+      // 4. Return the full request info
+      // return await this.get_info({ id: request_id });
+      return {
+        message: 'Success', //`Request with ID ${request_id} saved successfully.`,
+        id: request_id,
+      };
     }
 
     async duplicate(@Query() payload: DuplicateRequestDto) {
@@ -411,178 +497,139 @@ export class RequestService {
         throw new NotFoundException(`Request with ID ${id} not found`);
       }
 
-      let temp = {
+      // Remove all IDs recursively for duplication
+      function removeIds(obj: any) {
+        if (Array.isArray(obj)) {
+          obj.forEach(removeIds);
+        } else if (obj && typeof obj === 'object') {
+          if ('id' in obj) delete obj.id;
+          for (const key in obj) {
+            removeIds(obj[key]);
+          }
+        }
+      }
+
+      // Deep clone and clean
+      const temp = {
         request: {
           ...original,
           request_detail: undefined,
           request_sample: undefined,
         },
-        // Ensure request_detail is a record/object, not an array
         request_detail: Array.isArray(original.request_detail)
           ? (original.request_detail[0] ?? {})
           : (original.request_detail ?? {}),
         request_sample: (original.request_sample ?? []).map(sample => ({
           ...sample,
-          id: 0, // Clear ID for duplication
-          category_edit_id: 0, // Clear category_edit_id for duplication
-          certificate_name: '', // Clear certificate_name for duplication
-          path: '', // Clear path for duplication
-          revision: 0, // Clear revision for duplication
-          is_parameter_completed: false, // Clear is_parameter_completed for duplication
-          status_sample_id: '', // Clear status_sample_id for duplication
-          note: '', // Clear note for duplication
-          request_sample_item: (sample.request_sample_item ?? []).map(item => ({
-            ...item,
-            id: 0, // Clear ID for duplication
-          })),
+          request_sample_item: (sample.request_sample_item ?? []).map(item => ({ ...item })),
         })),
       };
 
-      if (temp.request.request_type_id == "REQUEST") {
-          const last_request = await this.prisma.request.findFirst({
-            where: { request_type_id: 'REQUEST' },
-            orderBy: { created_on: 'desc' },
-          });
+      // Remove IDs from all nested objects
+      removeIds(temp.request);
+      removeIds(temp.request_detail);
+      temp.request_sample.forEach(sample => {
+        removeIds(sample);
+        (sample.request_sample_item ?? []).forEach(removeIds);
+      });
 
-          // Get current year as 2 digits
-          const year = new Date().getFullYear().toString().slice(-2);
-
-          let lastNumber = 0;
-          if (last_request?.request_number) {
-            // Expect format: RQYYNNNN, e.g., RQ240001
-            const lastReqNum = String(last_request.request_number);
-            // Only increment if the year matches, otherwise reset to 0
-            const lastYear = lastReqNum.slice(2, 4);
-            if (lastYear === year) {
-              lastNumber = parseInt(lastReqNum.slice(-4), 10) || 0;
-            }
-          }
-          temp.request.request_number = "RQ" + year + (lastNumber + 1).toString().padStart(4, "0");
-        }
-        else if (temp.request.request_type_id == "ROUTINE") {
-          const last_request = await this.prisma.request.findFirst({
-            where: { request_type_id: 'ROUTINE' },
-            orderBy: { created_on: 'desc' },
-          });
-
-          // Get current year as 2 digits
-          const year = new Date().getFullYear().toString().slice(-2);
-
-          let lastNumber = 0;
-          if (last_request?.request_number) {
-            // Expect format: RQYYNNNN, e.g., RQ240001
-            const lastReqNum = String(last_request.request_number);
-            // Only increment if the year matches, otherwise reset to 0
-            const lastYear = lastReqNum.slice(2, 4);
-            if (lastYear === year) {
-              lastNumber = parseInt(lastReqNum.slice(-4), 10) || 0;
-            }
-          }
-          temp.request.request_number = "RT" + year + (lastNumber + 1).toString().padStart(4, "0");
-        }
-        else if (temp.request.request_type_id == "QIP") {
-          const last_request = await this.prisma.request.findFirst({
-            where: { request_type_id: 'QIP' },
-            orderBy: { created_on: 'desc' },
-          });
-
-          // Get current year as 2 digits
-          const year = new Date().getFullYear().toString().slice(-2);
-
-          let lastNumber = 0;
-          if (last_request?.request_number) {
-            // Expect format: RQYYNNNN, e.g., RQ240001
-            const lastReqNum = String(last_request.request_number);
-            // Only increment if the year matches, otherwise reset to 0
-            const lastYear = lastReqNum.slice(2, 4);
-            if (lastYear === year) {
-              lastNumber = parseInt(lastReqNum.slice(-4), 10) || 0;
-            }
-          }
-          temp.request.request_number = "RE" + year + (lastNumber + 1).toString().padStart(4, "0");
-        }
-
-      temp.request.original_id = payload.id; // Set original_id to the ID of the request being duplicated
-      temp.request.id = 0; // Clear the ID to create a new request
-      temp.request.created_by = user_id; // Clear created_by for duplication
+      // Set/override fields for the new duplicated request
+      temp.request.original_id = payload.id;
+      temp.request.created_by = user_id;
       temp.request.updated_by = user_id;
-      temp.request.created_on = new Date(); // Set created_on to now
-      temp.request.updated_on = new Date(); // Set updated_on to now
-      temp.request.request_date = new Date(); // Clear request_number for duplication
-      temp.request.requester_id = user_id; // Clear requester_id for duplication
-      temp.request.status_request_id = 'DRAFT'; // Set status to DRAFT for duplication
-      temp.request.review_role_id = ''; // Set review role to REQ_HEAD for duplication
-      temp.request.telephone = ''; // Clear telephone for duplication
-
-      // Optionally, generate a new request_number here if needed
+      temp.request.created_on = new Date();
+      temp.request.updated_on = new Date();
+      temp.request.request_date = new Date();
+      temp.request.requester_id = user_id;
+      temp.request.status_request_id = 'DRAFT';
+      temp.request.status_sample_id = null;
+      temp.request.review_role_id = null;
+      temp.request.telephone = '';
+      temp.request.request_number = null;
 
       // 3. Create the duplicated request
-      return await this.prisma.$transaction(async (tx) => {
-        const newRequest = await tx.request.create({
-          data: temp.request });
+      const newRequest = await this.prisma.request.create({
+        data: temp.request,
+      });
 
-        // 4. Duplicate request_detail (handled above in nested create)
-        temp.request_detail.id = 0; // Set the new request ID
-        await tx.request_detail.create({
-          data: {
-            ...temp.request_detail,
-            request_id: newRequest.id,
-            created_by: user_id,
-            updated_by: user_id,
-            // set created_by, created_on as needed
-          },
+      // 4. Duplicate request_detail
+      temp.request_detail.request_id = newRequest.id;
+      temp.request_detail.created_by = user_id;
+      temp.request_detail.updated_by = user_id;
+      temp.request_detail.created_on = new Date();
+      temp.request_detail.updated_on = new Date();
+      await this.prisma.request_detail.create({
+        data: temp.request_detail,
+      });
+
+      // 5. Duplicate request_sample and request_sample_item
+      for (const sample of temp.request_sample) {
+        sample.request_id = newRequest.id;
+        sample.created_by = user_id;
+        sample.updated_by = user_id;
+        sample.created_on = new Date();
+        sample.updated_on = new Date();
+        const { request_sample_item, ...sampleData } = sample;
+        const newSample = await this.prisma.request_sample.create({
+          data: sampleData,
         });
 
-        // 5. Duplicate request_sample and request_sample_item
-        for (const sample of temp.request_sample) {
-          const {
-            id: _sampleId,
-            request_id: _sampleReqId,
-            created_by: _sampleCreatedBy,
-            updated_by: _sampleUpdatedBy,
-            created_on: _sampleCreatedOn,
-            updated_on: _sampleUpdatedOn,
-            request_sample_item,
-            ...sampleData
-          } = sample;
-
-          // Create new sample
-          const newSample = await tx.request_sample.create({
-            data: {
-              ...sampleData,
-              request_id: newRequest.id,
-              created_by: user_id,
-              updated_by: user_id,
-              // set created_by, created_on as needed
-            },
+        for (const item of request_sample_item ?? []) {
+          item.request_sample_id = newSample.id;
+          item.created_by = user_id;
+          item.updated_by = user_id;
+          item.created_on = new Date();
+          item.updated_on = new Date();
+          await this.prisma.request_sample_item.create({
+            data: item,
           });
-
-          // Duplicate sample items
-          for (const item of request_sample_item) {
-            const {
-              id: _itemId,
-              request_sample_id: _itemSampleId,
-              created_by: _itemCreatedBy,
-              updated_by: _itemUpdatedBy,
-              created_on: _itemCreatedOn,
-              updated_on: _itemUpdatedOn,
-              ...itemData
-            } = item;
-
-            await tx.request_sample_item.create({
-              data: {
-                ...itemData,
-                request_sample_id: newSample.id,
-                created_by: user_id,
-                updated_by: user_id,
-                // set created_by, created_on as needed
-              },
-            });
-          }
         }
+      }
 
-        // 6. Return the new duplicated request info
-        return this.get_info({ id: newRequest.id });
-      });
+      // 6. Return the new duplicated request info
+      // return await this.get_info({ id: newRequest.id });
+      return {
+        message: 'Success', //`Request with ID ${id} has been duplicated successfully.`,
+        // id: newRequest.id,
+      };
     }
+
+    async cancel(@Body() payload: CancelRequestDto) {
+      const { request_id, user_id, remark } = payload;
+
+      // Find the request to cancel
+      const request = await this.prisma.request.findUnique({
+        where: { id: request_id },
+      });
+
+      if (!request) {
+        throw new NotFoundException(`Request with ID ${request_id} not found`);
+      }
+
+      // Update the request status to 'CANCELLED'
+      await this.prisma.request.update({
+        where: { id: request_id },
+        data: {
+          status_request_id: 'CANCEL',
+          status_sample_id: 'CANCEL',
+          updated_by: user_id,
+          updated_on: new Date(),
+        },
+      });
+
+      // Create a cancellation log entry
+      await this.prisma.request_log.create({
+        data: {
+          request_id: request_id,
+          activity_request_id: 'CANCEL',
+          status_request_id: 'CANCEL',
+          remark: remark || '',
+          user_id: user_id,
+          timestamp: new Date(),
+        },
+      });
+      return {
+        message: `Request with ID ${request_id} has been cancelled successfully.`,
+    }
+  }
 }
