@@ -22,7 +22,10 @@ export class SampleConditionService {
   
     findAll(/*@Request() req: Request, @Response() res: Response*/) {
       return this.prisma.sample_condition.findMany({
-        orderBy: { order: 'asc' },
+        orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
       });
     }
     
