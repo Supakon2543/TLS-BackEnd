@@ -23,6 +23,7 @@ export class CreateRequestDetailAttachmentDto {
     created_by: number;
 
     @IsString()
+    @IsOptional()
     base64: string;
     
 }

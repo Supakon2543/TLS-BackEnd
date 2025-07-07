@@ -909,10 +909,9 @@ async function seedMaterialFromNew() {
     try {
       await prisma.material.create({
         data: {
-          // Replace these fields with the actual required fields from your Prisma schema
-          id: r.id,
+          id: r.id != null ? String(r.id) : '', // Ensure string, fallback to empty string
           name: r.name,
-          test_report_name: r.test_report_name ?? '', // Ensure this field is provided
+          test_report_name: r.test_report_name ?? '',
           status:
             r.status === true ||
             r.status === 'TRUE' ||
@@ -920,7 +919,6 @@ async function seedMaterialFromNew() {
             r.status === '1',
           created_by: r.created_by ? Number(r.created_by) : 0,
           updated_by: r.updated_by ? Number(r.updated_by) : 0,
-          // Add any other required fields here
         },
       });
     } catch (e) {
@@ -929,8 +927,6 @@ async function seedMaterialFromNew() {
   }
   console.log('✅ material (from material.xlsx) seeded');
 }
-
-// MaterialChemicalParameter
 
 async function seedMaterialChemicalParameterFromNew() {
   const fileName = 'Material_ChemicalParameter.xlsx';
@@ -942,10 +938,8 @@ async function seedMaterialChemicalParameterFromNew() {
   });
 
   for (const r of rows) {
-    // Resolve chemical_parameter_id by name if needed
     let chemicalParameterId = r.chemical_parameter_id;
     if (chemicalParameterId && isNaN(Number(chemicalParameterId))) {
-      // If not a number, assume it's a name and look up the id
       const chemicalParameter = await prisma.chemical_parameter.findFirst({
         where: { name: chemicalParameterId },
         select: { id: true },
@@ -956,11 +950,10 @@ async function seedMaterialChemicalParameterFromNew() {
     try {
       await prisma.material_chemical.create({
         data: {
-          id: r.id,
-          material_id: r.material_id,
+          id: r.id, // Ensure string
+          material_id: r.material_id != null ? String(r.material_id) : '', // Ensure string
           chemical_parameter_id: chemicalParameterId,
           created_by: r.created_by ? Number(r.created_by) : 0,
-          // Add other fields as needed
         },
       });
     } catch (e) {
@@ -976,8 +969,6 @@ async function seedMaterialChemicalParameterFromNew() {
   );
 }
 
-// MaterialMicrobiologyParameter
-
 async function seedMaterialMicrobiologyParameterFromNew() {
   const fileName = 'Material_MicrobiologyParameter.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
@@ -988,10 +979,8 @@ async function seedMaterialMicrobiologyParameterFromNew() {
   });
 
   for (const r of rows) {
-    // Resolve microbiology_parameter_id by name if needed
     let microbiologyParameterId = r.microbiology_parameter_id;
     if (microbiologyParameterId && isNaN(Number(microbiologyParameterId))) {
-      // If not a number, assume it's a name and look up the id
       const microbiologyParameter =
         await prisma.microbiology_parameter.findFirst({
           where: { name: microbiologyParameterId },
@@ -1005,11 +994,10 @@ async function seedMaterialMicrobiologyParameterFromNew() {
     try {
       await prisma.material_microbiology.create({
         data: {
-          id: r.id,
-          material_id: r.material_id,
+          id: r.id, // Ensure string
+          material_id: r.material_id != null ? String(r.material_id) : '', // Ensure string
           microbiology_parameter_id: microbiologyParameterId,
           created_by: r.created_by ? Number(r.created_by) : 0,
-          // Add other fields as needed
         },
       });
     } catch (e) {
