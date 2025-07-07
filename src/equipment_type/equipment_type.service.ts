@@ -41,7 +41,10 @@ export class EquipmentTypeService {
               name: { contains: keyword, mode: 'insensitive' },
             }),
           },
-          orderBy: { name: 'asc' }, // Sorting by name or any field as needed
+          orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ], // Sorting by name or any field as needed
         });
       }
       return [];
@@ -57,7 +60,10 @@ export class EquipmentTypeService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { name: 'asc' },
+      orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
     });
   }
 
