@@ -45,7 +45,10 @@ export class SampleRetainingService {
               name: { contains: keyword, mode: 'insensitive' },
             }),
           },
-          orderBy: { order: 'asc' }, // Sorting by order or any field as needed
+          orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ], // Sorting by order or any field as needed
         });
       }
       return [];
@@ -61,13 +64,19 @@ export class SampleRetainingService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { order: 'asc' }, // Sorting by order or any field as needed
+      orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ], // Sorting by order or any field as needed
     });
   }
 
   async findAll() {
     return this.prisma.sample_retaining.findMany({
-      orderBy: { order: 'asc' },
+      orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
     });
   }
 

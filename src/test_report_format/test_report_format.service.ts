@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TestReportFormatService {
-  constructor(private prisma: PrismaService){}
+  constructor(private readonly prisma: PrismaService){}
     async create(/*@Request() req: Request, */@Body() payload: CreateTestReportFormatDto/*, @Response() res: Response*/) {
       return await this.prisma.test_report_format.create({
         data: payload,

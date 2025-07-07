@@ -48,7 +48,10 @@ export class LabProcessService {
               name: { contains: keyword, mode: 'insensitive' },
             }),
           },
-          orderBy: { order: 'asc' }, // Sorting by order or any field as needed
+          orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ], // Sorting by order or any field as needed
         });
       }
       return [];
@@ -64,13 +67,19 @@ export class LabProcessService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { order: 'asc' },
+      orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
     });
   }
 
   async findAll() {
     return this.prisma.lab_process.findMany({
-      orderBy: { order: 'asc' },
+      orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
     });
   }
 

@@ -121,7 +121,6 @@ export class MaterialService {
     });
   }
 
-  // Get materials with filters
   async getMaterials(params: {
     id?: string;
     keyword?: string;
@@ -129,86 +128,46 @@ export class MaterialService {
   }) {
     let { id, keyword, status } = params;
 
-    // Convert id and status to numbers if they are strings
+    // Convert status to number if it's a string
     status = status !== undefined ? +status : undefined;
 
-    if (id === '' || id === null || typeof id === 'string') {
-      if (keyword || status) {
-        const materials = await this.prisma.material.findMany({
-          where: {
-            ...(id ? { id } : {}),
-            ...(typeof status === 'number' && status !== 0
-              ? { status: status === 1 }
-              : {}),
-            ...(keyword && {
-              name: { contains: keyword, mode: 'insensitive' },
-            }),
-          },
-          orderBy: { name: 'asc' },
-          include: {
-            material_chemical: {
-              include: {
-                chemical_parameter: {
-                  select: { name: true },
-                },
-              },
-            },
-            material_microbiology: {
-              include: {
-                microbiology_parameter: {
-                  select: { name: true },
-                },
-              },
-            },
-          },
-        });
-        return materials.map((material) => ({
-          id: material.id,
-          name: material.name,
-          test_report_name: material.test_report_name,
-          conclusion: material.conclusion,
-          reg_no: material.reg_no,
-          is_special_parameter: material.is_special_parameter,
-          special_parameter_name: material.special_parameter_name,
-          special_parameter_type: material.special_parameter_type,
-          remark_report: material.remark_report,
-          status: material.status,
-          created_on: material.created_on,
-          created_by: material.created_by,
-          updated_on: material.updated_on,
-          updated_by: material.updated_by,
-          material_chemical: material.material_chemical.map((mc) => ({
-            id: mc.id,
-            material_id: mc.material_id,
-            chemical_parameter_id: mc.chemical_parameter_id,
-            chemical_parameter_name: mc.chemical_parameter?.name ?? null,
-            created_on: mc.created_on,
-            created_by: mc.created_by,
-          })),
-          material_microbiology: material.material_microbiology.map((mm) => ({
-            id: mm.id,
-            material_id: mm.material_id,
-            microbiology_parameter_id: mm.microbiology_parameter_id,
-            microbiology_parameter_name:
-              mm.microbiology_parameter?.name ?? null,
-            created_on: mm.created_on,
-            created_by: mm.created_by,
-          })),
-        }));
-      }
-      return [];
+    // Build where clause
+    const whereClause: any = {};
+
+    // ✅ Add material code (id) filter - filters by material code with partial match
+    if (id && id !== '' && id !== null && id.trim() !== '') {
+      whereClause.id = {
+        contains: id.trim(),
+        mode: 'insensitive',
+      };
     }
 
+    // ✅ Add status filter
+    if (typeof status === 'number' && !isNaN(status) && status !== 0) {
+      whereClause.status = status === 1;
+    }
+
+    // ✅ Add keyword filter for both material name AND material code
+    if (keyword && keyword.trim() !== '') {
+      whereClause.OR = [
+        {
+          name: {
+            contains: keyword.trim(),
+            mode: 'insensitive',
+          },
+        },
+        {
+          id: {
+            contains: keyword.trim(),
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+
+    // ✅ If no filters provided, get all materials (empty where clause)
     const materials = await this.prisma.material.findMany({
-      where: {
-        ...(typeof id === 'string' && id !== '' ? { id } : {}),
-        ...(typeof status === 'number' && status !== 0
-          ? { status: status === 1 }
-          : {}),
-        ...(keyword && {
-          name: { contains: keyword, mode: 'insensitive' },
-        }),
-      },
+      where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
       orderBy: { name: 'asc' },
       include: {
         material_chemical: {

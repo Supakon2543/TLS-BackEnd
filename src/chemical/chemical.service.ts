@@ -30,49 +30,62 @@ export class ChemicalService {
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
-    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
-      if (keyword || status) {
-        const chemicals = await this.prisma.chemical.findMany({
-          where: {
-            ...(id && { id }),
-            ...(typeof status === 'number' && status !== 0
-              ? { status: status === 1 }
-              : {}),
-            ...(keyword && {
-              name: { contains: keyword, mode: 'insensitive' },
-            }),
-          },
-          orderBy: { name: 'asc' },
-          include: {
-            manufacturer: {
-              select: { name: true },
-            },
-            category_chemical: {
-              select: { name: true },
-            },
-          },
-        });
-        return chemicals.map((c) => ({
-      ...c,
-      manufacturer_name: c.manufacturer?.name ?? null,
-      category_chemical_name: c.category_chemical?.name ?? null,
-      manufacturer: undefined, // Optionally remove the nested object
-      category_chemical: undefined, // Optionally remove the nested object
-    }));
-      }
-      return [];
+    // Build where clause
+    const whereClause: any = {};
+
+    // Add id filter
+    if (typeof id === 'number' && !isNaN(id) && id !== 0) {
+      whereClause.id = id;
     }
 
+    // Add status filter
+    if (typeof status === 'number' && !isNaN(status) && status !== 0) {
+      whereClause.status = status === 1;
+    }
+
+    // ✅ Add keyword filter for multiple fields
+    if (keyword && keyword.trim() !== '') {
+      whereClause.OR = [
+        {
+          name: {
+            contains: keyword.trim(),
+            mode: 'insensitive',
+          },
+        },
+        {
+          code: {
+            contains: keyword.trim(),
+            mode: 'insensitive',
+          },
+        },
+        {
+          storage_condition: {
+            contains: keyword.trim(),
+            mode: 'insensitive',
+          },
+        },
+        {
+          manufacturer: {
+            name: {
+              contains: keyword.trim(),
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          category_chemical: {
+            name: {
+              contains: keyword.trim(),
+              mode: 'insensitive',
+            },
+          },
+        },
+      ];
+    }
+
+    // Get chemicals with filters
     const chemicals = await this.prisma.chemical.findMany({
-      where: {
-        ...(id && { id }),
-        ...(typeof status === 'number' && status !== 0
-          ? { status: status === 1 }
-          : {}),
-        ...(keyword && {
-          name: { contains: keyword, mode: 'insensitive' },
-        }),
-      },
+      where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
       orderBy: { name: 'asc' },
       include: {
         manufacturer: {
@@ -84,13 +97,13 @@ export class ChemicalService {
       },
     });
 
-    // Map to add manufacturer_name at the top level
+    // Map to add flattened names at the top level
     return chemicals.map((c) => ({
       ...c,
       manufacturer_name: c.manufacturer?.name ?? null,
       category_chemical_name: c.category_chemical?.name ?? null,
-      manufacturer: undefined, // Optionally remove the nested object
-      category_chemical: undefined, // Optionally remove the nested object
+      manufacturer: undefined, // Remove the nested object
+      category_chemical: undefined, // Remove the nested object
     }));
   }
 
