@@ -31,7 +31,7 @@ export class CustomerContactInfoService {
             ...(typeof status === 'number' && status !== 0 ? { status: status === 1 } : {}),
             ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
           },
-          orderBy: { id: 'asc' },
+          orderBy: { name: 'asc' },
         });
       }
       return [];
@@ -43,7 +43,7 @@ export class CustomerContactInfoService {
         ...(typeof status === 'number' && status !== 0 ? { status: status === 1 } : {}),
         ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
       },
-      orderBy: { id: 'asc' },
+      orderBy: { name: 'asc' },
     });
   }
 

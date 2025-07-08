@@ -48,7 +48,7 @@ export class SampleStageService {
               name: { contains: keyword, mode: 'insensitive' },
             }),
           },
-          orderBy: { order: 'asc' }, // Sorting by order or any field as needed
+          orderBy: { order: 'asc' },
         });
       }
       return [];
@@ -64,7 +64,7 @@ export class SampleStageService {
           name: { contains: keyword, mode: 'insensitive' },
         }),
       },
-      orderBy: { order: 'asc' }, // Sorting by order or any field as needed
+      orderBy: [{ order: 'asc' }, { name: 'asc' }], // Sorting by order or any field as needed
     });
   }
 

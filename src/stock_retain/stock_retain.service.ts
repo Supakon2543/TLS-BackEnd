@@ -3,7 +3,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateStockRetainDto } from './dto/create-stock_retain.dto';
 import { UpdateStockRetainDto } from './dto/update-stock_retain.dto';
 import { FilterRequestSamplesDto } from './dto/filter-request-samples.dto';
-import { time } from 'console';
 
 @Injectable()
 export class StockRetainService {
@@ -153,7 +152,7 @@ export class StockRetainService {
   }
 
   async getDropdownData() {
-    const [samples, materials, locations, statusRetain, labSites] =
+    const [samples, materials, locations, status_retain, lab_site] =
       await Promise.all([
         this.listSamples(),
         this.listMaterials(),
@@ -166,8 +165,8 @@ export class StockRetainService {
       samples,
       materials,
       locations,
-      statusRetain,
-      labSites,
+      status_retain,
+      lab_site,
     };
   }
   async getRequestSamples(filters?: FilterRequestSamplesDto) {
@@ -363,13 +362,14 @@ export class StockRetainService {
         mfg_date: sample?.sampling_date,
         expiry_date: sample?.expiry_date,
         amount: itemCount,
-        status_id: sample?.status_sample?.id,
-        status_name: sample?.status_sample?.name,
+        status_id: sample?.status_sample?.id || null,
+        status_name: sample?.status_sample?.name || null,
         lab_id: sample?.request?.lab_site_id,
         lab_name: sample?.request?.lab_site?.name,
       };
     });
   }
+
   async getRequestSampleById(sampleId: number) {
     // Get the request sample with basic info
     const requestSample = await this.prisma.request_sample.findUnique({
@@ -422,7 +422,7 @@ export class StockRetainService {
     // Get request_sample_item data from request_sample_item table
     const requestSampleItems = await this.prisma.request_sample_item.findMany({
       where: {
-        request_sample_id: sampleId, // Get items for this specific request_sample
+        request_sample_id: sampleId,
       },
       include: {
         unit: {
@@ -433,7 +433,7 @@ export class StockRetainService {
         },
       },
       orderBy: {
-        seq: 'asc', // Order by sequence
+        seq: 'asc',
       },
     });
 
@@ -447,6 +447,37 @@ export class StockRetainService {
             },
           })
         : [];
+
+    // ✅ Combine request_sample_item and stock_retain_item data
+    const combinedItems = requestSampleItems.map((requestItem) => {
+      // Find matching stock_retain_items for this request_sample_item
+      const matchingStockItems = stockRetainItems.filter(
+        (stockItem) => stockItem.id === requestItem.request_sample_id,
+      );
+
+      return {
+        // request_sample_item data
+        request_sample_item: {
+          id: requestItem.id,
+          seq: requestItem.seq,
+          quantity: requestItem.quantity,
+          unit_name: requestItem.unit?.name,
+          time: requestItem.time,
+        },
+        // stock_retain_item data (array of matching items)
+        stock_retain_item: matchingStockItems.map((stockItem) => ({
+          id: stockItem.id,
+          stock_retain_id: stockItem.stock_retain_id,
+          sample_item_id: stockItem.sample_item_id,
+          status_retain_id: stockItem.status_retain_id,
+          approve_role_id: stockItem.approve_role_id,
+          plan_return_date: stockItem.plan_return_date,
+          return_date: stockItem.return_date,
+          created_by: stockItem.created_by,
+          updated_by: stockItem.updated_by,
+        })),
+      };
+    });
 
     // Get unique location, section, and box IDs for calculations
     const locationIds = [...new Set(stockRetains.map((sr) => sr.location_id))];
@@ -507,6 +538,7 @@ export class StockRetainService {
 
         return {
           id: section?.id,
+          location_id: section?.location_id || null,
           name: section?.name,
           number_of_bottle: section?.number_of_box || 0,
           bottle_use: bottleUseCount,
@@ -532,6 +564,8 @@ export class StockRetainService {
 
         return {
           id: box?.id,
+          location_id: box?.location_id || null,
+          section_id: box?.section_id || null,
           name: box?.name,
           number_of_bottle: box?.number_of_bottle || 0,
           bottle_use: bottleUseCount,
@@ -563,14 +597,19 @@ export class StockRetainService {
         : [];
 
     return {
-      stock_retain: stockRetains.map((sr) => ({
-        id: sr.id,
-        request_sample_id: sr.request_sample_id,
-        location_id: sr.location_id,
-        section_id: sr.section_id,
-        box_id: sr.box_id,
-        status_retain_id: sr.status_retain_id,
-      })),
+      stock_retain:
+        stockRetains.length > 0
+          ? {
+              id: stockRetains[0].id,
+              request_sample_id: stockRetains[0].request_sample_id,
+              location_id: stockRetains[0].location_id,
+              section_id: stockRetains[0].section_id,
+              box_id: stockRetains[0].box_id,
+              status_retain_id: stockRetains[0].status_retain_id,
+              created_by: stockRetains[0].created_by,
+              updated_by: stockRetains[0].updated_by,
+            }
+          : null,
       request_sample: {
         sample_id: requestSample.id,
         sample_code: requestSample.sample_code,
@@ -582,13 +621,8 @@ export class StockRetainService {
         expiry_date: requestSample.expiry_date,
         request_no: requestSample.request?.request_number,
       },
-      request_sample_item: requestSampleItems.map((item) => ({
-        id: item.id,
-        seq: item.seq,
-        quantity: item.quantity,
-        unit: item.unit?.name,
-        time: item.time,
-      })),
+      // ✅ Updated to include combined request_sample_item and stock_retain_item data
+      sample_item: combinedItems,
       location: locations,
       section: sections,
       box: boxes,
@@ -604,249 +638,328 @@ export class StockRetainService {
     };
   }
 
-  // ...existing code...
+  async getRequestSampleDetails(sampleIds: number[], isSelect?: boolean) {
+    // Validate input
+    if (!sampleIds || sampleIds.length === 0) {
+      throw new NotFoundException('Sample IDs array cannot be empty');
+    }
 
-async getRequestSampleDetails(sampleIds: number[], isSelect?: boolean) {
-  // Validate input
-  if (!sampleIds || sampleIds.length === 0) {
-    throw new NotFoundException('Sample IDs array cannot be empty');
-  }
-
-  // Get the request samples with basic info
-  const requestSamples = await this.prisma.request_sample.findMany({
-    where: { 
-      id: { 
-        in: sampleIds // Use 'in' operator for multiple IDs
-      } 
-    },
-    include: {
-      material: {
-        select: {
-          id: true,
-          name: true,
+    const requestSamples = await this.prisma.request_sample.findMany({
+      where: {
+        id: {
+          in: sampleIds,
         },
       },
-      status_sample: {
-        select: {
-          id: true,
-          name: true,
+      include: {
+        material: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
-      },
-      request: {
-        select: {
-          id: true,
-          request_number: true,
-          lab_site_id: true,
-          lab_site: {
-            select: {
-              id: true,
-              name: true,
+        status_sample: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        request: {
+          select: {
+            id: true,
+            request_number: true,
+            lab_site_id: true,
+            lab_site: {
+              select: {
+                id: true,
+                name: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  if (!requestSamples || requestSamples.length === 0) {
-    throw new NotFoundException(
-      `Request Samples with IDs ${sampleIds.join(', ')} not found`,
-    );
-  }
+    if (!requestSamples || requestSamples.length === 0) {
+      throw new NotFoundException(
+        `Request Samples with IDs ${sampleIds.join(', ')} not found`,
+      );
+    }
 
-  // Get stock_retain records for these samples
-  const stockRetains = await this.prisma.stock_retain.findMany({
-    where: { 
-      request_sample_id: { 
-        in: sampleIds // Use 'in' operator for multiple sample IDs
-      } 
-    },
-    include: {
-      location: true,
-      section: true,
-      box: true,
-    },
-  });
-
-  // Get request_sample_item data from request_sample_item table
-  const requestSampleItems = await this.prisma.request_sample_item.findMany({
-    where: {
-      request_sample_id: { 
-        in: sampleIds // Use 'in' operator for multiple sample IDs
-      },
-    },
-    select: {
-      id: true,
-      seq: true,
-      quantity: true,
-      time: true,
-      request_sample_id: true, // Add this to group by sample
-      unit: {
-        select: {
-          id: true,
-          name: true,
+    // Get stock_retain records for these samples
+    const stockRetains = await this.prisma.stock_retain.findMany({
+      where: {
+        request_sample_id: {
+          in: sampleIds,
         },
       },
-    },
-    orderBy: {
-      seq: 'asc',
-    },
-  });
+      include: {
+        location: true,
+        section: true,
+        box: true,
+      },
+    });
 
-  // Get stock_retain_item data for activity logs
-  const stockRetainIds = stockRetains.map((sr) => sr.id);
-  const stockRetainItems =
-    stockRetainIds.length > 0
-      ? await this.prisma.stock_retain_item.findMany({
-          where: {
-            stock_retain_id: { in: stockRetainIds },
+    // Get request_sample_item data
+    const requestSampleItems = await this.prisma.request_sample_item.findMany({
+      where: {
+        request_sample_id: {
+          in: sampleIds,
+        },
+      },
+      select: {
+        id: true,
+        seq: true,
+        quantity: true,
+        time: true,
+        request_sample_id: true,
+        unit: {
+          select: {
+            id: true,
+            name: true,
           },
-        })
-      : [];
+        },
+      },
+      orderBy: {
+        seq: 'asc',
+      },
+    });
 
-  // Build sample array for all samples
-  const sampleArray = stockRetains.map((stockRetain) => {
-    // Find the corresponding request sample
-    const requestSample = requestSamples.find(
-      (rs) => rs.id === stockRetain.request_sample_id,
-    );
+    // Get stock_retain_item data
+    const stockRetainIds = stockRetains.map((sr) => sr.id);
+    const stockRetainItems =
+      stockRetainIds.length > 0
+        ? await this.prisma.stock_retain_item.findMany({
+            where: {
+              stock_retain_id: { in: stockRetainIds },
+            },
+          })
+        : [];
 
-    // Find items for this specific sample
-    const sampleItems = requestSampleItems.filter(
-      (item) => item.request_sample_id === stockRetain.request_sample_id,
-    );
-    const firstItem = sampleItems[0]; // Get first item for time
+    // ✅ Build sample_item array without location, section, box arrays
+    const sampleItemArray: any[] = [];
 
-    return {
-      sample_id: requestSample?.id,
-      sample_code: requestSample?.sample_code,
-      material_code: requestSample?.material_code,
-      material_name: requestSample?.material?.name,
-      batch_no: requestSample?.batch_no,
-      location: stockRetain.location?.name,
-      mfg_date: requestSample?.sampling_date,
-      expiry_date: requestSample?.expiry_date,
-      no_bottle: stockRetainItems.filter(
-        (sri) => sri.stock_retain_id === stockRetain.id,
-      ).length,
-      time: firstItem?.time, // Get time from request_sample_item
-      sample_item_id: firstItem?.id,
-      stock_retain_id: stockRetain.id,
-      location_id: stockRetain.location_id,
-      location_name: stockRetain.location?.name,
-      section_id: stockRetain.section_id,
-      section_name: stockRetain.section?.name,
-      box_id: stockRetain.box_id,
-      box_name: stockRetain.box?.name,
+    requestSampleItems.forEach((requestItem) => {
+      // Find the corresponding request sample
+      const requestSample = requestSamples.find(
+        (rs) => rs.id === requestItem.request_sample_id,
+      );
+
+      // Find the corresponding stock retain
+      const stockRetain = stockRetains.find(
+        (sr) => sr.request_sample_id === requestItem.request_sample_id,
+      );
+
+      // Find matching stock_retain_items for this request_sample_item
+      const matchingStockItems = stockRetainItems.filter(
+        (stockItem) => stockItem.sample_item_id === requestItem.id,
+      );
+
+      // Create an entry for each stock_retain_item or one entry if no stock items
+      if (matchingStockItems.length > 0) {
+        matchingStockItems.forEach((stockItem) => {
+          const itemData: any = {
+            // ✅ request_sample_item nested object
+            request_sample_item: {
+              id: requestItem.id,
+              request_sample_id: requestItem.request_sample_id,
+              sample_code: requestSample?.sample_code,
+              material_code: requestSample?.material_code,
+              material_name: requestSample?.material?.name,
+              batch_no: requestSample?.batch_no,
+              mfg_date: requestSample?.sampling_date,
+              seq: requestItem.seq,
+              quantity: requestItem.quantity,
+              unit_name: requestItem.unit?.name,
+              time: requestItem.time,
+            },
+            // ✅ stock_retain nested object
+            stock_retain: {
+              id: stockRetain?.id,
+              request_sample_id: stockRetain?.request_sample_id,
+              location_id: stockRetain?.location_id,
+              location_name: stockRetain?.location?.name,
+              section_id: stockRetain?.section_id,
+              section_name: stockRetain?.section?.name,
+              box_id: stockRetain?.box_id,
+              box_name: stockRetain?.box?.name,
+              status_retain_id: stockRetain?.status_retain_id,
+              created_by: stockRetain?.created_by,
+              updated_by: stockRetain?.updated_by,
+            },
+            // ✅ stock_retain_item nested object
+            stock_retain_item: {
+              id: stockItem.id,
+              stock_retain_id: stockItem.stock_retain_id,
+              sample_item_id: stockItem.sample_item_id,
+              status_retain_id: stockItem.status_retain_id,
+              approve_role_id: stockItem.approve_role_id,
+              plan_return_date: stockItem.plan_return_date,
+              return_date: stockItem.return_date,
+              created_by: stockItem.created_by,
+              updated_by: stockItem.updated_by,
+            },
+          };
+
+          sampleItemArray.push(itemData);
+        });
+      } else {
+        // If no stock items, still include the request sample item
+        const itemData: any = {
+          // ✅ request_sample_item nested object
+          request_sample_item: {
+            id: requestItem.id,
+            request_sample_id: requestItem.request_sample_id,
+            sample_code: requestSample?.sample_code,
+            material_code: requestSample?.material_code,
+            material_name: requestSample?.material?.name,
+            batch_no: requestSample?.batch_no,
+            mfg_date: requestSample?.sampling_date,
+            seq: requestItem.seq,
+            quantity: requestItem.quantity,
+            unit_name: requestItem.unit?.name,
+            time: requestItem.time,
+          },
+          // ✅ stock_retain nested object (with null/empty values)
+          stock_retain: {
+            id: stockRetain?.id || null,
+            request_sample_id: stockRetain?.request_sample_id || null,
+            location_id: stockRetain?.location_id || null,
+            location_name: stockRetain?.location?.name || null,
+            section_id: stockRetain?.section_id || null,
+            section_name: stockRetain?.section?.name || null,
+            box_id: stockRetain?.box_id || null,
+            box_name: stockRetain?.box?.name || null,
+            status_retain_id: stockRetain?.status_retain_id || null,
+            created_by: stockRetain?.created_by || null,
+            updated_by: stockRetain?.updated_by || null,
+          },
+          // ✅ stock_retain_item nested object (empty)
+          stock_retain_item: {
+            id: null,
+            stock_retain_id: null,
+            sample_item_id: null,
+            status_retain_id: null,
+            approve_role_id: null,
+            plan_return_date: null,
+            return_date: null,
+            created_by: null,
+            updated_by: null,
+          },
+        };
+
+        sampleItemArray.push(itemData);
+      }
+    });
+
+    // ✅ Build response object
+    const response: any = {
+      sample_item: sampleItemArray,
     };
-  });
 
-  // Base response with sample data
-  const response: any = {
-    sample: sampleArray,
-  };
+    // ✅ Conditionally add separate location, section, box arrays based on isSelect parameter
+    if (isSelect === true) {
+      // Get unique location, section, and box IDs
+      const locationIds = [
+        ...new Set(stockRetains.map((sr) => sr.location_id)),
+      ];
+      const sectionIds = [...new Set(stockRetains.map((sr) => sr.section_id))];
+      const boxIds = [...new Set(stockRetains.map((sr) => sr.box_id))];
 
-  // Conditionally add location, section, box data based on isSelect parameter
-  if (isSelect === true) {
-    // Get unique location, section, and box IDs for calculations
-    const locationIds = [...new Set(stockRetains.map((sr) => sr.location_id))];
-    const sectionIds = [...new Set(stockRetains.map((sr) => sr.section_id))];
-    const boxIds = [...new Set(stockRetains.map((sr) => sr.box_id))];
+      // ✅ Build separate location array
+      const locations = await Promise.all(
+        locationIds.map(async (locationId) => {
+          const location = await this.prisma.location.findUnique({
+            where: { id: locationId },
+          });
 
-    // Calculate location data with bottle counts
-    const locations = await Promise.all(
-      locationIds.map(async (locationId) => {
-        const location = await this.prisma.location.findUnique({
-          where: { id: locationId },
-        });
-
-        // Count stock_retain_items in this location
-        const bottleUseCount = await this.prisma.stock_retain_item.count({
-          where: {
-            stock_retain: {
-              location_id: locationId,
+          // Count stock_retain_items in this location
+          const bottleUseCount = await this.prisma.stock_retain_item.count({
+            where: {
+              stock_retain: {
+                location_id: locationId,
+              },
             },
-          },
-        });
+          });
 
-        // Sum number_of_bottle from sections in this location
-        const sectionsInLocation = await this.prisma.section.findMany({
-          where: { location_id: locationId },
-          select: { number_of_box: true },
-        });
+          // Sum number_of_bottle from sections in this location
+          const sectionsInLocation = await this.prisma.section.findMany({
+            where: { location_id: locationId },
+            select: { number_of_box: true },
+          });
 
-        const totalBottlesFromSections = sectionsInLocation.reduce(
-          (sum, section) => sum + (section.number_of_box || 0),
-          0,
-        );
+          const totalBottlesFromSections = sectionsInLocation.reduce(
+            (sum, section) => sum + (section.number_of_box || 0),
+            0,
+          );
 
-        return {
-          id: location?.id,
-          name: location?.name,
-          number_of_bottle: totalBottlesFromSections,
-          bottle_use: bottleUseCount,
-        };
-      }),
-    );
+          return {
+            id: location?.id,
+            name: location?.name,
+            number_of_bottle: totalBottlesFromSections,
+            bottle_use: bottleUseCount,
+          };
+        }),
+      );
 
-    // Calculate section data with bottle counts
-    const sections = await Promise.all(
-      sectionIds.map(async (sectionId) => {
-        const section = await this.prisma.section.findUnique({
-          where: { id: sectionId },
-        });
+      // ✅ Build separate section array
+      const sections = await Promise.all(
+        sectionIds.map(async (sectionId) => {
+          const section = await this.prisma.section.findUnique({
+            where: { id: sectionId },
+          });
 
-        // Count stock_retain_items in this section
-        const bottleUseCount = await this.prisma.stock_retain_item.count({
-          where: {
-            stock_retain: {
-              section_id: sectionId,
+          // Count stock_retain_items in this section
+          const bottleUseCount = await this.prisma.stock_retain_item.count({
+            where: {
+              stock_retain: {
+                section_id: sectionId,
+              },
             },
-          },
-        });
+          });
 
-        return {
-          id: section?.id,
-          name: section?.name,
-          number_of_bottle: section?.number_of_box || 0,
-          bottle_use: bottleUseCount,
-        };
-      }),
-    );
+          return {
+            id: section?.id,
+            location_id: section?.location_id,
+            name: section?.name,
+            number_of_bottle: section?.number_of_box || 0,
+            bottle_use: bottleUseCount,
+          };
+        }),
+      );
 
-    // Calculate box data with bottle counts
-    const boxes = await Promise.all(
-      boxIds.map(async (boxId) => {
-        const box = await this.prisma.box.findUnique({
-          where: { id: boxId },
-        });
+      // ✅ Build separate box array
+      const boxes = await Promise.all(
+        boxIds.map(async (boxId) => {
+          const box = await this.prisma.box.findUnique({
+            where: { id: boxId },
+          });
 
-        // Count stock_retain_items in this box
-        const bottleUseCount = await this.prisma.stock_retain_item.count({
-          where: {
-            stock_retain: {
-              box_id: boxId,
+          // Count stock_retain_items in this box
+          const bottleUseCount = await this.prisma.stock_retain_item.count({
+            where: {
+              stock_retain: {
+                box_id: boxId,
+              },
             },
-          },
-        });
+          });
 
-        return {
-          id: box?.id,
-          name: box?.name,
-          number_of_bottle: box?.number_of_bottle || 0,
-          bottle_use: bottleUseCount,
-        };
-      }),
-    );
+          return {
+            id: box?.id,
+            location_id: box?.location_id,
+            section_id: box?.section_id,
+            name: box?.name,
+            number_of_bottle: box?.number_of_bottle || 0,
+            bottle_use: bottleUseCount,
+          };
+        }),
+      );
 
-    // Add location, section, box data to response
-    response.location = locations;
-    response.section = sections;
-    response.box = boxes;
+      // Add separate arrays to response
+      response.location = locations;
+      response.section = sections;
+      response.box = boxes;
+    }
+
+    return response;
   }
-
-  return response;
-}
-
-// ...existing code...
 }

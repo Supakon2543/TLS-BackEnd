@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class StatusSampleService {
-  constructor(private prisma: PrismaService){}
+  constructor(private readonly prisma: PrismaService){}
     async create(/*@Request() req: Request, */@Body() payload: CreateStatusSampleDto/*, @Response() res: Response*/) {
       return await this.prisma.status_sample.create({
         data: payload,
@@ -22,7 +22,10 @@ export class StatusSampleService {
   
     findAll(/*@Request() req: Request, @Response() res: Response*/) {
       return this.prisma.status_sample.findMany({
-        orderBy: { order: 'asc' },
+        orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
       });
     }
     

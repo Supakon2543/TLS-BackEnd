@@ -19,7 +19,7 @@ export class LineService {
       update: data, // Update the existing record with the provided data
     });
   }
-
+  
   // Retrieve lines with filters
   async getLines(params: {
     id?: number | string;
@@ -27,37 +27,46 @@ export class LineService {
     status?: number | string;
   }) {
     let { id, keyword, status } = params;
+
+    // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
-    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
-      if (keyword || status) {
-        return this.prisma.line.findMany({
-          where: {
-            ...(typeof status === 'number' && status !== 0
-              ? { status: status === 1 }
-              : {}),
-            ...(keyword && {
-              name: { contains: keyword, mode: 'insensitive' },
-            }),
-          },
-          orderBy: { name: 'asc' }, // Sorting by name or any field as needed
-        });
-      }
-      return [];
+    // Build where clause
+    const whereClause: any = {};
+
+    // Add id filter
+    if (typeof id === 'number' && !isNaN(id) && id !== 0) {
+      whereClause.id = id;
     }
 
+    // Add status filter
+    if (typeof status === 'number' && !isNaN(status) && status !== 0) {
+      whereClause.status = status === 1;
+    }
+
+    // ✅ Add keyword filter for both name AND code
+    if (keyword && keyword.trim() !== '') {
+      whereClause.OR = [
+        {
+          name: {
+            contains: keyword.trim(),
+            mode: 'insensitive',
+          },
+        },
+        {
+          code: {
+            contains: keyword.trim(),
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+
+    // Get lines with filters
     return this.prisma.line.findMany({
-      where: {
-        ...(id && { id }),
-        ...(typeof status === 'number' && status !== 0
-          ? { status: status === 1 }
-          : {}),
-        ...(keyword && {
-          name: { contains: keyword, mode: 'insensitive' },
-        }),
-      },
-      orderBy: { name: 'asc' },
+      where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
+      orderBy: [{ code: 'asc' }, { name: 'asc' }],
     });
   }
 

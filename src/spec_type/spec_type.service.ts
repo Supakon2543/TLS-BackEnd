@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class SpecTypeService {
-  constructor(private prisma: PrismaService){}
+  constructor(private readonly prisma: PrismaService){}
     async create(/*@Request() req: Request, */@Body() payload: CreateSpecTypeDto/*, @Response() res: Response*/) {
       return await this.prisma.spec_type.create({
         data: payload,

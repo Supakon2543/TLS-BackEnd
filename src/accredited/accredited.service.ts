@@ -5,16 +5,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AccreditedService {
-  constructor(private prisma: PrismaService){}
+  constructor(private readonly prisma: PrismaService){}
     async create(/*@Request() req: Request, */@Body() payload: CreateAccreditedDto/*, @Response() res: Response*/) {
       return await this.prisma.accredited.create({
         data: payload,
-        // select: {
-        //   id: true,
-        //   order: true,
-        //   name: true,
-        //   status :true
-        // },
       });
   
       

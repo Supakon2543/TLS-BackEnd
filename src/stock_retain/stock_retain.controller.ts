@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   BadRequestException,
-  NotFoundException,
   Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';

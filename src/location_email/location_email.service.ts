@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateLocationEmailDto } from './dto/create-location_email.dto';
 import { UpdateLocationEmailDto } from './dto/update-location_email.dto';
-import { map } from 'rxjs';
 
 @Injectable()
 export class LocationEmailService {

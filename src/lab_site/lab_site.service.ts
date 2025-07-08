@@ -1,33 +1,27 @@
-import { Body, Injectable, NotFoundException, Param, Req, Request, Response } from '@nestjs/common';
+import { Body, Injectable, NotFoundException, Param} from '@nestjs/common';
 import { CreateLabSiteDto } from './dto/create-lab_site.dto';
 import { UpdateLabSiteDto } from './dto/update-lab_site.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class LabSiteService {
-  constructor(private prisma: PrismaService){}
-    async create(/*@Request() req: Request, */@Body() payload: CreateLabSiteDto/*, @Response() res: Response*/) {
+  constructor(private readonly prisma: PrismaService){}
+    async create(@Body() payload: CreateLabSiteDto) {
       return await this.prisma.lab_site.create({
         data: payload,
-        // select: {
-        //   id: true,
-        //   order: true,
-        //   name: true,
-        //   status :true
-        // },
       });
   
       
     }
   
-    findAll(/*@Request() req: Request, @Response() res: Response*/) {
+    findAll() {
       return this.prisma.lab_site.findMany({
         orderBy: { order: 'asc' },
       });
     }
     
   
-    async findOne(/*@Request() req: Request, */@Param() id: string/*, @Response() res: Response*/) {
+    async findOne(@Param() id: string) {
       const lab_site = await this.prisma.lab_site.findUnique({
         where: { id },
       });
@@ -39,7 +33,7 @@ export class LabSiteService {
       return lab_site;
     }
   
-    async update(/*@Request() req: Request, */@Param() id: string, @Body() payload: UpdateLabSiteDto/*, @Response() res: Response*/) {
+    async update(@Param() id: string, @Body() payload: UpdateLabSiteDto) {
   
       const existingLabSite = await this.prisma.lab_site.findUnique({ where: { id } });
   
@@ -53,7 +47,7 @@ export class LabSiteService {
       });
     }
   
-    async remove(/*@Request() req: Request, */@Param() id: string/*, @Response() res: Response*/) {
+    async remove(@Param() id: string) {
       // Check if user exists before deleting
       const lab_site = await this.prisma.lab_site.findUnique({
         where: { id },
@@ -69,7 +63,7 @@ export class LabSiteService {
       });
     }
 
-    async create_update(/*@Request() req: Request, */@Body() payload: CreateLabSiteDto/*, @Response() res: Response*/) {
+    async create_update(@Body() payload: CreateLabSiteDto) {
       const id = payload.id
       const lab_site = await this.prisma.lab_site.findUnique({
         where: { id },
