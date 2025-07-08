@@ -44,7 +44,7 @@ export class CreateChemicalDto {
 
   @ApiPropertyOptional({ type: String, description: 'Email for notification (optional)' })
   @IsOptional()
-  @IsEmail()
+  @IsString()
   email_notification?: string;
 
   @ApiPropertyOptional({ type: Boolean, description: 'Status (optional)' })
