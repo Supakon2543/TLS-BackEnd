@@ -309,8 +309,26 @@ export class RequestService {
         // 1. Upsert main request and get the id
         const mainRequest = await tx.request.upsert({
           where: { id: request.id ?? -1 },
-          update: { ...request },
-          create: { ...request },
+          update: {
+            // ...other fields...
+            lab_site: request.lab_site_id ? { connect: { id: request.lab_site_id } } : undefined,
+            request_type: request.request_type_id ? { connect: { id: request.request_type_id } } : undefined,
+            requester: request.requester_id ? { connect: { id: request.requester_id } } : undefined,
+            status_request: request.status_request_id ? { connect: { id: request.status_request_id } } : undefined,
+            status_sample: request.status_sample_id ? { connect: { id: request.status_sample_id } } : undefined,
+            review_role: request.review_role_id ? { connect: { id: request.review_role_id } } : undefined,
+            // ...other fields...
+          },
+          create: {
+            // ...other fields...
+            lab_site: request.lab_site_id ? { connect: { id: request.lab_site_id } } : undefined,
+            request_type: request.request_type_id ? { connect: { id: request.request_type_id } } : undefined,
+            requester: request.requester_id ? { connect: { id: request.requester_id } } : undefined,
+            status_request: request.status_request_id ? { connect: { id: request.status_request_id } } : undefined,
+            status_sample: request.status_sample_id ? { connect: { id: request.status_sample_id } } : undefined,
+            review_role: request.review_role_id ? { connect: { id: request.review_role_id } } : undefined,
+            // ...other fields...
+          },
         });
   
         const requestId = mainRequest.id;
