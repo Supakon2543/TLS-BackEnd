@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Response, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Response,
+  Request,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { LabSiteService } from './lab_site.service';
 import { CreateLabSiteDto } from './dto/create-lab_site.dto';
 import { UpdateLabSiteDto } from './dto/update-lab_site.dto';
@@ -10,18 +22,33 @@ export class LabSiteController {
 
   // @UseGuards(AuthGuard('jwt'))
   @Post('create')
-  create(/*@Request() req: Request, */@Body() payload: CreateLabSiteDto/*, @Response() res: Response*/) {
-    return this.labSiteService.create(/*req, */payload/*, res*/);
+  create(
+    /*@Request() req: Request, */ @Body()
+    payload: CreateLabSiteDto /*, @Response() res: Response*/,
+  ) {
+    return this.labSiteService.create(/*req, */ payload /*, res*/);
   }
 
   @Post()
-  create_update(/*@Request() req: Request, */@Body() payload: CreateLabSiteDto/*, @Response() res: Response*/) {
-    return this.labSiteService.create_update(/*req, */payload/*, res*/);
+  create_update(
+    /*@Request() req: Request, */ @Body()
+    payload: CreateLabSiteDto /*, @Response() res: Response*/,
+  ) {
+    return this.labSiteService.create_update(/*req, */ payload /*, res*/);
   }
 
   @Get()
-  find(/*@Request() req: Request, @Response() res: Response*/) {
-    return this.labSiteService.find(/*req, res*/);
+  find(
+    @Query('id') id?: string,
+    @Query('status') status?: string,
+    @Query('keyword') keyword?: string,
+    /*@Request() req: Request, @Response() res: Response*/
+  ) {
+    return this.labSiteService.find({
+      id,
+      status: status ? +status : undefined,
+      keyword,
+    });
   }
 
   @Get('all')
@@ -30,17 +57,26 @@ export class LabSiteController {
   }
 
   @Get(':id')
-  findOne(/*@Request() req: Request, */@Param('id') id: string/*, @Response() res: Response*/) {
-    return this.labSiteService.findOne(/*req, */id/*, res*/);
+  findOne(
+    /*@Request() req: Request, */ @Param('id')
+    id: string /*, @Response() res: Response*/,
+  ) {
+    return this.labSiteService.findOne(/*req, */ id /*, res*/);
   }
 
   @Patch(':id')
-  update(/*@Request() req: Request, */@Param('id') id: string, @Body() payload: UpdateLabSiteDto/*, @Response() res: Response*/) {
-    return this.labSiteService.update(/*req, */id, payload/*, res*/);
+  update(
+    /*@Request() req: Request, */ @Param('id') id: string,
+    @Body() payload: UpdateLabSiteDto /*, @Response() res: Response*/,
+  ) {
+    return this.labSiteService.update(/*req, */ id, payload /*, res*/);
   }
 
   @Delete(':id')
-  remove(/*@Request() req: Request, */@Param('id') id: string/*, @Response() res: Response*/) {
-    return this.labSiteService.remove(/*req, */id/*, res*/);
+  remove(
+    /*@Request() req: Request, */ @Param('id')
+    id: string /*, @Response() res: Response*/,
+  ) {
+    return this.labSiteService.remove(/*req, */ id /*, res*/);
   }
 }
