@@ -6,10 +6,10 @@ import * as fs from 'fs';
 import { create } from 'domain';
 import axios from 'axios';
 import { UnauthorizedException } from '@nestjs/common';
-import { UserData } from 'src/user_data/user_data.service';
-import { UserRoleService } from 'src/user_role/user_role.service';
-import { UsersService } from 'src/users/users.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { UserData } from '../src/user_data/user_data.service';
+import { UserRoleService } from '../src/user_role/user_role.service';
+import { UsersService } from '../src/users/users.service';
+import { PrismaService } from '../src/prisma/prisma.service';
 
 const prisma = new PrismaClient();
 const prismaService: PrismaService = new PrismaService();
@@ -1033,6 +1033,8 @@ async function upsert_user_api() {
     client_secret: process.env.OAUTH2_CLIENT_SECRET_WORKDAY ?? "1iz9yRFqK4DB7SCmjX1oDbfS1NHNMZac",
     grant_type: process.env.OAUTH2_GRANT_TYPE_WORKDAY ?? "client_credentials"
   });
+  console.log('header_token', header_token.data.access_token);
+  console.log('header_token_workday', header_token_workday.data.access_token);
 
   // Fetch all users by role (API calls, not DB, so outside transaction)
   for (const role of role_list) {
@@ -1043,12 +1045,17 @@ async function upsert_user_api() {
         Authorization: `Bearer ${header_token.data.access_token}`,
       },
     });
-    user_list.push(user.data);
+    console.log('user: ', user.data.data);
+    for (const userData of user.data.data) {
+      user_list.push(userData);
+    }
   }
+  console.log('user_list: ', user_list);
 
   // All DB operations inside a transaction for rollback safety
   // await prisma.$transaction(async (tx) => {
   for (const user_data of user_list) {
+    console.log('user_data: ', user_data);
     await userDataService.generateUserData(user_data, header_token, header_token_workday);
   }
   // });
