@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ActivityRequestService {
-  constructor(private prisma: PrismaService){}
+  constructor(private readonly prisma: PrismaService){}
     async create(/*@Request() req: Request, */@Body() payload: CreateActivityRequestDto/*, @Response() res: Response*/) {
       return await this.prisma.activity_request.create({
         data: payload,

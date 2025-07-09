@@ -3,16 +3,11 @@ import { PrismaService } from '../prisma/prisma.service'; // adjust path as need
 import { CreateSignatureDto } from './dto/create-signature.dto';
 import { UpdateSignatureDto } from './dto/update-signature.dto';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class SignatureService {
   private readonly s3 = new S3Client({
     region: process.env.AWS_REGION,
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-    },
   });
   constructor(private readonly prisma: PrismaService) {}
   // Create or update a record
@@ -20,25 +15,29 @@ export class SignatureService {
     let s3Path = `tls/${process.env.ENVNAME}/signatures/${data.user_id}/${data.filename}`;
     let filename = data.filename;
 
-     // 1. Delete old file from S3 if updating (id exists)
-  if (data.id) {
-    const oldSignature = await this.prisma.signature.findUnique({ where: { id: data.id } });
-    if (oldSignature && oldSignature.path) {
-      // Remove leading slash if present
-      const oldKey = oldSignature.path.startsWith('/') ? oldSignature.path.slice(1) : oldSignature.path;
-      try {
-        await this.s3.send(
-          new (await import('@aws-sdk/client-s3')).DeleteObjectCommand({
-            Bucket: process.env.AWS_S3_BUCKET!,
-            Key: oldKey,
-          }),
-        );
-      } catch (err) {
-        // Log but don't throw, so update can continue
-        console.warn('Failed to delete old S3 file:', err?.message || err);
+    // 1. Delete old file from S3 if updating (id exists)
+    if (data.id) {
+      const oldSignature = await this.prisma.signature.findUnique({
+        where: { id: data.id },
+      });
+      if (oldSignature && oldSignature.path) {
+        // Remove leading slash if present
+        const oldKey = oldSignature.path.startsWith('/')
+          ? oldSignature.path.slice(1)
+          : oldSignature.path;
+        try {
+          await this.s3.send(
+            new (await import('@aws-sdk/client-s3')).DeleteObjectCommand({
+              Bucket: process.env.AWS_S3_BUCKET!,
+              Key: oldKey,
+            }),
+          );
+        } catch (err) {
+          // Log but don't throw, so update can continue
+          console.warn('Failed to delete old S3 file:', err?.message || err);
+        }
       }
     }
-  }
 
     // If base64 is provided (raw, not data URL), upload to S3
     if (data.base64 && data.base64 !== '') {
@@ -118,6 +117,23 @@ export class SignatureService {
             : new Date(),
       },
     });
+  }
+
+  async testAWSConnection(): Promise<boolean> {
+    try {
+      const { ListObjectsV2Command } = await import('@aws-sdk/client-s3');
+      await this.s3.send(
+        new ListObjectsV2Command({
+          Bucket: process.env.AWS_S3_BUCKET!,
+          MaxKeys: 1,
+        }),
+      );
+      console.log('✅ AWS S3 connection successful');
+      return true;
+    } catch (error) {
+      console.error('❌ AWS S3 connection failed:', error.message);
+      return false;
+    }
   }
 
   async create(createSignatureDto: CreateSignatureDto) {

@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class StatusRequestService {
-  constructor(private prisma: PrismaService){}
+  constructor(private readonly prisma: PrismaService){}
     async create(/*@Request() req: Request, */@Body() payload: CreateStatusRequestDto/*, @Response() res: Response*/) {
       return await this.prisma.status_request.create({
         data: payload,

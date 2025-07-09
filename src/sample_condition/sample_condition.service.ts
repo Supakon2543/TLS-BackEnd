@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class SampleConditionService {
-  constructor(private prisma: PrismaService){}
+  constructor(private readonly prisma: PrismaService){}
     async create(/*@Request() req: Request, */@Body() payload: CreateSampleConditionDto/*, @Response() res: Response*/) {
       return await this.prisma.sample_condition.create({
         data: payload,
@@ -22,7 +22,10 @@ export class SampleConditionService {
   
     findAll(/*@Request() req: Request, @Response() res: Response*/) {
       return this.prisma.sample_condition.findMany({
-        orderBy: { order: 'asc' },
+        orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
       });
     }
     
@@ -102,9 +105,10 @@ export class SampleConditionService {
             where: {
               status: true
             },
-            orderBy: { 
-              order: 'asc'
-            },
+            orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
             select: {
               id: true,
               name: true
@@ -116,9 +120,10 @@ export class SampleConditionService {
             where: {
               status: false
             },
-            orderBy: { 
-              order: 'asc'
-            },
+            orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
             select: {
               id: true,
               name: true
@@ -127,9 +132,10 @@ export class SampleConditionService {
         }
         else {
           return await this.prisma.sample_condition.findMany({
-            orderBy: { 
-              order: 'asc'
-            },
+            orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
             select: {
               id: true,
               name: true
