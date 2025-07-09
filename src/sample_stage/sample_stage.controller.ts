@@ -7,12 +7,10 @@ import {
   Param,
   Delete,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { SampleStageService } from './sample_stage.service';
 import { CreateSampleStageDto } from './dto/create-sample_stage.dto';
 import { UpdateSampleStageDto } from './dto/update-sample_stage.dto';
-import { AuthGuard } from '@nestjs/passport';
 
 // @UseGuards(AuthGuard('jwt'))
 @Controller('sample-stage')
