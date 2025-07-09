@@ -4,6 +4,8 @@ import * as xlsx from 'xlsx';
 import * as path from 'path';
 import * as fs from 'fs';
 import { create } from 'domain';
+import axios from 'axios';
+import { UnauthorizedException } from '@nestjs/common';
 
 const prisma = new PrismaClient();
 
@@ -189,8 +191,8 @@ async function seedRequestType() {
         status: toBool(r.status),
       },
     });
-  }
   console.log('✅ request_type seeded');
+  }
 }
 
 async function seedState() {
@@ -254,8 +256,8 @@ async function seedStatusRetain() {
         status: toBool(r.status),
       },
     });
-  }
   console.log('✅ status_retain seeded');
+  }
 }
 
 async function seedStatusEquipment() {
@@ -302,8 +304,8 @@ async function seedLabTest() {
         status: toBool(r.status),
       },
     });
-  }
   console.log('✅ lab_test seeded');
+  }
 }
 
 async function seedCategoryChemical() {
@@ -837,7 +839,7 @@ async function seedMicrobiologyParameterFromNew() {
           ...(specTypeId !== undefined && { spec_type_id: specTypeId }),
           spec: r.spec,
           spec_min: r.spec_min !== null ? Number(r.spec_min) : undefined,
-          spec_max: r.spec_max !== null ? Number(r.spec_max) : undefined,
+          spec_max: r.spec_max !== null ? Number(r.spec.max) : undefined,
           warning_min:
             r.warning_min !== null ? Number(r.warning_min) : undefined,
           warning_max:
@@ -1392,6 +1394,494 @@ async function create_user() {
   console.log('User seeding complete!');
 }
 
+async function upsert_user_api() {
+  const role_list = [
+    'TLS-Requester', 'TLS-QC', 'TLS-Lab-Lead', 'TLS-Lab-Admin',
+    'TLS-Lab', 'TLS-ITSupport', 'TLS-Head-Requester', 'TLS-Head-Lab'
+  ];
+  const user_list: any[] = [];
+  const header_token = await axios.post('https://api-dev.osotspa.com/securitycontrol/oauth2/token', {
+    client_id: process.env.OAUTH2_CLIENT_ID ?? "2ATwV3iAbpmdkzuazH4XPZaffMsQc94H",
+    client_secret: process.env.OAUTH2_CLIENT_SECRET ?? "f8D1UqM9OGVcziQ1SfIoz6UTXL5qaDtp",
+    grant_type: process.env.OAUTH2_GRANT_TYPE ?? "client_credentials"
+  });
+  const header_token_workday = await axios.post('https://api.osotspa.com/workday/oauth2/token', {
+    client_id: process.env.OAUTH2_CLIENT_ID_WORKDAY ?? "hvvsgnpPyZFOcyMdcsBlMbzPsEqQkIPg",
+    client_secret: process.env.OAUTH2_CLIENT_SECRET_WORKDAY ?? "1iz9yRFqK4DB7SCmjX1oDbfS1NHNMZac",
+    grant_type: process.env.OAUTH2_GRANT_TYPE_WORKDAY ?? "client_credentials"
+  });
+
+  // Fetch all users by role (API calls, not DB, so outside transaction)
+  for (const role of role_list) {
+    const user = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/userlist_by_role', {
+      roles: role,
+    }, {
+      headers: {
+        Authorization: `Bearer ${header_token.data.access_token}`,
+      },
+    });
+    user_list.push(user.data);
+  }
+
+  // All DB operations inside a transaction for rollback safety
+  await prisma.$transaction(async (tx) => {
+    for (const user_data of user_list) {
+      try {
+        if (!user_data.employee_id) {
+          let plant_location: any;
+          let filtered_plant: any;
+          let filtered_location: any;
+          if (!user_data.location) {
+            plant_location = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/dataaccessbyuserid', {
+              user_id: user_data.id,
+            }, {
+              headers: {
+                Authorization: `Bearer ${header_token.data.access_token}`,
+              },
+            });
+            console.log('Plant Location:', plant_location.data.data);
+            if (Array.isArray(plant_location.data.data)) {
+              filtered_plant = plant_location.data.data.filter((role: any) => role.name == 'plant');
+              filtered_location = plant_location.data.data.filter((role: any) => role.name == 'Location');
+            } else {
+              console.warn('plant_location.data is not an array:', plant_location.data.data);
+            }
+            console.log('Filtered Plant:', filtered_plant[0].data_value);
+            console.log('Filtered Location:', filtered_location[0].data_value);
+          }
+          console.log('Filtered Location Length:', filtered_location.length);
+          const user_location_data = await tx.user_location.findFirstOrThrow({
+              where: {
+                name: filtered_location[0].data_value //user_data.location,
+              },
+              select: {
+                id: true,
+                name: true,
+                lab_site_id: true,
+              }
+          });
+          console.log('User Location Data:', user_location_data.id);
+          if (!user_location_data.lab_site_id) {
+            throw new UnauthorizedException('User location does not have a valid lab_site_id');
+          }
+          const lab_site_data = await tx.lab_site.findFirstOrThrow({
+            where: {
+              id: user_location_data.lab_site_id,
+            },
+            select: {
+              name: true,
+            }
+          });
+          let user_location_data_id = user_location_data.id;
+          let user_location_data_name = user_location_data.name;
+          let user_location_data_lab_site_id = user_location_data.lab_site_id;
+          if (filtered_location.length !== 1) {
+            user_location_data_id = ""
+            user_location_data_name = "";
+            user_location_data_lab_site_id = "";
+          }
+          let lab_site_data_name = lab_site_data.name;
+          if (filtered_location.length !== 1) {
+            lab_site_data_name = "";
+          }
+          console.log('Changed User Location Data:', user_location_data);
+          console.log('Lab Site Data:', lab_site_data);
+          let supervisor_info: any
+          let supervisor_data: any;
+          if (user_data.supervisor_username && user_data.supervisor_name && user_data.supervisor_mail) {
+            supervisor_info = await tx.user.findFirst({
+              where: {
+                username: user_data.supervisor_username,
+              },
+              select: {
+                id: true,
+                employee_id: true,
+                username: true,
+                fullname: true,
+                tel: true,
+                email: true,
+                company: true,
+                dept_code: true,
+                dept_name: true,
+                user_location_id: true,
+                supervisor_id: true,
+                position_name: true,
+              }
+            });
+            supervisor_data = await this.usersService.createOrUpdate({
+              employee_id: user_data.supervisor_code ?? "",
+              username: user_data.supervisor_username,
+              fullname: user_data.supervisor_name,
+              tel: supervisor_info?.tel ?? "",
+              email: user_data.supervisor_mail,
+              company: supervisor_info?.company ?? "",
+              dept_code: supervisor_info?.dept_code ?? "",
+              dept_name: supervisor_info?.dept_name ?? "",
+              user_location_id: supervisor_info?.user_location_id ?? "",
+              supervisor_id: supervisor_info?.supervisor_id ?? 0,
+              position_name: supervisor_info?.position_name ?? "",
+              id: supervisor_info?.id ?? 0
+            });
+        }
+          const employee_info: any = await tx.user.findFirst({
+            where: {
+              username: user_data.username,
+            },
+            select: {
+              id: true,
+              employee_id: true,
+              username: true,
+              fullname: true,
+              tel: true,
+              email: true,
+              company: true,
+              dept_code: true,
+              dept_name: true,
+              user_location_id: true,
+              supervisor_id: true,
+              position_name: true,
+            }
+          });
+          let employeeID: any = 0;
+          let supervisorID: any = 0;
+          if (supervisor_data) {
+            supervisorID = supervisor_data.id;
+          }
+          console.log('Supervisor Data:', supervisor_data);
+          if (employee_info) {
+            employeeID = employee_info.id;
+          }
+          console.log('Employee Info:', employee_info);
+          console.log('Employee ID:', employeeID);
+          const employee_data = await this.usersService.createOrUpdate({
+            employee_id: user_data.employee_id,
+            username: user_data.username,
+            fullname: user_data.fullname,
+            tel: user_data.telephone,
+            email: user_data.email,
+            company: user_data.company ?? "",
+            dept_code: user_data.dept_code ?? "",
+            dept_name: user_data.department,
+            user_location_id: user_location_data_id, //user_location_data.id,
+            supervisor_id: supervisorID ?? 0, //supervisor_data.id ?? 0,
+            position_name: user_data.position_name,
+            id: employeeID ?? 0 //employee_info?.id ?? 0
+          });
+          console.log('Employee Data:', employee_data);
+          let employee_role = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/dataaccessbyuserid', {
+            user_id: user_data.id,
+          }, {
+            headers: {
+              Authorization: `Bearer ${header_token.data.access_token}`,
+            },
+          });
+          const filtered_roles = employee_role.data.data.filter((role: any) => role.name == 'TLSRole');
+          const employee_role_info = await tx.role.findMany({
+            where: {
+              id: {
+                in: filtered_roles.map((role: any) => role.data_value),
+              },
+            },
+            select: {
+              id: true,
+              name: true,
+            },
+          });
+          if (employee_role_info.length > 0) {
+            // Get all current roles for the user
+            const existingUserRoles = await tx.user_role.findMany({
+              where: { user_id: employee_data.id },
+              select: { role_id: true, user_id: true },
+            });
+            
+            const employeeRoleIds = employee_role_info.map(role => role.id);
+            const existingRoleIds = existingUserRoles.map(ur => ur.role_id);
+
+            // Create roles that don't exist
+            for (const roleId of employeeRoleIds) {
+              if (!existingRoleIds.includes(roleId)) {
+                await this.userRoleService.createOrUpdate({
+                  id: 0,
+                  user_id: employee_data.id,
+                  role_id: roleId,
+                });
+              }
+            }
+            // Delete roles that exist but are not in employee_role_info
+            for (const userRole of existingUserRoles) {
+              if (!employeeRoleIds.includes(userRole.role_id)) {
+                // Find the unique user_role record to get its id
+                const userRoleRecord = await tx.user_role.findFirst({
+                  where: { user_id: userRole.user_id, role_id: userRole.role_id },
+                  select: { id: true },
+                });
+                if (userRoleRecord) {
+                  await tx.user_role.delete({
+                    where: { id: userRoleRecord.id },
+                  });
+                }
+              }
+            }
+          }
+          const newExistingUserRoles = await tx.user_role.findMany({
+              where: { user_id: employee_data.id },
+              select: { role_id: true, user_id: true },
+          });
+        }
+        else {
+          const response_employee = await axios.get(`https://api.osotspa.com/workday/api/workday/employee_info?employee_id=${user_data.employee_id}`, {
+            headers: {
+              Authorization: `Bearer ${header_token_workday.data.access_token}`,
+            },
+          });
+          console.log('Response Employee:', response_employee.data.data);
+          const response_supervisor = await axios.get(`https://api.osotspa.com/workday/api/workday/employee_info?employee_id=${user_data.supervisor_id}`, {
+            headers: {
+              Authorization: `Bearer ${header_token_workday.data.access_token}`,
+            },
+          });
+          console.log('Response Supervisor:', response_supervisor.data.data);
+          let plant_location: any;
+          let filtered_plant: any;
+          let filtered_location: any;
+          if (!user_data.location) {
+            plant_location = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/dataaccessbyuserid', {
+              user_id: user_data.id,
+            }, {
+              headers: {
+                Authorization: `Bearer ${header_token.data.access_token}`,
+              },
+            });
+            console.log('Plant Location:', plant_location.data.data);
+            if (Array.isArray(plant_location.data.data)) {
+              filtered_plant = plant_location.data.data.filter((role: any) => role.name == 'plant');
+              filtered_location = plant_location.data.data.filter((role: any) => role.name == 'Location');
+            } else {
+              console.warn('plant_location.data is not an array:', plant_location.data.data);
+            }
+            console.log('Filtered Plant:', filtered_plant[0].data_value);
+            console.log('Filtered Location:', filtered_location[0].data_value);
+          }
+          console.log('Filtered Location Length:', filtered_location.length);
+          const user_location_data = await tx.user_location.findFirstOrThrow({
+            where: {
+              name: filtered_location[0].data_value //user_data.location,
+            },
+            select: {
+              id: true,
+              name: true,
+              lab_site_id: true,
+            }
+          });
+          if (!user_location_data.lab_site_id) {
+            throw new UnauthorizedException('User location does not have a valid lab_site_id');
+          }
+          const lab_site_data = await tx.lab_site.findFirstOrThrow({
+            where: {
+              id: user_location_data.lab_site_id,
+            },
+            select: {
+              name: true,
+            }
+          });
+          let user_location_data_id = user_location_data.id;
+          let user_location_data_name = user_location_data.name;
+          let user_location_data_lab_site_id = user_location_data.lab_site_id;
+          if (filtered_location.length !== 1) {
+            user_location_data_id = ""
+            user_location_data_name = "";
+            user_location_data_lab_site_id = "";
+          }
+          let lab_site_data_name = lab_site_data.name;
+          if (filtered_location.length !== 1) {
+            lab_site_data_name = "";
+          }
+          console.log('Changed User Location Data:', user_location_data);
+          console.log('Lab Site Data:', lab_site_data);
+          let supervisor_info: any;
+          let supervisor_data: any;
+          if (user_data.supervisor_id) {
+            supervisor_info = await tx.user.findFirst({
+              where: {
+                employee_id: user_data.supervisor_id,
+              },
+              select: {
+                id: true,
+                employee_id: true,
+                username: true,
+                fullname: true,
+                tel: true,
+                email: true,
+                company: true,
+                dept_code: true,
+                dept_name: true,
+                user_location_id: true,
+                supervisor_id: true,
+                position_name: true,
+              }
+            });
+            if (!supervisor_info) {
+              supervisor_info = { id: 0, employee_id: "", username: "", fullname: "", tel: "", email: "", company: "", dept_code: "", dept_name: "", user_location_id: "", supervisor_id: 0, position_name: "" };
+            }
+            console.log('Supervisor Info:', supervisor_info);
+            console.log('Supervisor Name:', response_supervisor.data.data[0].FirstNameEN)
+            let supervisor_fullname = response_supervisor.data.data[0].FirstNameEN + ' ' + response_supervisor.data.data[0].LastNameEN;
+            supervisor_data = await this.usersService.createOrUpdate({
+              employee_id: response_supervisor.data.data[0].EmployeeID ?? user_data.supervisor_id ?? "",
+              username: user_data.supervisor_username ?? response_supervisor.data.data[0].Email ?? "",
+              fullname: user_data.supervisor_name ?? supervisor_fullname ?? "",
+              tel: response_supervisor.data.data[0].MobileNo ?? supervisor_info?.tel ?? "",
+              email: user_data.supervisor_mail ?? response_supervisor.data.data[0].Email ?? "",
+              company: response_supervisor.data.data[0].CompanyNameEN ?? "",
+              dept_code: response_supervisor.data.data[0].DepartmentCode ?? "",
+              dept_name: response_supervisor.data.data[0].DepartmentNameEN ?? "",
+              user_location_id: supervisor_info?.user_location_id ?? "",
+              supervisor_id: supervisor_info?.supervisor_id ?? 0,
+              position_name: response_supervisor.data.data[0].PositionNameEN ?? supervisor_info?.position_name ?? "",
+              id: supervisor_info?.id ?? 0
+            });
+            console.log('Supervisor Data:', supervisor_data);
+          }
+          
+          const employee_info = await tx.user.findFirst({
+            where: {
+              username: user_data.username,
+            },
+            select: {
+              id: true,
+              employee_id: true,
+              username: true,
+              fullname: true,
+              tel: true,
+              email: true,
+              company: true,
+              dept_code: true,
+              dept_name: true,
+              user_location_id: true,
+              supervisor_id: true,
+              position_name: true,
+            }
+          });
+          let employeeID: any = 0;
+          let supervisorID: any = 0;
+          if (supervisor_data) {
+            supervisorID = supervisor_data.id;
+          }
+          console.log('Supervisor Data:', supervisor_data);
+          if (employee_info) {
+            employeeID = employee_info.id;
+          }
+          console.log('Employee Info:', employee_info);
+          console.log('Employee ID:', employeeID);
+          const employee_data = await this.usersService.createOrUpdate({
+            employee_id: user_data.employee_id,
+            username: user_data.username,
+            fullname: user_data.fullname,
+            tel: user_data.telephone,
+            email: user_data.email,
+            company: response_employee.data.data[0].CompanyNameEN ?? "",
+            dept_code: response_employee.data.data[0].DepartmentCode ?? "",
+            dept_name: response_employee.data.data[0].DepartmentNameEN ?? "",
+            user_location_id: user_location_data.id,
+            supervisor_id: supervisorID ?? 0, //supervisor_data.id ?? 0,
+            position_name: response_employee.data.data[0].PositionNameEN ?? "",
+            id: employeeID ?? 0 //employee_info?.id ?? 0
+          });
+          let employee_role = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/dataaccessbyuserid', {
+            user_id: user_data.id,
+          }, {
+            headers: {
+              Authorization: `Bearer ${header_token.data.access_token}`,
+            },
+          });
+          const filtered_roles = employee_role.data.data.filter((role: any) => role.name == 'TLSRole');
+          const employee_role_info = await tx.role.findMany({
+            where: {
+              id: {
+                in: filtered_roles.map((role: any) => role.data_value),
+              },
+            },
+            select: {
+              id: true,
+              name: true,
+            },
+          });
+          if (employee_role_info.length > 0) {
+            // Get all current roles for the user
+            const existingUserRoles = await tx.user_role.findMany({
+              where: { user_id: employee_data.id },
+              select: { role_id: true, user_id: true },
+            });
+
+            const employeeRoleIds = employee_role_info.map(role => role.id);
+            const existingRoleIds = existingUserRoles.map(ur => ur.role_id);
+
+            // Create roles that don't exist
+            for (const roleId of employeeRoleIds) {
+              if (!existingRoleIds.includes(roleId)) {
+                await this.userRoleService.createOrUpdate({
+                  id: 0,
+                  user_id: employee_data.id,
+                  role_id: roleId,
+                });
+              }
+            }
+            // Delete roles that exist but are not in employee_role_info
+            for (const userRole of existingUserRoles) {
+              if (!employeeRoleIds.includes(userRole.role_id)) {
+                // Find the unique user_role record to get its id
+                const userRoleRecord = await tx.user_role.findFirst({
+                  where: { user_id: userRole.user_id, role_id: userRole.role_id },
+                  select: { id: true },
+                });
+                if (userRoleRecord) {
+                  await tx.user_role.delete({
+                    where: { id: userRoleRecord.id },
+                  });
+                }
+              }
+            }
+          }
+          const newExistingUserRoles = await tx.user_role.findMany({
+            where: { user_id: employee_data.id },
+            select: { role_id: true, user_id: true },
+          });
+          return {
+            accessToken: user_data.accessToken,
+            id: employee_data.id,
+            employee_id: employee_data.employee_id,
+            username: employee_data.username,
+            fullname: employee_data.fullname,
+            tel: employee_data.tel,
+            email: employee_data.email,
+            company: employee_data.company,
+            dept_code: employee_data.dept_code,
+            dept_name: employee_data.dept_name,
+            user_location_id: employee_data.user_location_id,
+            user_location_name: user_location_data_name,
+            lab_site_id: user_location_data_lab_site_id,
+            lab_site_name: lab_site_data_name,
+            supervisor_id: employee_data.supervisor_id,
+            position_name: employee_data.position_name,
+            is_req: newExistingUserRoles.some((role: any) => role.role_id === "REQ"), // Assuming "REQ" is the role_id for 'req' role
+            is_req_head: newExistingUserRoles.some((role: any) => role.role_id === "REQ_HEAD"), // Assuming "REQ_HEAD" is the role_id for 'req_head' role
+            is_lab_off: newExistingUserRoles.some((role: any) => role.role_id === "LAB_OFF"), // Assuming "LAB_OFF" is the role_id for 'lab_off' role
+            is_lab_lead: newExistingUserRoles.some((role: any) => role.role_id === "LAB_LEAD"), // Assuming "LAB_LEAD" is the role_id for 'lab_lead' role
+            is_lab_head: newExistingUserRoles.some((role: any) => role.role_id === "LAB_HEAD"), // Assuming "LAB_HEAD" is the role_id for 'lab_head' role
+            is_lab_admin: newExistingUserRoles.some((role: any) => role.role_id === "LAB_ADMIN"), // Assuming "LAB_ADMIN" is the role_id for 'lab_admin' role
+            is_qc: newExistingUserRoles.some((role: any) => role.role_id === "QC"), // Assuming "QC" is the role_id for 'qc' role
+            is_it: newExistingUserRoles.some((role: any) => role.role_id === "IT"), // Assuming "IT" is the role_id for 'it' role
+          };
+        }
+      } catch (err) {
+        console.error('❌ Error in upsert_user_api for user:', user_data, err);
+        throw err;
+      }
+    }
+  });
+  console.log('✅ User API seeding complete!');
+}
+
 async function create_request() {
   const users = await prisma.user.findMany({
     select: { id: true },
@@ -1548,6 +2038,7 @@ async function main() {
   await create_stock_retain();
   await create_stock_retain_item();
   await create_request_sample_item();
+  await upsert_user_api();
 
 
   console.log('✅ All data seeded successfully');
