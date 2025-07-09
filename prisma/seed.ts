@@ -2,8 +2,20 @@
 import { PrismaClient } from '@prisma/client';
 import * as xlsx from 'xlsx';
 import * as path from 'path';
+import * as fs from 'fs';
+import { create } from 'domain';
+import axios from 'axios';
+import { UnauthorizedException } from '@nestjs/common';
+import { UserData } from 'src/user_data/user_data.service';
+import { UserRoleService } from 'src/user_role/user_role.service';
+import { UsersService } from 'src/users/users.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 const prisma = new PrismaClient();
+const prismaService: PrismaService = new PrismaService();
+const userRoleService: UserRoleService = new UserRoleService(prismaService);
+const userService: UsersService = new UsersService(prismaService);
+const userDataService = new UserData(prismaService, userService, userRoleService);
 
 /* ---------- typed helpers ---------- */
 
@@ -221,8 +233,8 @@ async function seedRequestType() {
         status: toBool(r.status),
       },
     });
-  }
   console.log('✅ request_type seeded');
+  }
 }
 
 async function seedState() {
@@ -311,8 +323,8 @@ async function seedStatusRetain() {
         status: toBool(r.status),
       },
     });
-  }
   console.log('✅ status_retain seeded');
+  }
 }
 
 async function seedStatusEquipment() {
@@ -377,8 +389,8 @@ async function seedLabTest() {
         status: toBool(r.status),
       },
     });
-  }
   console.log('✅ lab_test seeded');
+  }
 }
 
 async function seedCategoryChemical() {
@@ -1003,6 +1015,44 @@ async function createOrUpdateUser() {
   console.log('✅ User seeded');
 }
 
+async function upsert_user_api() {
+  const role_list = [
+    'TLS-Requester', 'TLS-QC', 'TLS-Lab-Lead', 'TLS-Lab-Admin',
+    'TLS-Lab', 'TLS-ITSupport', 'TLS-Head-Requester', 'TLS-Head-Lab'
+  ];
+  const user_list: any[] = [];
+  const header_token = await axios.post('https://api-dev.osotspa.com/securitycontrol/oauth2/token', {
+    client_id: process.env.OAUTH2_CLIENT_ID ?? "2ATwV3iAbpmdkzuazH4XPZaffMsQc94H",
+    client_secret: process.env.OAUTH2_CLIENT_SECRET ?? "f8D1UqM9OGVcziQ1SfIoz6UTXL5qaDtp",
+    grant_type: process.env.OAUTH2_GRANT_TYPE ?? "client_credentials"
+  });
+  const header_token_workday = await axios.post('https://api.osotspa.com/workday/oauth2/token', {
+    client_id: process.env.OAUTH2_CLIENT_ID_WORKDAY ?? "hvvsgnpPyZFOcyMdcsBlMbzPsEqQkIPg",
+    client_secret: process.env.OAUTH2_CLIENT_SECRET_WORKDAY ?? "1iz9yRFqK4DB7SCmjX1oDbfS1NHNMZac",
+    grant_type: process.env.OAUTH2_GRANT_TYPE_WORKDAY ?? "client_credentials"
+  });
+
+  // Fetch all users by role (API calls, not DB, so outside transaction)
+  for (const role of role_list) {
+    const user = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/userlist_by_role', {
+      roles: role,
+    }, {
+      headers: {
+        Authorization: `Bearer ${header_token.data.access_token}`,
+      },
+    });
+    user_list.push(user.data);
+  }
+
+  // All DB operations inside a transaction for rollback safety
+  // await prisma.$transaction(async (tx) => {
+  for (const user_data of user_list) {
+    await userDataService.generateUserData(user_data, header_token, header_token_workday);
+  }
+  // });
+  console.log('✅ User API seeding complete!');
+}
+
 async function createOrUpdateRequest() {
   const users = await prisma.user.findMany({
     select: { id: true },
@@ -1081,6 +1131,7 @@ async function main() {
   await seedReportHeading();
   await seedObjectiveFromNew();
   await seedLineFromNew();
+  await upsert_user_api();
   // await seedUnitFromNew();
   // await seedChemicalParameterFromNew();
   // await createOrUpdateUser();

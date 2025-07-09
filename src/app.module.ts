@@ -62,6 +62,7 @@ import { RequestLogModule } from './request_log/request_log.module';
 import { DowloadS3Module } from './download_s3/download_s3.module';
 import { AuthApiModule } from './auth_api/auth_api.module';
 import { StockRetainModule } from './stock_retain/stock_retain.module';
+import { UserDataModule } from './user_data/user_data.module';
 
 
 @Module({
@@ -126,6 +127,7 @@ import { StockRetainModule } from './stock_retain/stock_retain.module';
     RequestLogModule,
     DowloadS3Module,
     StockRetainModule, // Importing the StockRetainModule
+    UserDataModule,
   ],
   controllers: [AppController],
   providers: [AppService],
