@@ -105,9 +105,10 @@ export class SampleConditionService {
             where: {
               status: true
             },
-            orderBy: { 
-              order: 'asc'
-            },
+            orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
             select: {
               id: true,
               name: true
@@ -119,9 +120,10 @@ export class SampleConditionService {
             where: {
               status: false
             },
-            orderBy: { 
-              order: 'asc'
-            },
+            orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
             select: {
               id: true,
               name: true
@@ -130,9 +132,10 @@ export class SampleConditionService {
         }
         else {
           return await this.prisma.sample_condition.findMany({
-            orderBy: { 
-              order: 'asc'
-            },
+            orderBy: [
+            { order: 'asc' },
+            { name: 'asc' },
+          ],
             select: {
               id: true,
               name: true
