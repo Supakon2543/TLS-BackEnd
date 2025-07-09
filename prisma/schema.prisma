@@ -37,6 +37,8 @@ model state {
   order  Int
   name   String  @db.VarChar(50)
   status Boolean
+
+  status_request status_request[]
 }
 
 model status_request {
@@ -45,6 +47,8 @@ model status_request {
   name     String  @db.VarChar(50)
   state_id String?
   status   Boolean
+
+  state state? @relation(fields: [state_id], references: [id])
 
   request request[]
 
@@ -340,6 +344,10 @@ model unit {
   updated_by        Int?
 
   request_sample_item request_sample_item[]
+
+  microbiology_parameter microbiology_parameter[]
+
+  chemical_parameter chemical_parameter[]
 }
 
 model line {
@@ -404,6 +412,8 @@ model microbiology_parameter {
   updated_on           DateTime? @updatedAt
   updated_by           Int?
 
+  unit unit? @relation(fields: [unit_id], references: [id])
+
   material_microbiology material_microbiology[] // <-- Must exist
 
   request_sample_microbiology     request_sample_microbiology[]
@@ -436,6 +446,8 @@ model chemical_parameter {
   created_by           Int?
   updated_on           DateTime? @updatedAt
   updated_by           Int?
+
+  unit unit? @relation(fields: [unit_id], references: [id])
 
   material_chemical           material_chemical[]
   request_sample_chemical     request_sample_chemical[]
