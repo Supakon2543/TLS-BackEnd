@@ -1,9 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { SignatureService } from './signature.service';
 import { CreateSignatureDto } from './dto/create-signature.dto';
 import { UpdateSignatureDto } from './dto/update-signature.dto';
 import { AuthGuard } from '@nestjs/passport';
-
+import { get } from 'http';
 
 // @UseGuards(AuthGuard('jwt'))
 @Controller('signature')
@@ -16,15 +26,20 @@ export class SignatureController {
   }
 
   @Get()
-    getObjectives(
-      @Query() params: { id?: number; keyword?: string; status?: number },
-    ) {
-      return this.signatureService.getSignatures(params);
-    }
+  getObjectives(
+    @Query() params: { id?: number; keyword?: string; status?: number },
+  ) {
+    return this.signatureService.getSignatures(params);
+  }
+
+  @Get('tests3')
+  testAWSConnection() {
+    return this.signatureService.testAWSConnection();
+  }
 
   @Get('map')
   getSignatureMap(
-    @Query() params: { id?: number; keyword?: string; role_id?: string }
+    @Query() params: { id?: number; keyword?: string; role_id?: string },
   ) {
     return this.signatureService.getSignatureMap(params);
   }
@@ -35,7 +50,10 @@ export class SignatureController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSignatureDto: UpdateSignatureDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateSignatureDto: UpdateSignatureDto,
+  ) {
     return this.signatureService.update(+id, updateSignatureDto);
   }
 
