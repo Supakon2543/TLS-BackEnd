@@ -7,12 +7,10 @@ import {
   Param,
   Delete,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { SampleRetainingService } from './sample_retaining.service';
 import { CreateSampleRetainingDto } from './dto/create-sample_retaining.dto';
 import { UpdateSampleRetainingDto } from './dto/update-sample_retaining.dto';
-import { AuthGuard } from '@nestjs/passport';
 
 // @UseGuards(AuthGuard('jwt'))
 @Controller('sample-retaining')
