@@ -84,7 +84,7 @@ export class RequestService {
       // Convert id to number and check validity
       id = id !== undefined ? +id : undefined;
       if (!id || isNaN(id)) {
-        throw new NotFoundException('Request ID is required and must be a valid number');
+        return {} // throw new NotFoundException('Request ID is required and must be a valid number');
       }
 
       const request = await this.prisma.request.findUnique({
@@ -105,7 +105,7 @@ export class RequestService {
       });
 
       if (!request) {
-        throw new NotFoundException(`Request with ID ${id} not found`);
+        return {} // throw new NotFoundException(`Request with ID ${id} not found`);
       }
 
       // Transform to match your desired structure
