@@ -19,8 +19,6 @@ export class LineService {
       update: data, // Update the existing record with the provided data
     });
   }
-  
-  // Retrieve lines with filters
   async getLines(params: {
     id?: number | string;
     keyword?: string;
@@ -32,11 +30,16 @@ export class LineService {
     id = id !== undefined ? +id : undefined;
     status = status !== undefined ? +status : undefined;
 
+    // ✅ Return empty array if id is explicitly 0
+    if (id === 0) {
+      return [];
+    }
+
     // Build where clause
     const whereClause: any = {};
 
-    // Add id filter
-    if (typeof id === 'number' && !isNaN(id) && id !== 0) {
+    // Add id filter (only if id is a valid positive number)
+    if (typeof id === 'number' && !isNaN(id) && id > 0) {
       whereClause.id = id;
     }
 
