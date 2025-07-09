@@ -126,6 +126,48 @@ export class UserData {
                     return employee_role_info.map(role => role.id);
                 };
 
+                // Helper: build user payload for upsert
+                const buildUserPayload = (
+                    type: 'employee' | 'supervisor',
+                    user_data: any,
+                    api_response: any,
+                    fallback_info: any,
+                    extra: any = {}
+                ) => {
+                    if (type === 'supervisor') {
+                        return {
+                            employee_id: api_response?.EmployeeID ?? user_data.supervisor_id ?? "",
+                            username: user_data.supervisor_username ?? api_response?.Email ?? "",
+                            fullname: user_data.supervisor_name ?? (api_response?.FirstNameEN && api_response?.LastNameEN ? api_response.FirstNameEN + ' ' + api_response.LastNameEN : "") ?? "",
+                            tel: api_response?.MobileNo ?? fallback_info?.tel ?? "",
+                            email: user_data.supervisor_mail ?? api_response?.Email ?? "",
+                            company: api_response?.CompanyNameEN ?? fallback_info?.company ?? "",
+                            dept_code: api_response?.DepartmentCode ?? fallback_info?.dept_code ?? "",
+                            dept_name: api_response?.DepartmentNameEN ?? fallback_info?.dept_name ?? "",
+                            user_location_id: fallback_info?.user_location_id ?? "",
+                            supervisor_id: fallback_info?.supervisor_id ?? 0,
+                            position_name: api_response?.PositionNameEN ?? fallback_info?.position_name ?? "",
+                            id: fallback_info?.id ?? 0,
+                            ...extra
+                        };
+                    } else {
+                        return {
+                            employee_id: user_data.employee_id,
+                            username: user_data.username,
+                            fullname: user_data.fullname,
+                            tel: user_data.telephone,
+                            email: user_data.email,
+                            company: api_response?.CompanyNameEN ?? user_data.company ?? "",
+                            dept_code: api_response?.DepartmentCode ?? user_data.dept_code ?? "",
+                            dept_name: api_response?.DepartmentNameEN ?? user_data.department,
+                            user_location_id: extra.user_location_id,
+                            supervisor_id: extra.supervisor_id,
+                            position_name: api_response?.PositionNameEN ?? user_data.position_name,
+                            id: extra.employeeID
+                        };
+                    }
+                };
+
                 // --- Branch 1: No employee_id ---
                 if (!user_data.employee_id) {
                     // Location & lab site
@@ -139,55 +181,46 @@ export class UserData {
 
                     // Supervisor
                     let supervisor_data: any = null;
+                    let supervisor_info: {
+                        id: number;
+                        employee_id: string | null;
+                        username: string;
+                        fullname: string;
+                        tel: string | null;
+                        email: string;
+                        company: string | null;
+                        dept_code: string | null;
+                        dept_name: string | null;
+                        user_location_id: string | null;
+                        supervisor_id: number | null;
+                        position_name: string | null;
+                    } | null = null;
                     if (user_data.supervisor_username && user_data.supervisor_name && user_data.supervisor_mail) {
-                        const supervisor_info = await tx.user.findFirst({
+                        supervisor_info = await tx.user.findFirst({
                             where: { username: user_data.supervisor_username },
-                            select: {
-                                id: true, employee_id: true, username: true, fullname: true, tel: true, email: true,
+                            select: { id: true, employee_id: true, username: true, fullname: true, tel: true, email: true,
                                 company: true, dept_code: true, dept_name: true, user_location_id: true,
-                                supervisor_id: true, position_name: true
-                            }
+                                supervisor_id: true, position_name: true }
                         });
-                        supervisor_data = await upsertSupervisor({
-                            employee_id: user_data.supervisor_code ?? "",
-                            username: user_data.supervisor_username,
-                            fullname: user_data.supervisor_name,
-                            tel: supervisor_info?.tel ?? "",
-                            email: user_data.supervisor_mail,
-                            company: supervisor_info?.company ?? "",
-                            dept_code: supervisor_info?.dept_code ?? "",
-                            dept_name: supervisor_info?.dept_name ?? "",
-                            user_location_id: supervisor_info?.user_location_id ?? "",
-                            supervisor_id: supervisor_info?.supervisor_id ?? 0,
-                            position_name: supervisor_info?.position_name ?? "",
-                            id: supervisor_info?.id ?? 0
-                        });
+                        supervisor_data = await upsertSupervisor(
+                            buildUserPayload('supervisor', user_data, null, supervisor_info)
+                        );
                     }
-                    // Employee
                     const employee_info = await tx.user.findFirst({
                         where: { username: user_data.username },
-                        select: {
-                            id: true, employee_id: true, username: true, fullname: true, tel: true, email: true,
+                        select: { id: true, employee_id: true, username: true, fullname: true, tel: true, email: true,
                             company: true, dept_code: true, dept_name: true, user_location_id: true,
-                            supervisor_id: true, position_name: true
-                        }
+                            supervisor_id: true, position_name: true }
                     });
                     const employeeID = employee_info?.id ?? 0;
                     const supervisorID = supervisor_data?.id ?? 0;
-                    const employee_data = await upsertEmployee({
-                        employee_id: user_data.employee_id,
-                        username: user_data.username,
-                        fullname: user_data.fullname,
-                        tel: user_data.telephone,
-                        email: user_data.email,
-                        company: user_data.company ?? "",
-                        dept_code: user_data.dept_code ?? "",
-                        dept_name: user_data.department,
-                        user_location_id: user_location_data_id,
-                        supervisor_id: supervisorID,
-                        position_name: user_data.position_name,
-                        id: employeeID
-                    });
+                    const employee_data = await upsertEmployee(
+                        buildUserPayload('employee', user_data, null, employee_info, {
+                            user_location_id: user_location_data_id,
+                            supervisor_id: supervisorID,
+                            employeeID
+                        })
+                    );
 
                     // Roles
                     const employeeRoleIds = await getEmployeeRoles(user_data.id);
@@ -219,32 +252,23 @@ export class UserData {
 
                     // Supervisor
                     let supervisor_data: any = null;
+                    let supervisor_info: any = { id: 0, employee_id: "", username: "", fullname: "", tel: "", email: "", company: "", dept_code: "", dept_name: "", user_location_id: "", supervisor_id: 0, position_name: "" };
                     if (user_data.supervisor_id) {
-                        const supervisor_info = await tx.user.findFirst({
+                        const foundSupervisor = await tx.user.findFirst({
                             where: { employee_id: user_data.supervisor_id },
                             select: {
                                 id: true, employee_id: true, username: true, fullname: true, tel: true, email: true,
                                 company: true, dept_code: true, dept_name: true, user_location_id: true,
                                 supervisor_id: true, position_name: true
                             }
-                        }) || { id: 0, employee_id: "", username: "", fullname: "", tel: "", email: "", company: "", dept_code: "", dept_name: "", user_location_id: "", supervisor_id: 0, position_name: "" };
-                        const supervisor_fullname = response_supervisor.data.data[0].FirstNameEN + ' ' + response_supervisor.data.data[0].LastNameEN;
-                        supervisor_data = await upsertSupervisor({
-                            employee_id: response_supervisor.data.data[0].EmployeeID ?? user_data.supervisor_id ?? "",
-                            username: user_data.supervisor_username ?? response_supervisor.data.data[0].Email ?? "",
-                            fullname: user_data.supervisor_name ?? supervisor_fullname ?? "",
-                            tel: response_supervisor.data.data[0].MobileNo ?? supervisor_info?.tel ?? "",
-                            email: user_data.supervisor_mail ?? response_supervisor.data.data[0].Email ?? "",
-                            company: response_supervisor.data.data[0].CompanyNameEN ?? "",
-                            dept_code: response_supervisor.data.data[0].DepartmentCode ?? "",
-                            dept_name: response_supervisor.data.data[0].DepartmentNameEN ?? "",
-                            user_location_id: supervisor_info?.user_location_id ?? "",
-                            supervisor_id: supervisor_info?.supervisor_id ?? 0,
-                            position_name: response_supervisor.data.data[0].PositionNameEN ?? supervisor_info?.position_name ?? "",
-                            id: supervisor_info?.id ?? 0
                         });
+                        if (foundSupervisor) {
+                            supervisor_info = foundSupervisor;
+                        }
+                        supervisor_data = await upsertSupervisor(
+                            buildUserPayload('supervisor', user_data, response_supervisor.data.data[0], supervisor_info)
+                        );
                     }
-                    // Employee
                     const employee_info = await tx.user.findFirst({
                         where: { username: user_data.username },
                         select: {
@@ -255,20 +279,13 @@ export class UserData {
                     });
                     const employeeID = employee_info?.id ?? 0;
                     const supervisorID = supervisor_data?.id ?? 0;
-                    const employee_data = await upsertEmployee({
-                        employee_id: user_data.employee_id,
-                        username: user_data.username,
-                        fullname: user_data.fullname,
-                        tel: user_data.telephone,
-                        email: user_data.email,
-                        company: response_employee.data.data[0].CompanyNameEN ?? "",
-                        dept_code: response_employee.data.data[0].DepartmentCode ?? "",
-                        dept_name: response_employee.data.data[0].DepartmentNameEN ?? "",
-                        user_location_id: user_location_data.id,
-                        supervisor_id: supervisorID,
-                        position_name: response_employee.data.data[0].PositionNameEN ?? "",
-                        id: employeeID
-                    });
+                    const employee_data = await upsertEmployee(
+                        buildUserPayload('employee', user_data, response_employee.data.data[0], employee_info, {
+                            user_location_id: user_location_data.id,
+                            supervisor_id: supervisorID,
+                            employeeID
+                        })
+                    );
 
                     // Roles
                     const employeeRoleIds = await getEmployeeRoles(user_data.id);
