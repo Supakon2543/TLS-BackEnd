@@ -7,7 +7,7 @@ import { UpdateSectionDto } from './dto/update-section.dto';
 export class SectionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getSections(params: {
+async getSections(params: {
   id?: number;
   keyword?: string;
   status?: number | string; // This parameter will be ignored
@@ -17,6 +17,11 @@ export class SectionService {
   // Convert id to number if it's a string
   id = id !== undefined ? +id : undefined;
 
+  // ✅ Return empty array if id is explicitly 0
+  if (id === 0) {
+    return [];
+  }
+
   // Build where clause
   const whereClause: any = {};
 
@@ -24,16 +29,29 @@ export class SectionService {
   whereClause.status = true;
 
   // Add id filter
-  if (typeof id === 'number' && !isNaN(id) && id !== 0) {
+  if (typeof id === 'number' && !isNaN(id) && id > 0) {
     whereClause.id = id;
   }
 
-  // Add keyword filter for section name
+  // ✅ Add keyword filter for both section name AND location name
   if (keyword && keyword.trim() !== '') {
-    whereClause.name = {
-      contains: keyword.trim(),
-      mode: 'insensitive',
-    };
+    whereClause.OR = [
+      {
+        name: {
+          contains: keyword.trim(),
+          mode: 'insensitive',
+        },
+      },
+      {
+        location: {
+          name: {
+            contains: keyword.trim(),
+            mode: 'insensitive',
+          },
+          status: true, // Ensure location is also active
+        },
+      },
+    ];
   }
 
   // Get sections with filters and sort by location name
@@ -51,7 +69,10 @@ export class SectionService {
     ],
     include: {
       location: {
-        select: { name: true },
+        select: { 
+          name: true,
+          status: true, // Include status for debugging if needed
+        },
       },
     },
   });
