@@ -1,0 +1,19 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      php: 7.4
+  pre_build:
+    commands:
+      - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610-linux-x64.zip
+      - unzip ./sonar-scanner-cli-6.2.1.4610-linux-x64.zip
+      - export PATH=$PATH:./sonar-scanner-6.2.1.4610-linux-x64/bin/
+      # - wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb && dpkg -i erlang-solutions_2.0_all.deb
+      # - apt-get update -y
+  build:
+    commands:
+      - |
+        sonar-scanner-6.2.1.4610-linux-x64/bin/sonar-scanner \
+        -Dsonar.projectKey=$PROJECT -Dsonar.projectName=$PROJECT \
+        -Dsonar.sources=. -Dsonar.host.url=$REVIEW_HOST \
+        -Dsonar.login=$LOGIN -Dsonar.cfamily.threads=2

@@ -1,0 +1,989 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model lab_site {
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  request request[]
+}
+
+model request_type {
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  request request[]
+}
+
+model state {
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  status_request status_request[]
+}
+
+model status_request {
+  id       String  @id @db.VarChar(10)
+  order    Int
+  name     String  @db.VarChar(50)
+  state_id String?
+  status   Boolean
+
+  state state? @relation(fields: [state_id], references: [id])
+
+  request request[]
+
+  request_log request_log[]
+}
+
+model status_sample {
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  request request[]
+
+  request_sample request_sample[]
+}
+
+model status_retain {
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  stock_retain_item stock_retain_item[]
+}
+
+model status_equipment {
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+}
+
+model sample_type {
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+}
+
+model lab_test {
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  request_sample_item request_sample_item[]
+}
+
+model category_chemical {
+  id     String  @id @db.VarChar(5)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  chemicals chemical[]
+}
+
+model sample_condition {
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  request_sample_item request_sample_item[]
+}
+
+model test_report_format {
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  request_detail request_detail[]
+}
+
+model accredited {
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  request_detail request_detail[]
+}
+
+model spec_type {
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+}
+
+model activity_request {
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  request_log request_log[]
+}
+
+model activity_equipment {
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+}
+
+model role {
+  id     String  @id @db.VarChar(10)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  request request[]
+}
+
+model user_location {
+  id          String  @id @db.VarChar(10)
+  order       Int
+  name        String  @db.VarChar(50)
+  lab_site_id String?
+  status      Boolean
+
+  location_emails location_email[]
+}
+
+model chemical {
+  id                   Int       @unique @default(autoincrement())
+  code                 String
+  name                 String
+  manufacturer_id      Int
+  category_chemical_id String
+  storage_condition    String
+  min_stock            Int
+  unit_id              Int
+  email_notification   String?
+  status               Boolean?
+  created_on           DateTime? @default(now())
+  created_by           Int?
+  updated_on           DateTime? @updatedAt
+  updated_by           Int?
+
+  manufacturer      manufacturer?      @relation(fields: [manufacturer_id], references: [id])
+  category_chemical category_chemical? @relation(fields: [category_chemical_id], references: [id])
+}
+
+model user {
+  id               Int       @id @default(autoincrement())
+  employee_id      String?   @db.VarChar(10)
+  username         String    @unique @db.VarChar(50)
+  fullname         String    @db.VarChar(100)
+  tel              String?   @db.VarChar(12)
+  email            String    @db.VarChar(100)
+  company          String?   @db.VarChar(100)
+  dept_code        String?   @db.VarChar(10)
+  dept_name        String?   @db.VarChar(100)
+  user_location_id String? // Defaultdata คือ AY, HM, HCC, QAC AY, QAC HM, Incoming HM, Incoming AY
+  supervisor_id    Int?
+  position_name    String?   @db.VarChar(100)
+  created_on       DateTime? @default(now()) @db.Timestamptz(3)
+  updated_on       DateTime? @updatedAt @db.Timestamptz(3)
+
+  request request[]
+
+  request_detail request_detail[]
+
+  request_log request_log[]
+
+  request_email request_email[]
+
+  request_detail_attachment request_detail_attachment[]
+
+  user_role user_role[]
+  signature signature[]
+}
+
+model user_role {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  role_id    String
+  created_on DateTime? @default(now())
+
+  user       user?     @relation(fields: [user_id], references: [id])
+}
+
+model location_email {
+  id                 Int       @id @default(autoincrement())
+  user_location_id   String?
+  email_notification String?   @db.VarChar(500)
+  status             Boolean
+  created_on         DateTime? @default(now())
+  created_by         Int?
+  updated_on         DateTime? @updatedAt
+  updated_by         Int?
+
+  user_location user_location? @relation(fields: [user_location_id], references: [id])
+}
+
+model equipment_type {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(50)
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int?
+  updated_on DateTime  @updatedAt
+  updated_by Int?
+}
+
+model manufacturer {
+  id                 Int       @id @default(autoincrement())
+  name               String    @db.VarChar(100)
+  is_chemical_stock  Boolean
+  is_equipment_stock Boolean
+  status             Boolean
+  created_on         DateTime? @default(now())
+  created_by         Int?
+  updated_on         DateTime? @updatedAt
+  updated_by         Int?
+
+  chemicals chemical[]
+}
+
+model StorageUnit {
+  id            Int       @id @default(autoincrement())
+  location_id   Int
+  section_id    Int
+  name          String    @db.VarChar(50)
+  number_of_box Int
+  status        Boolean
+  created_on    DateTime? @default(now())
+  created_by    Int?
+  updated_on    DateTime? @default(now())
+  updated_by    Int?
+}
+
+model section {
+  id            Int       @id @default(autoincrement())
+  location_id   Int
+  name          String    @db.VarChar(50)
+  number_of_box Int
+  status        Boolean
+  created_on    DateTime? @default(now())
+  created_by    Int?
+  updated_on    DateTime? @default(now())
+  updated_by    Int?
+
+  location location? @relation(fields: [location_id], references: [id])
+  boxes    box[]
+  stock_retain stock_retain[]
+}
+
+model location {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(50)
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int?
+  updated_on DateTime? @default(now())
+  updated_by Int?
+
+  sections section[]
+  boxes    box[]
+  stock_retain stock_retain[]
+}
+
+model category_edit {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(50)
+  status     Boolean?
+  created_on DateTime? @default(now())
+  created_by Int?
+  updated_on DateTime? @updatedAt
+  updated_by Int?
+
+  request_sample request_sample[]
+}
+
+model unit {
+  id                Int       @id @default(autoincrement())
+  order             Int
+  name              String    @db.VarChar(50)
+  is_sample         Boolean
+  is_chemical       Boolean
+  is_microbiology   Boolean
+  is_chemical_stock Boolean
+  status            Boolean
+  created_on        DateTime? @default(now())
+  created_by        Int?
+  updated_on        DateTime? @updatedAt
+  updated_by        Int?
+
+  request_sample_item request_sample_item[]
+
+  microbiology_parameter microbiology_parameter[]
+
+  chemical_parameter chemical_parameter[]
+}
+
+model line {
+  id         Int       @id @default(autoincrement())
+  code       String    @db.VarChar(10)
+  name       String    @db.VarChar(50)
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int?
+  updated_on DateTime? @updatedAt
+  updated_by Int?
+
+  request_sample request_sample[]
+}
+
+model material_microbiology {
+  id                        Int       @id @default(autoincrement())
+  material_id               String
+  microbiology_parameter_id Int
+  created_on                DateTime? @default(now())
+  created_by                Int?
+
+  material               material               @relation(fields: [material_id], references: [id])
+  microbiology_parameter microbiology_parameter @relation(fields: [microbiology_parameter_id], references: [id])
+}
+
+model material_chemical {
+  id                    Int       @id @default(autoincrement())
+  material_id           String
+  chemical_parameter_id Int
+  created_on            DateTime? @default(now())
+  created_by            Int?
+
+  material           material           @relation(fields: [material_id], references: [id])
+  chemical_parameter chemical_parameter @relation(fields: [chemical_parameter_id], references: [id])
+}
+
+model microbiology_parameter {
+  id                   Int       @id @default(autoincrement())
+  order                Int
+  name                 String    @db.VarChar(50)
+  name_abb             String?   @default("")
+  request_min          Decimal?  @db.Decimal
+  unit_id              Int?
+  sample_type_id       String?
+  spec_type_id         String?
+  spec                 String    @db.VarChar(100)
+  spec_min             Decimal?  @db.Decimal
+  spec_max             Decimal?  @db.Decimal
+  warning_min          Decimal?  @db.Decimal
+  warning_max          Decimal?  @db.Decimal
+  final_result         String
+  decimal              Int
+  is_enter_spec_min    Boolean
+  is_enter_spec_max    Boolean
+  is_enter_warning_min Boolean
+  is_enter_warning_max Boolean
+  is_enter_decimal     Boolean
+  status               Boolean
+  created_on           DateTime? @default(now())
+  created_by           Int?
+  updated_on           DateTime? @updatedAt
+  updated_by           Int?
+
+  unit unit? @relation(fields: [unit_id], references: [id])
+
+  material_microbiology material_microbiology[] // <-- Must exist
+
+  request_sample_microbiology     request_sample_microbiology[]
+  microbiology_sample_description microbiology_sample_description[]
+}
+
+model chemical_parameter {
+  id                   Int       @id @default(autoincrement())
+  order                Int
+  name                 String    @db.VarChar(50)
+  name_abb             String    @default("")
+  request_min          Decimal?
+  unit_id              Int?
+  sample_type_id       String?
+  spec_type_id         String?
+  spec                 String?   @db.VarChar(100)
+  spec_min             Decimal?
+  spec_max             Decimal?
+  warning_min          Decimal?
+  warning_max          Decimal?
+  final_result         String?
+  decimal              Int?
+  is_enter_spec_min    Boolean?
+  is_enter_spec_max    Boolean?
+  is_enter_warning_min Boolean?
+  is_enter_warning_max Boolean?
+  is_enter_decimal     Boolean?
+  status               Boolean?
+  created_on           DateTime? @default(now())
+  created_by           Int?
+  updated_on           DateTime? @updatedAt
+  updated_by           Int?
+
+  unit unit? @relation(fields: [unit_id], references: [id])
+
+  material_chemical           material_chemical[]
+  request_sample_chemical     request_sample_chemical[]
+  chemical_sample_description chemical_sample_description[]
+}
+
+model material {
+  id                      String    @id
+  name                    String    @db.VarChar(100)
+  test_report_name        String?   @db.VarChar(100)
+  conclusion              Boolean?   
+  reg_no                  String?   @db.VarChar(50)
+  is_special_parameter    Boolean?
+  special_parameter_name  String?   @db.VarChar(100)
+  special_parameter_type  String?
+  remark_report           String?   @db.VarChar(200)
+  status                  Boolean
+  created_on              DateTime? @default(now())
+  created_by              Int?
+  updated_on              DateTime? @updatedAt
+  updated_by              Int?
+
+  material_chemical     material_chemical[] // <-- Must exist
+  material_microbiology material_microbiology[]
+
+  request_sample request_sample[]
+}
+
+model staging_material {
+  id                      String    @id
+  name                    String    @db.VarChar(100)
+  test_report_name        String?   @db.VarChar(100)
+  conclusion              Boolean?
+  reg_no                  String?   @db.VarChar(50)
+  is_special_parameter    Boolean?
+  special_parameter_name  String?   @db.VarChar(100)
+  special_parameter_type  String?
+  remark_report           String?   @db.VarChar(200)
+  status                  Boolean
+  created_on              DateTime? @default(now())
+  created_by              Int?
+  updated_on              DateTime? @updatedAt
+  updated_by              Int?
+}
+
+model sample_retaining {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(50)
+  text_input Boolean
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int?
+  updated_on DateTime? @updatedAt
+  updated_by Int?
+
+  request_detail request_detail[]
+}
+
+model lab_process {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(50)
+  text_input Boolean
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int
+  updated_on DateTime? @updatedAt
+  updated_by Int
+
+  request_detail request_detail[]
+}
+
+model sample_stage {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(50)
+  text_input Boolean
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int
+  updated_on DateTime? @updatedAt
+  updated_by Int
+
+  request_detail request_detail[]
+}
+
+model objective {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(50)
+  text_input Boolean
+  status     Boolean
+  created_on DateTime? @default(now())
+  created_by Int
+  updated_on DateTime? @updatedAt
+  updated_by Int
+
+  request_detail request_detail[]
+}
+
+model box {
+  id               Int       @id @default(autoincrement())
+  location_id      Int
+  section_id       Int
+  name             String    @db.VarChar(50)
+  number_of_bottle Int
+  status           Boolean
+  created_on       DateTime? @default(now())
+  created_by       Int?
+  updated_on       DateTime? @updatedAt
+  updated_by       Int?
+
+  location location? @relation(fields: [location_id], references: [id])
+  section  section?  @relation(fields: [section_id], references: [id])
+  stock_retain stock_retain[]
+}
+
+model sample_description {
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  request_sample                  request_sample[]
+  chemical_sample_description     chemical_sample_description[]
+  microbiology_sample_description microbiology_sample_description[]
+}
+
+model report_heading {
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  request_detail request_detail[]
+}
+
+model request {
+  id                Int       @id @default(autoincrement())
+  request_number    String?   @db.VarChar(20)
+  lab_site_id       String?
+  request_type_id   String?
+  requester_id      Int?
+  request_date      DateTime?
+  due_date          DateTime?
+  telephone         String?   @db.VarChar(20)
+  status_request_id String?
+  status_sample_id  String?
+  review_role_id    String?
+  original_id       Int?
+  created_on        DateTime? @default(now())
+  created_by        Int?
+  updated_on        DateTime? @updatedAt
+  updated_by        Int?
+
+  lab_site         lab_site?       @relation(fields: [lab_site_id], references: [id])
+  request_type     request_type?   @relation(fields: [request_type_id], references: [id])
+  requester        user?           @relation(fields: [requester_id], references: [id])
+  status_request   status_request? @relation(fields: [status_request_id], references: [id])
+  status_sample    status_sample?  @relation(fields: [status_sample_id], references: [id])
+  review_role      role?           @relation(fields: [review_role_id], references: [id])
+  original_request request?        @relation("OriginalRequest", fields: [original_id], references: [id])
+
+  request request[] @relation("OriginalRequest")
+
+  request_detail request_detail[]
+
+  request_log request_log[]
+
+  request_email request_email[]
+
+  request_detail_attachment request_detail_attachment[]
+
+  request_sample request_sample[]
+}
+
+model request_detail {
+  id                    Int       @id @default(autoincrement())
+  request_id            Int
+  test_report_format_id String?
+  accredited_id         String?
+  report_heading_id     String?
+  objective_id          Int?
+  sample_stage_id       Int?
+  lab_process_id        Int?
+  sample_retaining_id   Int?
+  note                  String?   @db.VarChar(200)
+  lab_receiver_id       Int?
+  received_date         DateTime?
+  lab_note              String?   @db.VarChar(200)
+  created_on            DateTime? @default(now())
+  created_by            Int?
+  updated_on            DateTime? @updatedAt
+  updated_by            Int?
+
+  request            request             @relation(fields: [request_id], references: [id])
+  test_report_format test_report_format? @relation(fields: [test_report_format_id], references: [id])
+  accredited         accredited?         @relation(fields: [accredited_id], references: [id])
+  report_heading     report_heading?     @relation(fields: [report_heading_id], references: [id])
+  objective          objective?          @relation(fields: [objective_id], references: [id])
+  sample_stage       sample_stage?       @relation(fields: [sample_stage_id], references: [id])
+  lab_process        lab_process?        @relation(fields: [lab_process_id], references: [id])
+  sample_retaining   sample_retaining?   @relation(fields: [sample_retaining_id], references: [id])
+  lab_receiver       user?               @relation(fields: [lab_receiver_id], references: [id])
+}
+
+model request_log {
+  id                  Int      @id @default(autoincrement())
+  request_id          Int
+  sample_code         String?  @db.VarChar(10)
+  status_request_id   String
+  activity_request_id String
+  user_id             Int?
+  timestamp           DateTime @default(now())
+  remark              String?  @db.VarChar(200)
+
+  request          request          @relation(fields: [request_id], references: [id])
+  status_request   status_request   @relation(fields: [status_request_id], references: [id])
+  activity_request activity_request @relation(fields: [activity_request_id], references: [id])
+  user             user?            @relation(fields: [user_id], references: [id])
+}
+
+model request_email {
+  id         Int       @id @default(autoincrement())
+  request_id Int
+  user_id    Int
+  email      String    @db.VarChar(100)
+  created_on DateTime? @default(now())
+  created_by Int?
+
+  request request @relation(fields: [request_id], references: [id])
+  user    user    @relation(fields: [user_id], references: [id])
+}
+
+model request_detail_attachment {
+  id         Int       @id @default(autoincrement())
+  request_id Int
+  filename   String    @db.VarChar(100)
+  path       String    @db.VarChar(500)
+  created_on DateTime? @default(now())
+  created_by Int?
+
+  request request @relation(fields: [request_id], references: [id])
+  user    user?   @relation(fields: [created_by], references: [id])
+}
+
+model request_sample {
+  id                     Int       @id @default(autoincrement())
+  request_id             Int
+  sample_description_id  String?   @db.VarChar(10)
+  material_id            String?
+  material_code          String?   @db.VarChar(20)
+  sample_code            String?   @db.VarChar(10)
+  sample_name            String?   @db.VarChar(100)
+  line_id                Int?
+  sampling_date          DateTime?
+  expiry_date            DateTime?
+  batch_no               String?   @db.VarChar(10)
+  is_display_special     Boolean?  @default(false)
+  special_test_time      DateTime?
+  due_date               DateTime?
+  status_sample_id       String?
+  note                   String?   @db.VarChar(200)
+  category_edit_id       Int?
+  certificate_name       String?   @db.VarChar(150)
+  path                   String?   @db.VarChar(500)
+  revision               Int?
+  is_parameter_completed Boolean?  @default(false)
+  created_on             DateTime? @default(now())
+  created_by             Int?
+  updated_on             DateTime? @updatedAt
+  updated_by             Int?
+
+  request            request             @relation(fields: [request_id], references: [id])
+  sample_description sample_description? @relation(fields: [sample_description_id], references: [id])
+  material           material?           @relation(fields: [material_id], references: [id])
+  line               line?               @relation(fields: [line_id], references: [id])
+  status_sample      status_sample?      @relation(fields: [status_sample_id], references: [id])
+  category_edit      category_edit?      @relation(fields: [category_edit_id], references: [id])
+  stock_retain stock_retain[]
+
+  request_sample_item request_sample_item[]
+
+  request_sample_chemical request_sample_chemical[]
+
+  request_sample_microbiology request_sample_microbiology[]
+}
+
+model request_sample_item {
+  id                  Int       @id @default(autoincrement())
+  request_sample_id   Int
+  seq                 Int
+  quantity            Int?
+  unit_id             Int?
+  time                String?
+  sample_condition_id String?
+  lab_test_id         String?
+  remark              String?   @db.VarChar(100)
+  remark_lab          String?   @db.VarChar(100)
+  created_on          DateTime? @default(now())
+  created_by          Int?
+  updated_on          DateTime? @updatedAt
+  updated_by          Int?
+
+
+  stock_retain_item stock_retain_item[]
+  request_sample   request_sample    @relation(fields: [request_sample_id], references: [id])
+  unit             unit?             @relation(fields: [unit_id], references: [id])
+  sample_condition sample_condition? @relation(fields: [sample_condition_id], references: [id])
+  lab_test         lab_test?         @relation(fields: [lab_test_id], references: [id])
+}
+
+model request_sample_chemical {
+  id                    Int       @id @default(autoincrement())
+  request_sample_id     Int
+  chemical_parameter_id Int?
+  lab_result            String?   @db.VarChar(15)
+  test_by               Int?
+  test_date             DateTime?
+  created_on            DateTime? @default(now())
+  created_by            Int?
+
+  request_sample     request_sample      @relation(fields: [request_sample_id], references: [id])
+  chemical_parameter chemical_parameter? @relation(fields: [chemical_parameter_id], references: [id])
+}
+
+model request_sample_microbiology {
+  id                        Int       @id @default(autoincrement())
+  request_sample_id         Int
+  microbiology_parameter_id Int?
+  lab_result                String?   @db.VarChar(15)
+  test_by                   Int?
+  test_date                 DateTime?
+  created_on                DateTime? @default(now())
+  created_by                Int?
+
+  request_sample         request_sample          @relation(fields: [request_sample_id], references: [id])
+  microbiology_parameter microbiology_parameter? @relation(fields: [microbiology_parameter_id], references: [id])
+}
+
+model customer_contact_info {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(100)
+  status     Boolean?
+  created_on DateTime? @default(now()) @db.Timestamptz(6)
+  created_by Int?
+  updated_on DateTime? @updatedAt @db.Timestamptz(6)
+  updated_by Int?
+}
+
+model signature {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  filename   String    @db.VarChar(100)
+  path       String    @db.VarChar(500)
+  created_on DateTime? @default(now()) @db.Timestamptz(6)
+  created_by Int?
+  updated_on DateTime? @updatedAt @db.Timestamptz(6)
+  updated_by Int?
+
+  user user @relation(fields: [user_id], references: [id])
+}
+
+model chemical_sample_description {
+  id                    Int       @id @default(autoincrement())
+  sample_description_id String
+  chemical_parameter_id Int
+  lod_value             String?
+  loq_value             String?
+  created_on            DateTime? @default(now()) @db.Timestamptz(6)
+  created_by            Int?
+  updated_on            DateTime? @updatedAt @db.Timestamptz(6)
+  updated_by            Int?
+
+  chemical_parameter chemical_parameter @relation(fields: [chemical_parameter_id], references: [id])
+  sample_description sample_description @relation(fields: [sample_description_id], references: [id])
+}
+
+model microbiology_sample_description {
+  id                        Int       @id @default(autoincrement())
+  sample_description_id     String
+  microbiology_parameter_id Int
+  lod_value                 String?
+  loq_value                 String?
+  created_on                DateTime? @default(now()) @db.Timestamptz(6)
+  created_by                Int?
+  updated_on                DateTime? @updatedAt @db.Timestamptz(6)
+  updated_by                Int?
+
+  sample_description     sample_description     @relation(fields: [sample_description_id], references: [id])
+  microbiology_parameter microbiology_parameter @relation(fields: [microbiology_parameter_id], references: [id])
+}
+
+model sample_packaging {
+  id         Int       @id @default(autoincrement())
+  order      Int
+  name       String    @db.VarChar(100) // Sample Condition Name
+  text_input Boolean
+  status     Boolean
+  created_on DateTime? @default(now()) @db.Timestamptz(6)
+  created_by Int?
+  updated_on DateTime? @updatedAt @db.Timestamptz(6)
+  updated_by Int?
+}
+
+//today 2023-10-30
+
+model stock_retain {
+  id                Int       @id @default(autoincrement())
+  request_sample_id Int
+  location_id       Int
+  section_id        Int
+  box_id            Int
+  status_retain_id  String?
+  created_on        DateTime? @db.Timestamptz
+  created_by        Int?
+  updated_on        DateTime? @db.Timestamptz
+  updated_by        Int?
+
+  request_sample    request_sample @relation(fields: [request_sample_id], references: [id])
+  location          location @relation(fields: [location_id], references: [id])
+  section           section @relation(fields: [section_id], references: [id])
+  box               box @relation(fields: [box_id], references: [id])
+  stock_retain_item stock_retain_item[]
+  
+
+  
+
+}
+
+model stock_retain_item {
+  id               Int       @id @default(autoincrement())
+  stock_retain_id  Int
+  sample_item_id   Int
+  status_retain_id String?
+  approve_role_id  String?
+  plan_return_date DateTime? @db.Timestamptz
+  return_date      DateTime? @db.Timestamptz
+  created_on       DateTime? @db.Timestamptz
+  created_by       Int?
+  updated_on       DateTime? @db.Timestamptz
+  updated_by       Int?
+
+  stock_retain     stock_retain @relation(fields: [stock_retain_id], references: [id])
+  sample_item      request_sample_item @relation(fields: [sample_item_id], references: [id])
+  status_retain    status_retain? @relation(fields: [status_retain_id], references: [id])
+
+}
+
+model stock_retain_item_log {
+  id                   Int      @id @default(autoincrement())
+  stock_retain_item_id Int
+  stock_retain_id      Int
+  activity             String?  @db.VarChar(200)
+  user_id              Int
+  timestamp            DateTime @db.Timestamptz
+  remark               String?  @db.VarChar(200)
+
+  activity_retain activity_retain? @relation(fields: [activity], references: [id])
+}
+
+model stock_chemical {
+  id              Int       @id @default(autoincrement())
+  chemical_id     Int
+  manufacturer_id Int
+  created_on      DateTime? @db.Timestamptz
+  created_by      Int?
+  updated_on      DateTime? @db.Timestamptz
+  updated_by      Int?
+}
+
+model stock_chemical_item {
+  id                Int        @id @default(autoincrement())
+  stock_chemical_id Int
+  lot_no            String     @db.VarChar(10)
+  number_of_bottle  String     @db.VarChar(6)
+  received_date     DateTime   @db.Timestamptz
+  expiry_date       DateTime   @db.Timestamptz
+  withdraw_date     DateTime?  @db.Timestamptz
+  prepare_date      DateTime?  @db.Timestamptz
+  prepare_by        Int?
+  created_on        DateTime?  @db.Timestamptz
+  created_by        Int?
+  updated_on        DateTime?  @db.Timestamptz
+  updated_by        Int?
+}
+
+model stock_equipment {
+  id                   Int       @id @default(autoincrement())
+  equipment_type_id    Int
+  location_id          Int
+  manufacturer_id      Int
+  model                String    @db.VarChar(50)
+  serial_no            String    @db.VarChar(50)
+  equipment_code       String    @db.VarChar(50)
+  asset_no             String    @db.VarChar(50)
+  status_equipment_id  String?
+  created_on           DateTime? @db.Timestamptz
+  created_by           Int?
+  updated_on           DateTime? @db.Timestamptz
+  updated_by           Int?
+
+}
+
+model stock_equipment_calibration {
+  id                  Int       @id @default(autoincrement())
+  stock_equipment_id  Int
+  calibration_date    DateTime  @db.Timestamptz
+  due_date            DateTime  @db.Timestamptz
+  certification_no    String    @db.VarChar(50)
+  note                String?   @db.VarChar(200)
+  filename            String    @db.VarChar(100)
+  path                String    @db.VarChar(200)
+  created_on          DateTime? @db.Timestamptz
+  created_by          Int?
+}
+
+model stock_equipment_log {
+  id                   Int       @id @default(autoincrement())
+  stock_equipment_id   Int
+  status_equipment_id  Int
+  activity_equipment_id String
+  user_id              Int
+  timestamp            DateTime  @db.Timestamptz
+  note                 String?   @db.VarChar(200)
+}
+
+// Add these models to your existing schema.prisma file
+
+model activity_retain {
+  id     String  @id @db.VarChar(15)
+  order  Int
+  name   String  @db.VarChar(50)
+  status Boolean
+
+  stock_retain_item_log stock_retain_item_log[]
+}
+
