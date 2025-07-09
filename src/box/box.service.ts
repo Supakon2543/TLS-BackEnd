@@ -28,20 +28,31 @@ export class BoxService {
   async getBoxes(params: {
     id?: number | string;
     keyword?: string;
-    status?: number | string; // This parameter will be ignored
+    status?: number | string;
   }) {
-    let { id, keyword } = params; // Remove status from destructuring
+    let { id, keyword, status } = params;
 
-    // Convert id to number if it's a string
+    // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
+
+    // ✅ Return empty array if id is explicitly 0
+    if (id === 0) {
+      return [];
+    }
 
     // Build where clause
     const whereClause: any = {};
 
-    // ✅ Always filter for active boxes only (cannot be overridden)
-    whereClause.status = true;
+    // ✅ Add status filter (can be overridden by parameter)
+    if (typeof status === 'number' && !isNaN(status) && status !== 0) {
+      whereClause.status = status === 1; // 1 = true, anything else = false
+    } else {
+      // Default to showing only active boxes if no status specified
+      whereClause.status = true;
+    }
 
-    // ✅ Also filter for active locations and sections
+    // ✅ Always filter for active locations and sections
     whereClause.location = {
       status: true, // Only include boxes from active locations
     };
@@ -50,8 +61,8 @@ export class BoxService {
       status: true, // Only include boxes from active sections
     };
 
-    // Add id filter
-    if (typeof id === 'number' && !isNaN(id) && id !== 0) {
+    // Add id filter (only if id is a valid positive number)
+    if (typeof id === 'number' && !isNaN(id) && id > 0) {
       whereClause.id = id;
     }
 
@@ -59,10 +70,11 @@ export class BoxService {
     if (keyword && keyword.trim() !== '') {
       // When using keyword search, we need to merge the status filters with OR conditions
       whereClause.AND = [
-        // Ensure location and section are active
+        // Ensure location and section are active, and apply status filter
         {
           location: { status: true },
           section: { status: true },
+          status: whereClause.status, // Apply the status filter here too
         },
         // Apply keyword search
         {
@@ -95,9 +107,10 @@ export class BoxService {
         },
       ];
 
-      // Remove the individual location and section filters since they're now in AND
+      // Remove the individual filters since they're now in AND
       delete whereClause.location;
       delete whereClause.section;
+      delete whereClause.status;
     }
 
     // Get boxes with filters and multi-level sorting

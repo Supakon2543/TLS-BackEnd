@@ -87,15 +87,36 @@ export class LabSiteService {
       });
     }
 
-    async find(/*@Request() req: Request, @Response() res: Response*/) {
-      return await this.prisma.lab_site.findMany({
-        orderBy: { 
-          order: 'asc'
-        },
-        select: {
-          id: true,
-          name: true
-        }
-      })
+    async find(params?: {
+  id?: string;
+  status?: number | string;
+}) {
+  // Build where clause
+  const whereClause: any = {};
+
+  // Add id filter
+  if (params?.id && params.id.trim() !== '') {
+    whereClause.id = params.id;
+  }
+
+  // Add status filter
+  if (params?.status !== undefined) {
+    const statusValue = typeof params.status === 'string' ? +params.status : params.status;
+    if (typeof statusValue === 'number' && !isNaN(statusValue)) {
+      whereClause.status = statusValue === 1; // 1 = true, 0 = false
     }
+  }
+
+  return await this.prisma.lab_site.findMany({
+    where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
+    orderBy: { 
+      order: 'asc'
+    },
+    select: {
+      id: true,
+      name: true,
+      status: true, // ✅ Include status in response
+    }
+  });
+}
 }
