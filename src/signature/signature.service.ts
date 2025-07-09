@@ -8,13 +8,6 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 export class SignatureService {
   private readonly s3 = new S3Client({
     region: process.env.AWS_REGION,
-<<<<<<< HEAD
-    // credentials: {
-    //   accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    //   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-    // },
-=======
->>>>>>> backup/master
   });
   constructor(private readonly prisma: PrismaService) {}
   // Create or update a record
