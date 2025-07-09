@@ -1,8 +1,8 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import axios from "axios";
-import { PrismaService } from "src/prisma/prisma.service";
-import { UserRoleService } from "src/user_role/user_role.service";
-import { UsersService } from "src/users/users.service";
+import { PrismaService } from "../prisma/prisma.service";
+import { UserRoleService } from "../user_role/user_role.service";
+import { UsersService } from "../users/users.service";
 
 @Injectable()
 export class UserData {
@@ -19,7 +19,7 @@ export class UserData {
                 // Helper: fetch location and lab site info
                 const getLocationAndLabSite = async (user_id: string, locationName?: string) => {
                     let plant_location, filtered_plant, filtered_location;
-                    if (!locationName) {
+                    // if (!locationName) {
                         plant_location = await axios.post(
                             'https://api-dev.osotspa.com/securitycontrol/api/dataaccessbyuserid',
                             { user_id },
@@ -32,9 +32,10 @@ export class UserData {
                             filtered_plant = [];
                             filtered_location = [];
                         }
-                    } else {
-                        filtered_location = [{ data_value: locationName }];
-                    }
+                    // } 
+                    // else {
+                    //     filtered_location = [{ data_value: locationName }];
+                    // }
                     const user_location_data = await tx.user_location.findFirstOrThrow({
                         where: { name: filtered_location[0]?.data_value },
                         select: { id: true, name: true, lab_site_id: true }
