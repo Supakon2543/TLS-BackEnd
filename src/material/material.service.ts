@@ -23,6 +23,7 @@ export class MaterialService {
   }
   async upsertMaterialWithChildren(@Body() data: UpsertMaterialDto) {
     const material = data;
+    const now = new Date();
 
     // 1. Upsert the main material
     await this.prisma.material.upsert({
@@ -38,6 +39,7 @@ export class MaterialService {
         remark_report: material.remark_report,
         status: material.status,
         updated_by: material.updated_by,
+        updated_on: now,
       },
       create: {
         id: material.id,
@@ -52,13 +54,14 @@ export class MaterialService {
         status: material.status,
         created_by: material.created_by,
         updated_by: material.updated_by,
+        created_on: now,
+        updated_on: now,
       },
     });
 
     // 2. Sync material_chemical
     const chemicalIds = material.material_chemical.map((chem: any) => chem.id);
 
-    // Delete ones NOT in the new list
     await this.prisma.material_chemical.deleteMany({
       where: {
         material_id: material.id,
@@ -68,7 +71,6 @@ export class MaterialService {
       },
     });
 
-    // Upsert the current ones
     for (const chem of material.material_chemical) {
       await this.prisma.material_chemical.upsert({
         where: { id: chem.id },
@@ -79,6 +81,7 @@ export class MaterialService {
           material_id: chem.material_id,
           chemical_parameter_id: chem.chemical_parameter_id,
           created_by: chem.created_by,
+          created_on: now,
         },
       });
     }
@@ -107,6 +110,7 @@ export class MaterialService {
           material_id: micro.material_id,
           microbiology_parameter_id: micro.microbiology_parameter_id,
           created_by: micro.created_by,
+          created_on: now,
         },
       });
     }
