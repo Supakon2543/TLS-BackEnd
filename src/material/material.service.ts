@@ -168,7 +168,10 @@ export class MaterialService {
     // ✅ If no filters provided, get all materials (empty where clause)
     const materials = await this.prisma.material.findMany({
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
-      orderBy: { name: 'asc' },
+      orderBy: [
+            { id : 'asc' },
+            { name: 'asc' },
+          ],
       include: {
         material_chemical: {
           include: {
@@ -224,7 +227,10 @@ export class MaterialService {
   // Get all materials
   async findAll() {
     return this.prisma.material.findMany({
-      orderBy: { name: 'asc' }, // Sorting by name or any field as needed
+      orderBy: [
+            { id : 'asc' },
+            { name: 'asc' },
+          ],// Sorting by name or any field as needed
     });
   }
 
