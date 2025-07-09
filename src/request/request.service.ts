@@ -78,57 +78,350 @@ export class RequestService {
       });
     }
 
-    async get_info(params: { id?: number | string; }) {
+    async get_info(params: { id?: number | string }) {
       let { id } = params;
-
-      // Convert id to number and check validity
       id = id !== undefined ? +id : undefined;
       if (!id || isNaN(id)) {
-        return {} // throw new NotFoundException('Request ID is required and must be a valid number');
+        return {};
       }
 
+      // Fetch request with all necessary relations
       const request = await this.prisma.request.findUnique({
         where: { id },
         include: {
-          request_email: true,
-          request_detail: true,
-          request_detail_attachment: true,
-          request_sample: {
-            include: {
-              request_sample_chemical: true,
-              request_sample_microbiology: true,
-              request_sample_item: true,
+          requester: {
+            select: {
+              id: true,
+              fullname: true,
+              email: true,
+              company: true,
+              dept_name: true,
             },
           },
-          request_log: true,
+          request_email: {
+            select: {
+              id: true,
+              request_id: true,
+              user_id: true,
+              email: true,
+              created_on: true,
+              created_by: true,
+            },
+          },
+          request_detail: {
+            select: {
+              id: true,
+              request_id: true,
+              test_report_format_id: true,
+              accredited_id: true,
+              report_heading_id: true,
+              objective_id: true,
+              sample_stage_id: true,
+              lab_process_id: true,
+              sample_retaining_id: true,
+              note: true,
+              lab_receiver_id: true,
+              received_date: true,
+              lab_note: true,
+              created_on: true,
+              created_by: true,
+              updated_on: true,
+              updated_by: true,
+            },
+            take: 1,
+          },
+          request_detail_attachment: {
+            select: {
+              id: true,
+              request_id: true,
+              filename: true,
+              path: true,
+              created_on: true,
+              created_by: true,
+            },
+          },
+          request_sample: {
+            select: {
+              id: true,
+              request_id: true,
+              sample_description_id: true,
+              material_id: true,
+              material: { select: { name: true } },
+              sample_code: true,
+              sample_name: true,
+              line_id: true,
+              sampling_date: true,
+              expiry_date: true,
+              batch_no: true,
+              is_display_special: true,
+              special_test_time: true,
+              due_date: true,
+              status_sample_id: true,
+              note: true,
+              category_edit_id: true,
+              certificate_name: true,
+              path: true,
+              revision: true,
+              is_parameter_completed: true,
+              created_on: true,
+              created_by: true,
+              updated_on: true,
+              updated_by: true,
+              request_sample_chemical: {
+                select: {
+                  chemical_parameter: {
+                    select: {
+                      id: true,
+                      name: true,
+                      name_abb: true,
+                      request_min: true,
+                      unit_id: true,
+                      unit: { select: { name: true } },
+                      sample_type_id: true,
+                      spec_type_id: true,
+                      spec: true,
+                      spec_min: true,
+                      spec_max: true,
+                      warning_min: true,
+                      warning_max: true,
+                      final_result: true,
+                      decimal: true,
+                      is_enter_spec_min: true,
+                      is_enter_spec_max: true,
+                      is_enter_warning_min: true,
+                      is_enter_warning_max: true,
+                      is_enter_decimal: true,
+                    }
+                  },
+                  id: true,
+                  request_sample_id: true,
+                  chemical_parameter_id: true,
+                  lab_result: true,
+                  test_by: true,
+                  test_date: true,
+                  created_on: true,
+                  created_by: true,
+                },
+              },
+              request_sample_microbiology: {
+                select: {
+                  microbiology_parameter: {
+                    select: {
+                      id: true,
+                      name: true,
+                      name_abb: true,
+                      request_min: true,
+                      unit_id: true,
+                      unit: { select: { name: true } },
+                      sample_type_id: true,
+                      spec_type_id: true,
+                      spec: true,
+                      spec_min: true,
+                      spec_max: true,
+                      warning_min: true,
+                      warning_max: true,
+                      final_result: true,
+                      decimal: true,
+                      is_enter_spec_min: true,
+                      is_enter_spec_max: true,
+                      is_enter_warning_min: true,
+                      is_enter_warning_max: true,
+                      is_enter_decimal: true,
+                    }
+                  },
+                  id: true,
+                  request_sample_id: true,
+                  microbiology_parameter_id: true,
+                  lab_result: true,
+                  test_by: true,
+                  test_date: true,
+                  created_on: true,
+                  created_by: true,
+                },
+              },
+              request_sample_item: {
+                select: {
+                  id: true,
+                  request_sample_id: true,
+                  seq: true,
+                  quantity: true,
+                  unit_id: true,
+                  time: true,
+                  sample_condition_id: true,
+                  lab_test_id: true,
+                  remark: true,
+                  remark_lab: true,
+                  created_on: true,
+                  created_by: true,
+                  updated_on: true,
+                  updated_by: true,
+                },
+              },
+            },
+          },
+          request_log: {
+            select: {
+              id: true,
+              request_id: true,
+              sample_code: true,
+              status_request_id: true,
+              status_request: {
+                select: {
+                  name: true,
+                  state: { select: { id: true, order: true, name: true } },
+                },
+              },
+              activity_request_id: true,
+              activity_request: { select: { name: true } },
+              user_id: true,
+              user: { select: { fullname: true } },
+              timestamp: true,
+              remark: true,
+            },
+          },
         },
       });
 
-      if (!request) {
-        return {} // throw new NotFoundException(`Request with ID ${id} not found`);
-      }
+      if (!request) return {};
 
-      // Transform to match your desired structure
+      // Map requester info
+      const requester = request.requester;
+      // Map request_detail (take first if array)
+      const request_detail = Array.isArray(request.request_detail)
+        ? (request.request_detail[0] ?? null)
+        : request.request_detail;
+
+      // Build the response
       return {
         request: {
-          ...request,
-          // Remove nested arrays/objects from root
-          request_email: undefined,
-          request_detail: undefined,
-          request_detail_attachment: undefined,
-          request_sample: undefined,
-          request_log: undefined,
+          id: request.id,
+          request_number: request.request_number,
+          lab_site_id: request.lab_site_id,
+          request_type_id: request.request_type_id,
+          requester_id: request.requester_id,
+          requester_name: requester?.fullname ?? "",
+          requester_email: requester?.email ?? "",
+          company_name: requester?.company ?? "",
+          dept_name: requester?.dept_name ?? "",
+          request_date: request.request_date,
+          due_date: request.due_date,
+          telephone: request.telephone,
+          status_request_id: request.status_request_id,
+          status_sample_id: request.status_sample_id,
+          review_role_id: request.review_role_id,
+          original_id: request.original_id,
+          created_on: request.created_on,
+          created_by: request.created_by,
+          updated_on: request.updated_on,
+          updated_by: request.updated_by,
         },
         request_email: request.request_email ?? [],
-        request_detail: request.request_detail ?? {},
+        request_detail: request_detail ?? {},
         request_detail_attachment: request.request_detail_attachment ?? [],
         request_sample: (request.request_sample ?? []).map(sample => ({
-          ...sample,
-          request_sample_chemical: sample.request_sample_chemical ?? [],
-          request_sample_microbiology: sample.request_sample_microbiology ?? [],
+          id: sample.id,
+          request_id: sample.request_id,
+          sample_description_id: sample.sample_description_id,
+          material_id: sample.material_id,
+          material_name: sample.material?.name ?? "",
+          sample_code: sample.sample_code,
+          sample_name: sample.sample_name,
+          line_id: sample.line_id,
+          sampling_date: sample.sampling_date,
+          expiry_date: sample.expiry_date,
+          batch_no: sample.batch_no,
+          is_display_special: sample.is_display_special,
+          special_test_time: sample.special_test_time,
+          due_date: sample.due_date,
+          status_sample_id: sample.status_sample_id,
+          note: sample.note,
+          category_edit_id: sample.category_edit_id,
+          certificate_name: sample.certificate_name,
+          path: sample.path,
+          revision: sample.revision,
+          is_parameter_completed: sample.is_parameter_completed,
+          created_on: sample.created_on,
+          created_by: sample.created_by,
+          updated_on: sample.updated_on,
+          updated_by: sample.updated_by,
+          request_sample_chemical: (sample.request_sample_chemical ?? []).map(sample_chemical => ({
+            parameter_id: sample_chemical.chemical_parameter?.id,
+            name: sample_chemical.chemical_parameter?.name,
+            request_min: sample_chemical.chemical_parameter?.request_min,
+            unit_id: sample_chemical.chemical_parameter?.unit_id,
+            unit_name: sample_chemical.chemical_parameter?.unit?.name,
+            sample_type_id: sample_chemical.chemical_parameter?.sample_type_id,
+            spec_type_id: sample_chemical.chemical_parameter?.spec_type_id,
+            spec: sample_chemical.chemical_parameter?.spec,
+            spec_min: sample_chemical.chemical_parameter?.spec_min,
+            spec_max: sample_chemical.chemical_parameter?.spec_max,
+            warning_min: sample_chemical.chemical_parameter?.warning_min,
+            warning_max: sample_chemical.chemical_parameter?.warning_max,
+            final_result: sample_chemical.chemical_parameter?.final_result,
+            decimal: sample_chemical.chemical_parameter?.decimal,
+            is_enter_spec_min: sample_chemical.chemical_parameter?.is_enter_spec_min,
+            is_enter_spec_max: sample_chemical.chemical_parameter?.is_enter_spec_max,
+            is_enter_warning_min: sample_chemical.chemical_parameter?.is_enter_warning_min,
+            is_enter_warning_max: sample_chemical.chemical_parameter?.is_enter_warning_max,
+            is_enter_decimal: sample_chemical.chemical_parameter?.is_enter_decimal,
+            // Include the sample_chemical fields
+            id: sample_chemical.id,
+            request_sample_id: sample_chemical.request_sample_id,
+            chemical_parameter_id: sample_chemical.chemical_parameter_id,
+            lab_result: sample_chemical.lab_result,
+            test_by: sample_chemical.test_by,
+            test_date: sample_chemical.test_date,
+            created_on: sample_chemical.created_on,
+            created_by: sample_chemical.created_by,
+          })),
+          request_sample_microbiology: (sample.request_sample_microbiology ?? []).map(sample_microbiology => ({
+            parameter_id: sample_microbiology.microbiology_parameter?.id,
+            name: sample_microbiology.microbiology_parameter?.name,
+            request_min: sample_microbiology.microbiology_parameter?.request_min,
+            unit_id: sample_microbiology.microbiology_parameter?.unit_id,
+            unit_name: sample_microbiology.microbiology_parameter?.unit?.name,
+            sample_type_id: sample_microbiology.microbiology_parameter?.sample_type_id,
+            spec_type_id: sample_microbiology.microbiology_parameter?.spec_type_id,
+            spec: sample_microbiology.microbiology_parameter?.spec,
+            spec_min: sample_microbiology.microbiology_parameter?.spec_min,
+            spec_max: sample_microbiology.microbiology_parameter?.spec_max,
+            warning_min: sample_microbiology.microbiology_parameter?.warning_min,
+            warning_max: sample_microbiology.microbiology_parameter?.warning_max,
+            final_result: sample_microbiology.microbiology_parameter?.final_result,
+            decimal: sample_microbiology.microbiology_parameter?.decimal,
+            is_enter_spec_min: sample_microbiology.microbiology_parameter?.is_enter_spec_min,
+            is_enter_spec_max: sample_microbiology.microbiology_parameter?.is_enter_spec_max,
+            is_enter_warning_min: sample_microbiology.microbiology_parameter?.is_enter_warning_min,
+            is_enter_warning_max: sample_microbiology.microbiology_parameter?.is_enter_warning_max,
+            is_enter_decimal: sample_microbiology.microbiology_parameter?.is_enter_decimal,
+            // Include the sample_microbiology fields
+            id: sample_microbiology.id,
+            request_sample_id: sample_microbiology.request_sample_id,
+            microbiology_parameter_id: sample_microbiology.microbiology_parameter_id,
+            lab_result: sample_microbiology.lab_result,
+            test_by: sample_microbiology.test_by,
+            test_date: sample_microbiology.test_date,
+            created_on: sample_microbiology.created_on,
+            created_by: sample_microbiology.created_by,
+          })),
           request_sample_item: sample.request_sample_item ?? [],
         })),
-        request_log: request.request_log ?? []
+        request_log: (request.request_log ?? []).map(log => ({
+          id: log.id,
+          request_id: log.request_id,
+          sample_code: log.sample_code,
+          status_request_id: log.status_request_id,
+          state_id: log.status_request?.state?.id,
+          state_order: log.status_request?.state?.order,
+          state_name: log.status_request?.state?.name,
+          status_request_name: log.status_request?.name,
+          activity_request_id: log.activity_request_id,
+          activity_request_name: log.activity_request?.name,
+          user_id: log.user_id,
+          user_name: log.user?.fullname ?? "",
+          timestamp: log.timestamp,
+          remark: log.remark,
+        })),
       };
     }
 
@@ -379,6 +672,16 @@ export class RequestService {
         }
         await tx.request_email.deleteMany({ where: { request_id: requestId } });
         await tx.request_detail_attachment.deleteMany({ where: { request_id: requestId } });
+        
+        // Before deleting request_sample, delete all nested records for each sample
+        const samplesToDelete = await tx.request_sample.findMany({
+          where: { request_id: requestId },
+        });
+        for (const sample of samplesToDelete) {
+          await tx.request_sample_chemical.deleteMany({ where: { request_sample_id: sample.id } });
+          await tx.request_sample_microbiology.deleteMany({ where: { request_sample_id: sample.id } });
+          await tx.request_sample_item.deleteMany({ where: { request_sample_id: sample.id } });
+        }
         await tx.request_sample.deleteMany({ where: { request_id: requestId } });
         await tx.request_log.deleteMany({ where: { request_id: requestId } });
         await tx.request_detail.deleteMany({ where: { request_id: requestId } });
