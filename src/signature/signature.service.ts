@@ -211,12 +211,10 @@ export class SignatureService {
     const users = await this.prisma.user.findMany({
       where: userWhere,
       include: {
-        signature: {
-          orderBy: { id: 'asc' },
-        },
+        signature: {},
         user_role: true,
       },
-      orderBy: { id: 'asc' },
+      orderBy: { fullname: 'asc' },
     });
 
     type UserSignatureMap = {
