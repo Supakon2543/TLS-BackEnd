@@ -91,7 +91,7 @@ export class ChemicalService {
   // Get chemicals with filters
   const chemicals = await this.prisma.chemical.findMany({
     where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
-    orderBy: { name: 'asc' },
+    orderBy: { code: 'asc' },
     include: {
       manufacturer: {
         select: { name: true },
