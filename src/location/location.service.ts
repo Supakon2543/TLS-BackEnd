@@ -24,47 +24,83 @@ export class LocationService {
   }
 
   async getLocations(params: {
-    id?: number ;
-    keyword?: string;
-    status?: number | string;
-  }) {
-    let { id, keyword, status } = params;
+  id?: number;
+  keyword?: string;
+  status?: number | string;
+}) {
+  let { id, keyword, status } = params;
 
-    // Convert id and status to numbers if they are stringsa
-    id = id !== undefined ? +id : undefined;
-    status = status !== undefined ? +status : undefined;
-  
+  // Convert id and status to numbers if they are strings
+  id = id !== undefined ? +id : undefined;
+  status = status !== undefined ? +status : undefined;
 
-    if (id == 0 || Number.isNaN(id) || typeof id === 'string') {
-      if (keyword || status) {
-        return this.prisma.location.findMany({
-          where: {
-            ...(typeof status === 'number' && status !== 0
-              ? { status: status === 1 }
-              : {}),
-            ...(keyword && {
-              name: { contains: keyword, mode: 'insensitive' },
-            }),
-          },
-          orderBy: { name: 'asc' }, // Sorting by name or any field as needed
-        });
-      }
-      return [];
-    }
-
-    return this.prisma.location.findMany({
-      where: {
-        ...(id && { id }),
-        ...(typeof status === 'number' && status !== 0
-          ? { status: status === 1 }
-          : {}),
-        ...(keyword && {
-          name: { contains: keyword, mode: 'insensitive' },
-        }),
-      },
-      orderBy: { name: 'asc' },
-    });
+  // ✅ Return empty array if id is explicitly 0
+  if (id === 0) {
+    return [];
   }
+
+  // Build where clause
+  const whereClause: any = {};
+
+  // Add id filter (only if id is a valid positive number)
+  if (typeof id === 'number' && !isNaN(id) && id > 0) {
+    whereClause.id = id;
+  }
+
+  // Add status filter
+  if (typeof status === 'number' && status !== 0) {
+    whereClause.status = status === 1;
+  }
+
+  // Add keyword filter
+  if (keyword && keyword.trim() !== '') {
+    whereClause.name = {
+      contains: keyword.trim(),
+      mode: 'insensitive',
+    };
+  }
+
+  // Use raw SQL for the entire query to get exact collation control
+  let baseQuery = `
+    SELECT * FROM public.location
+  `;
+  
+  let conditions: string[] = [];
+  let queryParams: any[] = [];
+  let paramIndex = 1;
+
+  // Build WHERE conditions
+  if (Object.keys(whereClause).length > 0) {
+    if (whereClause.id) {
+      conditions.push(`id = $${paramIndex}`);
+      queryParams.push(whereClause.id);
+      paramIndex++;
+    }
+    
+    if (whereClause.status !== undefined) {
+      conditions.push(`status = $${paramIndex}`);
+      queryParams.push(whereClause.status);
+      paramIndex++;
+    }
+    
+    if (whereClause.name?.contains) {
+      conditions.push(`name ILIKE $${paramIndex}`);
+      queryParams.push(`%${whereClause.name.contains}%`);
+      paramIndex++;
+    }
+  }
+
+  // Add WHERE clause if conditions exist
+  if (conditions.length > 0) {
+    baseQuery += ` WHERE ${conditions.join(' AND ')}`;
+  }
+
+  // ✅ Add ORDER BY with specific collation
+  baseQuery += ` ORDER BY name COLLATE "C" ASC`;
+
+  // Execute the query
+  return this.prisma.$queryRawUnsafe(baseQuery, ...queryParams);
+}
 
   async findAll() {
     return this.prisma.location.findMany();
