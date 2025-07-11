@@ -29,7 +29,7 @@ export class AuthApiService {
       );
       console.log('Header Token:', header_token.data.access_token);
       const header_token_workday = await axios.post(
-        process.env.WORKDAYBASEURL ??'https://api.osotspa.com/workday/oauth2/token',
+        process.env.WORKDAYBASEURL ?? 'https://api.osotspa.com/workday/oauth2/token',
         {
           client_id:
             process.env.OAUTH2_CLIENT_ID_WORKDAY ??
@@ -117,6 +117,7 @@ export class AuthApiService {
           throw new UnauthorizedException('Invalid credentials');
         }
       } else if (!user.token) {
+
         console.log('username:', user.username);
         console.log('password:', user.password);
         const response_login = await axios.post(
