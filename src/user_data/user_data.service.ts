@@ -19,9 +19,9 @@ export class UserData {
                 // Helper: fetch location and lab site info
                 const getLocationAndLabSite = async (user_id: string, locationName?: string) => {
                     let plant_location, filtered_plant, filtered_location;
-                    // if (!locationName) {
+                    // if (!locationName
                         plant_location = await axios.post(
-                            'https://api-dev.osotspa.com/securitycontrol/api/dataaccessbyuserid',
+                            `${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/api/api/dataaccessbyuserid`,
                             { user_id },
                             { headers: { Authorization: `Bearer ${header_token.data.access_token}` } }
                         );
@@ -114,8 +114,8 @@ export class UserData {
 
                 // Helper: fetch roles from API and DB
                 const getEmployeeRoles = async (user_id: string) => {
-                    const employee_role = await axios.post(
-                        'https://api-dev.osotspa.com/securitycontrol/api/dataaccessbyuserid',
+                    const employee_role = await axios.post( //
+                        `${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/api/dataaccessbyuserid`,
                         { user_id },
                         { headers: { Authorization: `Bearer ${header_token.data.access_token}` } }
                     );

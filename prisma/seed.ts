@@ -1020,13 +1020,13 @@ async function upsert_user_api() {
     'TLS-Requester', 'TLS-QC', 'TLS-Lab-Lead', 'TLS-Lab-Admin',
     'TLS-Lab', 'TLS-ITSupport', 'TLS-Head-Requester', 'TLS-Head-Lab'
   ];
-  const user_list: any[] = [];
-  const header_token = await axios.post('https://api-dev.osotspa.com/securitycontrol/oauth2/token', {
+  const user_list: any[] = []; //
+  const header_token = await axios.post(`${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/oauth2/token`, {
     client_id: process.env.OAUTH2_CLIENT_ID ?? "2ATwV3iAbpmdkzuazH4XPZaffMsQc94H",
     client_secret: process.env.OAUTH2_CLIENT_SECRET ?? "f8D1UqM9OGVcziQ1SfIoz6UTXL5qaDtp",
     grant_type: process.env.OAUTH2_GRANT_TYPE ?? "client_credentials"
   });
-  const header_token_workday = await axios.post('https://api.osotspa.com/workday/oauth2/token', {
+  const header_token_workday = await axios.post(process.env.WORKDAYBASEURL ??'https://api.osotspa.com/workday/oauth2/token', {
     client_id: process.env.OAUTH2_CLIENT_ID_WORKDAY ?? "hvvsgnpPyZFOcyMdcsBlMbzPsEqQkIPg",
     client_secret: process.env.OAUTH2_CLIENT_SECRET_WORKDAY ?? "1iz9yRFqK4DB7SCmjX1oDbfS1NHNMZac",
     grant_type: process.env.OAUTH2_GRANT_TYPE_WORKDAY ?? "client_credentials"
@@ -1035,8 +1035,8 @@ async function upsert_user_api() {
   console.log('header_token_workday', header_token_workday.data.access_token);
 
   // Fetch all users by role (API calls, not DB, so outside transaction)
-  for (const role of role_list) {
-    const user = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/userlist_by_role', {
+  for (const role of role_list) { //
+    const user = await axios.post(`${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/api/userlist_by_role`, {
       roles: role,
     }, {
       headers: {
