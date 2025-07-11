@@ -46,7 +46,7 @@ export class UpsertMaterialDto {
   @IsOptional()
   status: boolean;
 
-  @IsDateString()
+  @IsString()
   @IsOptional()
   created_on: string;
 
@@ -54,7 +54,7 @@ export class UpsertMaterialDto {
   @IsOptional()
   created_by: number;
 
-  @IsDateString()
+  @IsString()
   @IsOptional()
   updated_on: string;
 

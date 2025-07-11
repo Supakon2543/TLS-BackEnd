@@ -25,6 +25,7 @@ export class MaterialService {
     const material = data;
     const now = new Date();
 
+
     // 1. Upsert the main material
     await this.prisma.material.upsert({
       where: { id: material.id },
