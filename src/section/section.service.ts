@@ -7,83 +7,92 @@ import { UpdateSectionDto } from './dto/update-section.dto';
 export class SectionService {
   constructor(private readonly prisma: PrismaService) {}
 
-async getSections(params: {
-  id?: number;
-  keyword?: string;
-  status?: number | string; // This parameter will be ignored
-}) {
-  let { id, keyword } = params; // Remove status from destructuring
+  async getSections(params: {
+    id?: number;
+    keyword?: string;
+    status?: number | string; // This parameter will be ignored
+  }) {
+    let { id, keyword } = params; // Remove status from destructuring
 
-  // Convert id to number if it's a string
-  id = id !== undefined ? +id : undefined;
+    // Convert id to number if it's a string
+    id = id !== undefined ? +id : undefined;
 
-  // ✅ Return empty array if id is explicitly 0
-  if (id === 0) {
-    return [];
-  }
+    // ✅ Return empty array if id is explicitly 0
+    if (id === 0) {
+      return [];
+    }
 
-  // Build where clause
-  const whereClause: any = {};
+    // Build where clause
+    const whereClause: any = {};
 
-  // ✅ Always filter for active sections only (cannot be overridden)
-  whereClause.status = true;
+    // ✅ Always filter for active sections only (cannot be overridden)
+    whereClause.status = true;
 
-  // Add id filter
-  if (typeof id === 'number' && !isNaN(id) && id > 0) {
-    whereClause.id = id;
-  }
+    // ✅ Only show sections under active locations
+    whereClause.location = {
+      status: true,
+    };
 
-  // ✅ Add keyword filter for both section name AND location name
-  if (keyword && keyword.trim() !== '') {
-    whereClause.OR = [
-      {
-        name: {
-          contains: keyword.trim(),
-          mode: 'insensitive',
-        },
-      },
-      {
-        location: {
+    // Add id filter
+    if (typeof id === 'number' && !isNaN(id) && id > 0) {
+      whereClause.id = id;
+    }
+
+    // ✅ Add keyword filter for both section name AND location name
+    if (keyword && keyword.trim() !== '') {
+      whereClause.OR = [
+        {
           name: {
             contains: keyword.trim(),
             mode: 'insensitive',
           },
-          status: true, // Ensure location is also active
+          // Still need to ensure location is active in OR conditions
+          location: {
+            status: true,
+          },
         },
-      },
-    ];
-  }
+        {
+          location: {
+            name: {
+              contains: keyword.trim(),
+              mode: 'insensitive',
+            },
+            status: true, // Ensure location is also active
+          },
+        },
+      ];
+    }
 
-  // Get sections with filters and sort by location name
-  const sections = await this.prisma.section.findMany({
-    where: whereClause,
-    orderBy: [
-      {
-        location: {
+    // Get sections with filters and sort by location name
+    const sections = await this.prisma.section.findMany({
+      where: whereClause,
+      orderBy: [
+        {
+          location: {
+            name: 'asc',
+          },
+        },
+        {
           name: 'asc',
         },
-      },
-      {
-        name: 'asc',
-      },
-    ],
-    include: {
-      location: {
-        select: { 
-          name: true,
-          status: true, // Include status for debugging if needed
+      ],
+      include: {
+        location: {
+          select: {
+            name: true,
+            status: true, // Include status for debugging if needed
+          },
         },
       },
-    },
-  });
+    });
 
-  // Transform the response to include location_name at the top level
-  return sections.map((s) => ({
-    ...s,
-    location_name: s.location?.name ?? null,
-    location: undefined,
-  }));
-}
+    // Transform the response to include location_name at the top level
+    return sections.map((s) => ({
+      ...s,
+      location_name: s.location?.name ?? null,
+      location: undefined,
+    }));
+  }
 
   // Create or update a record
   async createOrUpdate(data: CreateSectionDto) {
