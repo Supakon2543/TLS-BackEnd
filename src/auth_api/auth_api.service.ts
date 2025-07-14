@@ -17,28 +17,25 @@ export class AuthApiService {
   async login(@Body() user: CreateAuthApiDto): Promise<any> {
     try {
       const header_token = await axios.post(
-        `${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/oauth2/token`,
+        `${process.env.SECURITYCONTROLBASEURL}/oauth2/token`,
         {
           client_id:
-            process.env.OAUTH2_CLIENT_ID ?? '2ATwV3iAbpmdkzuazH4XPZaffMsQc94H',
+            process.env.OAUTH2_CLIENT_ID,
           client_secret:
-            process.env.OAUTH2_CLIENT_SECRET ??
-            'f8D1UqM9OGVcziQ1SfIoz6UTXL5qaDtp',
-          grant_type: process.env.OAUTH2_GRANT_TYPE ?? 'client_credentials',
+            process.env.OAUTH2_CLIENT_SECRET,
+          grant_type: process.env.OAUTH2_GRANT_TYPE,
         },
       );
       console.log('Header Token:', header_token.data.access_token);
       const header_token_workday = await axios.post(
-        process.env.WORKDAYBASEURL ?? 'https://api.osotspa.com/workday/oauth2/token',
+        `${process.env.WORKDAYBASEURL}`,
         {
           client_id:
-            process.env.OAUTH2_CLIENT_ID_WORKDAY ??
-            'hvvsgnpPyZFOcyMdcsBlMbzPsEqQkIPg',
+            process.env.OAUTH2_CLIENT_ID_WORKDAY,
           client_secret:
-            process.env.OAUTH2_CLIENT_SECRET_WORKDAY ??
-            '1iz9yRFqK4DB7SCmjX1oDbfS1NHNMZac',
+            process.env.OAUTH2_CLIENT_SECRET_WORKDAY,
           grant_type:
-            process.env.OAUTH2_GRANT_TYPE_WORKDAY ?? 'client_credentials',
+            process.env.OAUTH2_GRANT_TYPE_WORKDAY,
         },
       );
       console.log(
@@ -60,7 +57,7 @@ export class AuthApiService {
       let check_role: any;
       if (!user.password) {
         const response_login = await axios.post(
-          `${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/api/auth/signin_az`,
+          `${process.env.SECURITYCONTROLBASEURL}/api/auth/signin_az`,
           {
             username: user.username,
           },
@@ -71,7 +68,7 @@ export class AuthApiService {
           },
         );
         response_token = await axios.post(
-          `${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/api/auth/verify_token`,
+          `${process.env.SECURITYCONTROLBASEURL}/api/auth/verify_token`,
           {
             accessToken: response_login.data.accessToken,
           },
@@ -95,7 +92,7 @@ export class AuthApiService {
             console.log('Module ID:', moduleId);
             console.log('User ID:', user_data.id);
             check_role = await axios.post(
-              `${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/api/roles_modulesearch`,
+              `${process.env.SECURITYCONTROLBASEURL}/api/roles_modulesearch`,
               {
                 userid: user_data.id,
                 module_id: moduleId,
@@ -121,7 +118,7 @@ export class AuthApiService {
         console.log('username:', user.username);
         console.log('password:', user.password);
         const response_login = await axios.post(
-          `${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/api/auth/signin`,
+          `${process.env.SECURITYCONTROLBASEURL}/api/auth/signin`,
           {
             username: user.username,
             password: user.password,
@@ -134,7 +131,7 @@ export class AuthApiService {
         );
         console.log('Response Login:', response_login.data);
         response_token = await axios.post(
-          `${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/api/auth/verify_token`,
+          `${process.env.SECURITYCONTROLBASEURL}/api/auth/verify_token`,
           {
             accessToken: response_login.data.accessToken,
           },
@@ -158,7 +155,7 @@ export class AuthApiService {
             console.log('Module ID:', moduleId);
             console.log('User ID:', user_data.id);
             check_role = await axios.post(
-              `${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/api/roles_modulesearch`,
+              `${process.env.SECURITYCONTROLBASEURL}/api/roles_modulesearch`,
               {
                 userid: user_data.id,
                 module_id: moduleId,

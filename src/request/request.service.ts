@@ -1011,7 +1011,7 @@ export class RequestService {
       await this.prisma.request_log.create({
         data: {
           request_id: request_id,
-          activity_request_id: 'CANCEL',
+          activity_request_id: 'DELETE',
           status_request_id: 'CANCEL',
           remark: remark || '',
           user_id: user_id,

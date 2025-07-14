@@ -23,7 +23,7 @@ export class UserData {
                     let plant_location, filtered_plant, filtered_location;
                     // if (!locationName
                         plant_location = await axios.post(
-                            `${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/api/dataaccessbyuserid`,
+                            `${process.env.SECURITYCONTROLBASEURL}/api/dataaccessbyuserid`,
                             { user_id },
                             { headers: { Authorization: `Bearer ${header_token.data.access_token}` } }
                         );
@@ -118,7 +118,7 @@ export class UserData {
                 
                 const getEmployeeRoles = async (user_id: string) => {
                     const employee_role = await axios.post( //
-                        `${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/api/dataaccessbyuserid`,
+                        `${process.env.SECURITYCONTROLBASEURL}/api/dataaccessbyuserid`,
                         { user_id },
                         { headers: { Authorization: `Bearer ${header_token.data.access_token}` } }
                     );
