@@ -14,14 +14,16 @@ export class UserData {
 
     async generateUserData(user_data: any, header_token: any, header_token_workday: any) {
         const prisma = this.prisma;
+        console.log("generateUserData called with user_data:", user_data);
         try {
             return await prisma.$transaction(async (tx) => {
                 // Helper: fetch location and lab site info
                 const getLocationAndLabSite = async (user_id: string, locationName?: string) => {
+                    console.log("getLocationAndLabSite called with user_id:", user_id, "locationName:", locationName);
                     let plant_location, filtered_plant, filtered_location;
-                    // if (!locationName) {
+                    // if (!locationName
                         plant_location = await axios.post(
-                            'https://api-dev.osotspa.com/securitycontrol/api/dataaccessbyuserid',
+                            `${process.env.SECURITYCONTROLBASEURL}/api/dataaccessbyuserid`,
                             { user_id },
                             { headers: { Authorization: `Bearer ${header_token.data.access_token}` } }
                         );
@@ -113,9 +115,10 @@ export class UserData {
                 };
 
                 // Helper: fetch roles from API and DB
+                
                 const getEmployeeRoles = async (user_id: string) => {
-                    const employee_role = await axios.post(
-                        'https://api-dev.osotspa.com/securitycontrol/api/dataaccessbyuserid',
+                    const employee_role = await axios.post( //
+                        `${process.env.SECURITYCONTROLBASEURL}/api/dataaccessbyuserid`,
                         { user_id },
                         { headers: { Authorization: `Bearer ${header_token.data.access_token}` } }
                     );
@@ -168,9 +171,10 @@ export class UserData {
                         };
                     }
                 };
-
+                
                 // --- Branch 1: No employee_id ---
                 if (!user_data.employee_id) {
+                    
                     // Location & lab site
                     const {
                         user_location_data,
@@ -196,6 +200,7 @@ export class UserData {
                         supervisor_id: number | null;
                         position_name: string | null;
                     } | null = null;
+                    
                     if (user_data.supervisor_username && user_data.supervisor_name && user_data.supervisor_mail) {
                         supervisor_info = await tx.user.findFirst({
                             where: { username: user_data.supervisor_username },
@@ -207,12 +212,14 @@ export class UserData {
                             buildUserPayload('supervisor', user_data, null, supervisor_info)
                         );
                     }
+                    
                     const employee_info = await tx.user.findFirst({
                         where: { username: user_data.username },
                         select: { id: true, employee_id: true, username: true, fullname: true, tel: true, email: true,
                             company: true, dept_code: true, dept_name: true, user_location_id: true,
                             supervisor_id: true, position_name: true }
                     });
+                    
                     const employeeID = employee_info?.id ?? 0;
                     const supervisorID = supervisor_data?.id ?? 0;
                     const employee_data = await upsertEmployee(
@@ -232,6 +239,7 @@ export class UserData {
                 }
                 // --- Branch 2: With employee_id ---
                 else {
+                    
                     // Fetch employee & supervisor info from external API
                     const response_employee = await axios.get(
                         `https://api.osotspa.com/workday/api/workday/employee_info?employee_id=${user_data.employee_id}`,

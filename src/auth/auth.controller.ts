@@ -13,4 +13,11 @@ export class AuthController {
     // Validate user here (e.g., check password)
     return this.authService.login(user);
   }
+
+  @ApiOperation({ summary: 'Get RefreshToken' })
+  @Post('refresh')
+  async refresh(@Body() user: CreateAuthDto) {
+    // Validate user here (e.g., check password)
+    return "process.env.JWTSECRET #4 : " + String(process.env.JWTSECRET)
+  }
 }

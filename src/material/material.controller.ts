@@ -26,9 +26,6 @@ export class MaterialController {
   }
   @Post('')
   async upsertMaterialWithChildren(@Body() data: UpsertMaterialDto) {
-    // for (const data of datas) {
-    //   await this.materialService.upsertMaterialWithChildren(data);
-    // }
     await this.materialService.upsertMaterialWithChildren(data);
     return { code: 200, message: "Success" };
   }

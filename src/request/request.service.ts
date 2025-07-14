@@ -13,10 +13,10 @@ import path from 'path';
 export class RequestService {
   private readonly s3 = new S3Client({
       region: process.env.AWS_REGION,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-      },
+      // credentials: {
+      //   accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      //   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      // },
   });
   constructor(private readonly prisma: PrismaService){}
     async create(/*@Request() req: Request, */@Body() payload: CreateRequestDto/*, @Response() res: Response*/) {
@@ -1011,7 +1011,7 @@ export class RequestService {
       await this.prisma.request_log.create({
         data: {
           request_id: request_id,
-          activity_request_id: 'CANCEL',
+          activity_request_id: 'DELETE',
           status_request_id: 'CANCEL',
           remark: remark || '',
           user_id: user_id,

@@ -1,0 +1,35 @@
+version: 0.2
+
+env:
+  git-credential-helper: yes
+  variables:
+    AWS_DEFAULT_REGION: ap-southeast-1
+
+phases:
+  pre_build:
+    commands:
+      - AWS_ECR_ACCOUNT_URL=$(aws sts get-caller-identity --query Account --output text).dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - VERSION=${COMMIT_HASH:=latest}-$(date +%s)
+      - REPOSITORY_URI=$AWS_ECR_ACCOUNT_URL/$REPO_NAME
+
+  build:
+    commands:
+      - echo logging in Docker...
+      - docker login -u dkrosot687 -p $DOCKER_PASSWORD
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ECR_ACCOUNT_URL
+
+      # - ASSUME_ROLE_ARN="$CB_ROLE_ARN"
+      # - TEMP_ROLE=$(aws sts assume-role --role-arn $ASSUME_ROLE_ARN --role-session-name CodeBuild)
+      # - export TEMP_ROLE
+      # - export AWS_ACCESS_KEY_ID=$(echo "${TEMP_ROLE}" | jq -r '.Credentials.AccessKeyId')
+      # - export AWS_SECRET_ACCESS_KEY=$(echo "${TEMP_ROLE}" | jq -r '.Credentials.SecretAccessKey')
+      # - export AWS_SESSION_TOKEN=$(echo "${TEMP_ROLE}" | jq -r '.Credentials.SessionToken')
+
+      - docker build --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY --build-arg AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$VERSION
+
+  post_build:
+    commands:
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$VERSION

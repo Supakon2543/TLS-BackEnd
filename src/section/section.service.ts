@@ -7,15 +7,18 @@ import { UpdateSectionDto } from './dto/update-section.dto';
 export class SectionService {
   constructor(private readonly prisma: PrismaService) {}
 
-async getSections(params: {
+  async getSections(params: {
   id?: number;
   keyword?: string;
-  status?: number | string; // This parameter will be ignored
+  status?: number | string;
 }) {
-  let { id, keyword } = params; // Remove status from destructuring
+  let { id, keyword, status } = params;
 
   // Convert id to number if it's a string
   id = id !== undefined ? +id : undefined;
+
+  // Convert status to number if it's a string
+  status = status !== undefined ? +status : undefined;
 
   // ✅ Return empty array if id is explicitly 0
   if (id === 0) {
@@ -25,8 +28,27 @@ async getSections(params: {
   // Build where clause
   const whereClause: any = {};
 
-  // ✅ Always filter for active sections only (cannot be overridden)
-  whereClause.status = true;
+  // ✅ Status filter logic
+  if (status === 1) {
+    // Show only sections with status = true AND location status = true
+    whereClause.status = true;
+    whereClause.location = {
+      status: true,
+    };
+  } else if (status === 2) {
+    // Show sections with status = false OR location status = false
+    whereClause.OR = [
+      {
+        status: false,
+      },
+      {
+        location: {
+          status: false,
+        },
+      },
+    ];
+  }
+  // If status is undefined or any other value, show all sections (no status filter)
 
   // Add id filter
   if (typeof id === 'number' && !isNaN(id) && id > 0) {
@@ -35,28 +57,58 @@ async getSections(params: {
 
   // ✅ Add keyword filter for both section name AND location name
   if (keyword && keyword.trim() !== '') {
-    whereClause.OR = [
-      {
-        name: {
-          contains: keyword.trim(),
-          mode: 'insensitive',
+    // If we already have an OR condition from status filter, we need to handle it differently
+    if (whereClause.OR) {
+      // Combine existing OR conditions with keyword search
+      whereClause.AND = [
+        {
+          OR: whereClause.OR, // Keep existing OR conditions
         },
-      },
-      {
-        location: {
+        {
+          OR: [
+            {
+              name: {
+                contains: keyword.trim(),
+                mode: 'insensitive',
+              },
+            },
+            {
+              location: {
+                name: {
+                  contains: keyword.trim(),
+                  mode: 'insensitive',
+                },
+              },
+            },
+          ],
+        },
+      ];
+      // Remove the original OR to avoid conflicts
+      delete whereClause.OR;
+    } else {
+      // No existing OR conditions, add keyword search normally
+      whereClause.OR = [
+        {
           name: {
             contains: keyword.trim(),
             mode: 'insensitive',
           },
-          status: true, // Ensure location is also active
         },
-      },
-    ];
+        {
+          location: {
+            name: {
+              contains: keyword.trim(),
+              mode: 'insensitive',
+            },
+          },
+        },
+      ];
+    }
   }
 
   // Get sections with filters and sort by location name
   const sections = await this.prisma.section.findMany({
-    where: whereClause,
+    where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
     orderBy: [
       {
         location: {
@@ -69,9 +121,9 @@ async getSections(params: {
     ],
     include: {
       location: {
-        select: { 
+        select: {
           name: true,
-          status: true, // Include status for debugging if needed
+          status: true,
         },
       },
     },
@@ -81,6 +133,7 @@ async getSections(params: {
   return sections.map((s) => ({
     ...s,
     location_name: s.location?.name ?? null,
+    location_status: s.location?.status ?? null, // Include location status for debugging
     location: undefined,
   }));
 }
