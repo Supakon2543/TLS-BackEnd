@@ -26,59 +26,101 @@ export class BoxService {
   }
 
   async getBoxes(params: {
-  id?: number | string;
-  keyword?: string;
-  status?: number | string;
-}) {
-  let { id, keyword, status } = params;
+    id?: number | string;
+    keyword?: string;
+    status?: number | string;
+  }) {
+    let { id, keyword, status } = params;
 
-  // Convert id and status to numbers if they are strings
-  id = id !== undefined ? +id : undefined;
-  status = status !== undefined ? +status : undefined;
+    // Convert id and status to numbers if they are strings
+    id = id !== undefined ? +id : undefined;
+    status = status !== undefined ? +status : undefined;
 
-  // ✅ Return null if id is explicitly 0
-  if (id === 0) {
-    return null;
-  }
+    // ✅ Return null if id is explicitly 0
+    if (id === 0) {
+      return null;
+    }
 
-  // Build where clause
-  const whereClause: any = {};
+    // Build where clause
+    const whereClause: any = {};
 
-  // ✅ Add status filter (can be overridden by parameter)
-  if (typeof status === 'number' && !isNaN(status)) {
-    whereClause.status = status === 1; // 1 = true, 0 or other = false
-  } else {
-    // Default to showing only active boxes if no status specified
-    whereClause.status = true;
-  }
+    // ✅ Status filter logic
+    if (status === 1) {
+      // Show only boxes with status = true AND section status = true AND location status = true
+      whereClause.status = true;
+      whereClause.section = {
+        status: true,
+      };
+      whereClause.location = {
+        status: true,
+      };
+      
+    } else if (status === 2) {
+      // Show boxes with status = false OR section status = false OR location status = false
+      whereClause.OR = [
+        {
+          status: false,
+        },
+        {
+          section: {
+            status: false,
+          },
+        },
+        {
+          location: {
+            status: false,
+          },
+        },
+      ];
+    }
+    // If status is undefined or any other value, show all boxes (no status filter)
 
-  // ✅ Always filter for active locations and sections
-  whereClause.location = {
-    status: true, // Only include boxes from active locations
-  };
+    // Add id filter (only if id is a valid positive number)
+    if (typeof id === 'number' && !isNaN(id) && id > 0) {
+      whereClause.id = id;
+    }
 
-  whereClause.section = {
-    status: true, // Only include boxes from active sections
-  };
-
-  // Add id filter (only if id is a valid positive number)
-  if (typeof id === 'number' && !isNaN(id) && id > 0) {
-    whereClause.id = id;
-  }
-
-  // ✅ Add keyword filter for box name, section name, AND location name
-  if (keyword && keyword.trim() !== '') {
-    // When using keyword search, we need to merge the status filters with OR conditions
-    whereClause.AND = [
-      // Ensure location and section are active, and apply status filter
-      {
-        location: { status: true },
-        section: { status: true },
-        status: whereClause.status, // Apply the status filter here too
-      },
-      // Apply keyword search
-      {
-        OR: [
+    // ✅ Add keyword filter for box name, section name, AND location name
+    if (keyword && keyword.trim() !== '') {
+      // If we already have an OR condition from status filter, we need to handle it differently
+      if (whereClause.OR) {
+        // Combine existing OR conditions with keyword search
+        whereClause.AND = [
+          {
+            OR: whereClause.OR, // Keep existing OR conditions
+          },
+          {
+            OR: [
+              {
+                name: {
+                  contains: keyword.trim(),
+                  mode: 'insensitive',
+                },
+              },
+              {
+                section: {
+                  name: {
+                    contains: keyword.trim(),
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                location: {
+                  name: {
+                    contains: keyword.trim(),
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            ],
+          },
+        ];
+        // Remove the original OR to avoid conflicts
+        delete whereClause.OR;
+      } else {
+        // No existing OR conditions, add keyword search normally
+        whereClause.OR = [
           {
             name: {
               contains: keyword.trim(),
@@ -91,7 +133,6 @@ export class BoxService {
                 contains: keyword.trim(),
                 mode: 'insensitive',
               },
-              status: true, // Ensure section is active in keyword search
             },
           },
           {
@@ -100,62 +141,57 @@ export class BoxService {
                 contains: keyword.trim(),
                 mode: 'insensitive',
               },
-              status: true, // Ensure location is active in keyword search
             },
           },
-        ],
-      },
-    ];
+        ];
+      }
+    }
 
-    // Remove the individual filters since they're now in AND
-    delete whereClause.location;
-    delete whereClause.section;
-    delete whereClause.status;
-  }
-
-  // Get boxes with filters and multi-level sorting
-  const boxes = await this.prisma.box.findMany({
-    where: whereClause,
-    orderBy: [
-      {
+    // Get boxes with filters and multi-level sorting
+    const boxes = await this.prisma.box.findMany({
+      where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
+      orderBy: [
+        {
+          location: {
+            name: 'asc', // ✅ Sort by location name first
+          },
+        },
+        {
+          section: {
+            name: 'asc', // ✅ Then sort by section name for duplicate locations
+          },
+        },
+        {
+          name: 'asc', // ✅ Finally sort by box name for duplicate sections
+        },
+      ],
+      include: {
         location: {
-          name: 'asc', // ✅ Sort by location name first
+          select: {
+            name: true,
+            status: true, // Include status for debugging if needed
+          },
         },
-      },
-      {
         section: {
-          name: 'asc', // ✅ Then sort by section name for duplicate locations
+          select: {
+            name: true,
+            status: true, // Include status for debugging if needed
+          },
         },
       },
-      {
-        name: 'asc', // ✅ Finally sort by box name for duplicate sections
-      },
-    ],
-    include: {
-      location: {
-        select: {
-          name: true,
-          status: true, // Include status for debugging if needed
-        },
-      },
-      section: {
-        select: {
-          name: true,
-          status: true, // Include status for debugging if needed
-        },
-      },
-    },
-  });
+    });
 
-  // Transform the response to include flattened location_name and section_name
-  return boxes.map((box) => ({
-    ...box,
-    location_name: box.location?.name ?? null,
-    section_name: box.section?.name ?? null,
-    location: undefined,
-    section: undefined,
-  }));
-}
+    // Transform the response to include flattened location_name and section_name
+    return boxes.map((box) => ({
+      ...box,
+      location_name: box.location?.name ?? null,
+      section_name: box.section?.name ?? null,
+      location_status: box.location?.status ?? null, // Include for debugging
+      section_status: box.section?.status ?? null, // Include for debugging
+      location: undefined,
+      section: undefined,
+    }));
+  }
 
   async findAll() {
     return this.prisma.box.findMany();

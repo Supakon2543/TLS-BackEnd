@@ -88,7 +88,7 @@ export class ChemicalService {
     ];
   }
 
-  // Get chemicals with filters
+  // Get chemicals with filterssad
   const chemicals = await this.prisma.chemical.findMany({
     where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
     orderBy: { code: 'asc' },

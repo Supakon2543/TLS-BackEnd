@@ -96,8 +96,6 @@ async function clearOldData() {
   await prisma.chemical.deleteMany();
   await prisma.microbiology_parameter.deleteMany();
   await prisma.material.deleteMany();
-  await prisma.material_chemical.deleteMany();
-  await prisma.material_microbiology.deleteMany();
   await prisma.category_edit.deleteMany();
   await prisma.location.deleteMany();
   await prisma.section.deleteMany();
@@ -1022,23 +1020,23 @@ async function upsert_user_api() {
     'TLS-Requester', 'TLS-QC', 'TLS-Lab-Lead', 'TLS-Lab-Admin',
     'TLS-Lab', 'TLS-ITSupport', 'TLS-Head-Requester', 'TLS-Head-Lab'
   ];
-  const user_list: any[] = [];
-  const header_token = await axios.post('https://api-dev.osotspa.com/securitycontrol/oauth2/token', {
-    client_id: process.env.OAUTH2_CLIENT_ID ?? "2ATwV3iAbpmdkzuazH4XPZaffMsQc94H",
-    client_secret: process.env.OAUTH2_CLIENT_SECRET ?? "f8D1UqM9OGVcziQ1SfIoz6UTXL5qaDtp",
-    grant_type: process.env.OAUTH2_GRANT_TYPE ?? "client_credentials"
+  const user_list: any[] = []; //
+  const header_token = await axios.post(`${process.env.SECURITYCONTROLBASEURL}/oauth2/token`, {
+    client_id: process.env.OAUTH2_CLIENT_ID,
+    client_secret: process.env.OAUTH2_CLIENT_SECRET,
+    grant_type: process.env.OAUTH2_GRANT_TYPE
   });
-  const header_token_workday = await axios.post('https://api.osotspa.com/workday/oauth2/token', {
-    client_id: process.env.OAUTH2_CLIENT_ID_WORKDAY ?? "hvvsgnpPyZFOcyMdcsBlMbzPsEqQkIPg",
-    client_secret: process.env.OAUTH2_CLIENT_SECRET_WORKDAY ?? "1iz9yRFqK4DB7SCmjX1oDbfS1NHNMZac",
-    grant_type: process.env.OAUTH2_GRANT_TYPE_WORKDAY ?? "client_credentials"
+  const header_token_workday = await axios.post(`${process.env.WORKDAYBASEURL}`, {
+    client_id: process.env.OAUTH2_CLIENT_ID_WORKDAY,
+    client_secret: process.env.OAUTH2_CLIENT_SECRET_WORKDAY,
+    grant_type: process.env.OAUTH2_GRANT_TYPE_WORKDAY
   });
   console.log('header_token', header_token.data.access_token);
   console.log('header_token_workday', header_token_workday.data.access_token);
 
   // Fetch all users by role (API calls, not DB, so outside transaction)
-  for (const role of role_list) {
-    const user = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/userlist_by_role', {
+  for (const role of role_list) { //
+    const user = await axios.post(`${process.env.SECURITYCONTROLBASEURL}/api/userlist_by_role`, {
       roles: role,
     }, {
       headers: {

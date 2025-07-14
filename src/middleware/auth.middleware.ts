@@ -13,13 +13,14 @@ export class AuthMiddleware implements NestMiddleware {
     }
 
     try {
-      const header_token = await axios.post('https://api-dev.osotspa.com/securitycontrol/oauth2/token', {
+      //
+      const header_token = await axios.post(`${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/oauth2/token`, {
         client_id: process.env.OAUTH2_CLIENT_ID ?? "2ATwV3iAbpmdkzuazH4XPZaffMsQc94H",
         client_secret: process.env.OAUTH2_CLIENT_SECRET ?? "f8D1UqM9OGVcziQ1SfIoz6UTXL5qaDtp",
         grant_type: process.env.OAUTH2_GRANT_TYPE ?? "client_credentials"
       });
-      // Replace with your token verification API URL
-      const response = await axios.post('https://api-dev.osotspa.com/securitycontrol/api/auth/verify_token', {
+      // 
+      const response = await axios.post(`${process.env.SECURITYCONTROLBASEURL ?? 'https://api-dev.osotspa.com/securitycontrol'}/api/auth/verify_token`, {
         accessToken: token,
       }, {
         headers: {
