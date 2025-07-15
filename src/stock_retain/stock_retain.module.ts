@@ -5,6 +5,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   controllers: [StockRetainController],
-  providers: [StockRetainService, PrismaService],
+  providers: [StockRetainService /*, PrismaService*/],
 })
 export class StockRetainModule {}

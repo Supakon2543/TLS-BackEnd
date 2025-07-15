@@ -8,6 +8,7 @@ import { DuplicateRequestDto } from './dto/duplicate-request.dto';
 import { GetObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { CancelRequestDto } from './dto/cancel-request.dto';
 import path from 'path';
+import { ListRequestDto } from './dto/list-request.dto';
 
 @Injectable()
 export class RequestService {
@@ -1021,5 +1022,11 @@ export class RequestService {
       return {
         message: `Request with ID ${request_id} has been cancelled successfully.`,
     }
+  }
+
+  async list(@Body() payload: ListRequestDto) {
+    return await this.prisma.request.findMany({
+      orderBy: { created_on: 'desc' },
+    });
   }
 }

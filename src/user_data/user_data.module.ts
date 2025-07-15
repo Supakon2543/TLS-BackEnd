@@ -5,6 +5,6 @@ import { UsersService } from '../users/users.service';
 import { UserRoleService } from '../user_role/user_role.service';
 
 @Module({
-  providers: [UserData, PrismaService, UsersService, UserRoleService],
+  providers: [UserData /*, PrismaService*/, UsersService, UserRoleService],
 })
 export class UserDataModule {}

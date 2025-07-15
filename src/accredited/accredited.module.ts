@@ -5,6 +5,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   controllers: [AccreditedController],
-  providers: [AccreditedService, PrismaService],
+  providers: [AccreditedService /*, PrismaService*/],
 })
 export class AccreditedModule {}

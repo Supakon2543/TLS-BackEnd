@@ -5,6 +5,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   controllers: [TestReportFormatController],
-  providers: [TestReportFormatService, PrismaService],
+  providers: [TestReportFormatService /*, PrismaService*/],
 })
 export class TestReportFormatModule {}

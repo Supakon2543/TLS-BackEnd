@@ -7,7 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UserData } from 'src/user_data/user_data.service';
 
 @Module({
-  providers: [AuthApiService, UsersService, UserRoleService, PrismaService, UserData],
+  providers: [AuthApiService, UsersService, UserRoleService /*, PrismaService*/, UserData],
   controllers: [AuthApiController],
   exports: [AuthApiService],
 })

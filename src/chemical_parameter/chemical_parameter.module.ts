@@ -5,6 +5,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   controllers: [ChemicalParameterController],
-  providers: [ChemicalParameterService, PrismaService],
+  providers: [ChemicalParameterService /*, PrismaService*/],
 })
 export class ChemicalParameterModule {}

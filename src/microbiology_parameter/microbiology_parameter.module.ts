@@ -5,6 +5,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   controllers: [MicrobiologyParameterController],
-  providers: [MicrobiologyParameterService, PrismaService],
+  providers: [MicrobiologyParameterService /*, PrismaService*/],
 })
 export class MicrobiologyParameterModule {}

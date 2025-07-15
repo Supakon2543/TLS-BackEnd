@@ -5,6 +5,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   controllers: [ActivityRequestController],
-  providers: [ActivityRequestService, PrismaService],
+  providers: [ActivityRequestService /*, PrismaService*/],
 })
 export class ActivityRequestModule {}

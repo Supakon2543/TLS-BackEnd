@@ -5,6 +5,7 @@ import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { SaveRequestDto } from './dto/save-request.dto';
 import { DuplicateRequestDto } from './dto/duplicate-request.dto';
+import { ListRequestDto } from './dto/list-request.dto';
 
 @Controller('request')
 export class RequestController {
@@ -65,6 +66,12 @@ export class RequestController {
   @Post('cancel')
   async cancel(@Body() payload: any, @Res() res: Response) {
     const result = await this.requestService.cancel(payload);
+    return res.status(200).json(result);
+  }
+
+  @Post('list')
+  async list(@Body() payload: ListRequestDto, @Res() res: Response) {
+    const result = await this.requestService.list(payload);
     return res.status(200).json(result);
   }
 }
