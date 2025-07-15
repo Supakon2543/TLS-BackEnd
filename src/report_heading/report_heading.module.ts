@@ -5,6 +5,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   controllers: [ReportHeadingController],
-  providers: [ReportHeadingService, PrismaService],
+  providers: [ReportHeadingService /*, PrismaService*/],
 })
 export class ReportHeadingModule {}

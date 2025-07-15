@@ -5,6 +5,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   controllers: [SampleConditionController],
-  providers: [SampleConditionService, PrismaService],
+  providers: [SampleConditionService /*, PrismaService*/],
 })
 export class SampleConditionModule {}

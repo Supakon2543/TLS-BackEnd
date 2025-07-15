@@ -6,7 +6,7 @@ import { IsUniqueConstraint } from 'src/is-unique.validator';
 
 @Module({
   controllers: [ChemicalController],
-  providers: [ChemicalService, PrismaService, IsUniqueConstraint],
+  providers: [ChemicalService /*, PrismaService*/, IsUniqueConstraint],
 })
 export class ChemicalModule {}
 
