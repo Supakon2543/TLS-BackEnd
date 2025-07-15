@@ -5,6 +5,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   controllers: [SignatureController],
-  providers: [SignatureService, PrismaService],
+  providers: [SignatureService /*, PrismaService*/],
 })
 export class SignatureModule {}

@@ -63,10 +63,12 @@ import { DowloadS3Module } from './download_s3/download_s3.module';
 import { AuthApiModule } from './auth_api/auth_api.module';
 import { StockRetainModule } from './stock_retain/stock_retain.module';
 import { UserDataModule } from './user_data/user_data.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 
 @Module({
   imports: [
+    PrismaModule,
     UsersModule,
     ChemicalModule,
     UserRoleModule,

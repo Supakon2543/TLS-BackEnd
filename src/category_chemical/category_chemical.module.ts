@@ -5,6 +5,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   controllers: [CategoryChemicalController],
-  providers: [CategoryChemicalService, PrismaService],
+  providers: [CategoryChemicalService /*, PrismaService*/],
 })
 export class CategoryChemicalModule {}
