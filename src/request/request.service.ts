@@ -9,6 +9,8 @@ import { GetObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } fr
 import { CancelRequestDto } from './dto/cancel-request.dto';
 import path from 'path';
 import { ListRequestDto } from './dto/list-request.dto';
+import { sendMail } from '../email/email';
+import { stat } from 'fs';
 
 @Injectable()
 export class RequestService {
@@ -577,15 +579,15 @@ export class RequestService {
         }
 
         // ...rest of your save logic remains unchanged...
-        if (request_log.activity_request_id == "DRAFT") {
+        if (request_log.activity_request_id === "DRAFT") {
           request.status_request_id = "DRAFT";
           request_log.status_request_id = "DRAFT";
         }
-        else if (request_log.activity_request_id == "SEND") {
+        else if (request_log.activity_request_id === "SEND") {
           request.status_request_id = "REVIEW";
           request.review_role_id = "REQ_HEAD";
           request_log.status_request_id = "REVIEW";
-          if (request.request_type_id == "REQUEST") {
+          if (request.request_type_id === "REQUEST") {
             const last_request = await this.prisma.request.findFirst({
               where: { request_type_id: 'REQUEST' },
               orderBy: { created_on: 'desc' },
@@ -606,7 +608,7 @@ export class RequestService {
             }
             request.request_number = "RQ" + year + (lastNumber + 1).toString().padStart(4, "0");
           }
-          else if (request.request_type_id == "ROUTINE") {
+          else if (request.request_type_id === "ROUTINE") {
             const last_request = await this.prisma.request.findFirst({
               where: { request_type_id: 'ROUTINE' },
               orderBy: { created_on: 'desc' },
@@ -627,7 +629,7 @@ export class RequestService {
             }
             request.request_number = "RT" + year + (lastNumber + 1).toString().padStart(4, "0");
           }
-          else if (request.request_type_id == "QIP") {
+          else if (request.request_type_id === "QIP") {
             const last_request = await this.prisma.request.findFirst({
               where: { request_type_id: 'QIP' },
               orderBy: { created_on: 'desc' },
@@ -715,7 +717,7 @@ export class RequestService {
           : undefined;
 
         // 3. Upsert or replace nested entities
-        let s3Path = `tls/${process.env.ENVNAME}/request-detail-attachment/${requestId}/${attachments.filename}`;
+        let s3Path = `tls/${process.env.ENVNAME}/request/${requestId}/attachment/${attachments.filename}`;
         let filename = attachments.filename;
 
         // 1. Fetch all attachments for the request
@@ -764,7 +766,7 @@ export class RequestService {
             let buffer: Buffer;
             let mimeType = 'application/octet-stream';
             let filename = attachment.filename || `file_${Date.now()}`;
-            let s3Key = `tls/${process.env.ENVNAME}/request-detail-attachment/${requestId}/${filename}`;
+            let s3Key = `tls/${process.env.ENVNAME}/request/${requestId}/attachment/${filename}`;
 
             if (attachment.base64.startsWith('data:')) {
               const matches = attachment.base64.match(/^data:(.+);base64,(.+)$/);
@@ -856,7 +858,25 @@ export class RequestService {
         if (record) {
           await tx.request_log.create({ data: record });
         }
+        const requester = await tx.user.findUnique({
+          where: { id: request.requester_id },
+          include: {
+            supervisor: { select: { fullname: true, email: true } },
+          }
+        });
+
+        if (request_log.activity_request_id === "SEND") {
+          await sendMail(
+            requester?.supervisor?.email ?? '',
+            requester?.supervisor?.fullname ?? '',
+            'ขออนุมัติใบส่งตัวอย่าง',
+            request_log.activity_request_id,
+            `${process.env.FRONTEND_URL}/request/${requestId}`,
+          );
+        }
         return requestId;
+        
+        
       });
       console.log('request_id:', request_id);
       console.log('get_info:', await this.get_info({ id: request_id }));
@@ -866,6 +886,19 @@ export class RequestService {
         message: 'Success', //`Request with ID ${request_id} saved successfully.`,
         id: request_id,
       };
+    }
+
+    async accept(@Body() payload: any) {
+      await this.prisma.$transaction(async (tx) => {
+        const { request_id, request_sample, request_sample_item, activity_request_id, review_role_id, user_id, remark } = payload;
+        console.log('request_id:', request_id);
+        console.log('activity_request_id:', activity_request_id);
+        console.log('review_role_id:', review_role_id);
+        console.log('user_id:', user_id);
+        console.log('remark:', remark);
+        console.log('request_sample:', request_sample);
+        console.log('request_sample_item:', request_sample_item);
+      });
     }
 
     async duplicate(@Query() payload: DuplicateRequestDto) {
@@ -1025,8 +1058,74 @@ export class RequestService {
   }
 
   async list(@Body() payload: ListRequestDto) {
-    return await this.prisma.request.findMany({
+    const request = await this.prisma.request.findMany({
+      select: {
+        id: true,
+        request_number: true,
+        request_date: true,
+        due_date: true,
+        requester: {
+          select: {
+            id: true,
+            fullname: true,
+            email: true,
+          }
+        },
+        status_request: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
+        status_sample: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
+        request_type: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
+        lab_site: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
+      },
+
       orderBy: { created_on: 'desc' },
     });
+    return request.map(req => ({
+      id: req.id,
+      request_number: req.request_number,
+      requester_id: req.requester?.id,
+      requester_name: req.requester?.fullname,
+      lab_site_id: req.lab_site?.id,
+      lab_site_name: req.lab_site?.name,
+      request_type_id: req.request_type?.id,
+      request_type_name: req.request_type?.name,
+      request_date: req.request_date,
+      due_date: req.due_date,
+      status_request_id: req.status_request?.id,
+      status_request_name: req.status_request?.name,
+      status_sample_id: req.status_sample?.id,
+      status_sample_name: req.status_sample?.name,
+    }));
+  }
+
+  async test(@Body() payload: { sender: string, subject: string, receivers: string, message: string }) {
+    const { sender, subject, receivers, message } = payload;
+    const link = 'https://www.google.com';
+    return await sendMail(
+      sender,
+      subject,
+      receivers,
+      message,
+      link
+    );
   }
 }

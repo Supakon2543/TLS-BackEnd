@@ -212,6 +212,8 @@ model user {
   created_on       DateTime? @default(now()) @db.Timestamptz(3)
   updated_on       DateTime? @updatedAt @db.Timestamptz(3)
 
+  supervisor user? @relation("Supervisor", fields: [supervisor_id], references: [id])
+
   request request[]
 
   request_detail request_detail[]
@@ -224,6 +226,8 @@ model user {
 
   user_role user_role[]
   signature signature[]
+
+  user user[] @relation("Supervisor")
 }
 
 model user_role {
