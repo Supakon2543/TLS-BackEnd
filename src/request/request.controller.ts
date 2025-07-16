@@ -57,6 +57,12 @@ export class RequestController {
     return res.status(200).json(result);
   }
 
+  @Post('accept')
+  async accept(@Body() payload: any, @Res() res: Response) {
+    const result = await this.requestService.accept(payload);
+    return res.status(200).json(result);
+  }
+
   @Post('duplicate')
   async duplicate(@Body() payload: DuplicateRequestDto, @Res() res: Response) {
     const result = await this.requestService.duplicate(payload);
@@ -72,6 +78,12 @@ export class RequestController {
   @Post('list')
   async list(@Body() payload: ListRequestDto, @Res() res: Response) {
     const result = await this.requestService.list(payload);
+    return res.status(200).json(result);
+  }
+
+  @Post('test')
+  async test(@Body() payload: { sender: string; subject: string; receivers: string; message: string }, @Res() res: Response) {
+    const result = await this.requestService.test(payload);
     return res.status(200).json(result);
   }
 }
