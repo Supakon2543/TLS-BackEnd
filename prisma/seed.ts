@@ -1107,6 +1107,302 @@ async function createOrUpdateRequest() {
   console.log('✅ Request seeded');
 }
 
+// Add this function with the other seed functions
+// Add this function with the other seed functions
+async function seedRequestSampleLabel() {
+  console.log('🌱 Seeding request sample label data...');
+
+  try {
+    // Get existing units from database
+    const existingUnits = await prisma.unit.findMany({
+      where: { status: true },
+      select: { id: true, name: true },
+    });
+
+    // Get existing chemical parameters from database
+    const existingChemicalParams = await prisma.chemical_parameter.findMany({
+      where: { status: true },
+      select: { id: true, name: true, name_abb: true, unit_id: true },
+      orderBy: { order: 'asc' },
+      take: 5, // Take first 5 for testing
+    });
+
+    // Get existing microbiology parameters from database
+    const existingMicrobiologyParams = await prisma.microbiology_parameter.findMany({
+      where: { status: true },
+      select: { id: true, name: true, name_abb: true, unit_id: true },
+      orderBy: { order: 'asc' },
+      take: 3, // Take first 3 for testing
+    });
+
+    // Get existing lab_test from database
+    const existingLabTest = await prisma.lab_test.findFirst({
+      where: { status: true },
+      select: { id: true, name: true },
+    });
+
+    // Get existing request_type from database
+    const existingRequestTypes = await prisma.request_type.findMany({
+      where: { status: true },
+      select: { id: true, name: true },
+    });
+
+    // ✅ Get existing status_request from database
+    const existingStatusRequest = await prisma.status_request.findMany({
+      where: { status: true },
+      select: { id: true, name: true },
+    });
+
+    // ✅ Get existing status_sample from database
+    const existingStatusSample = await prisma.status_sample.findMany({
+      where: { status: true },
+      select: { id: true, name: true },
+    });
+
+    // ✅ Get existing role from database
+    const existingRoles = await prisma.role.findMany({
+      where: { status: true },
+      select: { id: true, name: true },
+    });
+
+    // ✅ Get existing lab_site from database
+    const existingLabSites = await prisma.lab_site.findMany({
+      where: { status: true },
+      select: { id: true, name: true },
+    });
+
+    // ✅ Get existing activity_request from database
+    const existingActivityRequest = await prisma.activity_request.findMany({
+      where: { status: true },
+      select: { id: true, name: true },
+    });
+
+    if (existingChemicalParams.length === 0 || existingMicrobiologyParams.length === 0) {
+      console.log('⚠️ No existing parameters found. Please seed chemical_parameter and microbiology_parameter first.');
+      return;
+    }
+
+    if (!existingLabTest) {
+      console.log('⚠️ No existing lab_test found. Please seed lab_test first.');
+      return;
+    }
+
+    if (existingStatusRequest.length === 0) {
+      console.log('⚠️ No existing status_request found. Please seed status_request first.');
+      return;
+    }
+
+    // Create requests with different types using existing data
+    const requests = [
+      { 
+        id: 1, 
+        request_number: 'REQ-001', 
+        request_type_id: existingRequestTypes.find(rt => rt.id === 'REQUEST')?.id || existingRequestTypes[0]?.id || 'REQUEST',
+        lab_site_id: existingLabSites.find(ls => ls.id === 'AY')?.id || existingLabSites[0]?.id || 'AY',
+        status_request_id: existingStatusRequest.find(sr => sr.id === 'APPROVED')?.id || existingStatusRequest[0]?.id
+      },
+      { 
+        id: 2, 
+        request_number: 'REQ-002', 
+        request_type_id: existingRequestTypes.find(rt => rt.id === 'STANDARD')?.id || existingRequestTypes[0]?.id || 'STANDARD',
+        lab_site_id: existingLabSites.find(ls => ls.id === 'HM')?.id || existingLabSites[0]?.id || 'HM',
+        status_request_id: existingStatusRequest.find(sr => sr.id === 'APPROVED')?.id || existingStatusRequest[0]?.id
+      },
+      { 
+        id: 3, 
+        request_number: 'REQ-003', 
+        request_type_id: existingRequestTypes.find(rt => rt.id === 'URGENT')?.id || existingRequestTypes[0]?.id || 'URGENT',
+        lab_site_id: existingLabSites.find(ls => ls.id === 'AY')?.id || existingLabSites[0]?.id || 'AY',
+        status_request_id: existingStatusRequest.find(sr => sr.id === 'APPROVED')?.id || existingStatusRequest[0]?.id
+      },
+    ];
+
+    for (const req of requests) {
+      await prisma.request.upsert({
+        where: { id: req.id },
+        update: {
+          request_number: req.request_number,
+          request_type_id: req.request_type_id,
+          lab_site_id: req.lab_site_id,
+          status_request_id: req.status_request_id,
+          requester_id: 1,
+          request_date: new Date('2025-01-17'),
+          due_date: new Date('2025-01-24'),
+          telephone: '081234567890',
+          status_sample_id: existingStatusSample.find(ss => ss.id === 'TESTING')?.id || existingStatusSample[0]?.id || 'TESTING',
+          review_role_id: existingRoles.find(r => r.id === 'LAB_LEAD')?.id || existingRoles[0]?.id || 'LAB_LEAD',
+          updated_by: 1,
+        },
+        create: {
+          id: req.id,
+          request_number: req.request_number,
+          request_type_id: req.request_type_id,
+          lab_site_id: req.lab_site_id,
+          status_request_id: req.status_request_id,
+          requester_id: 1,
+          request_date: new Date('2025-01-17'),
+          due_date: new Date('2025-01-24'),
+          telephone: '081234567890',
+          status_sample_id: existingStatusSample.find(ss => ss.id === 'TESTING')?.id || existingStatusSample[0]?.id || 'TESTING',
+          review_role_id: existingRoles.find(r => r.id === 'LAB_LEAD')?.id || existingRoles[0]?.id || 'LAB_LEAD',
+          created_by: 1,
+          updated_by: 1,
+        },
+      });
+    }
+
+    // Create request_log entries
+    const requestLogs = [
+      { id: 1, request_id: 1, timestamp: new Date('2025-01-17T10:30:00Z'), user_id: 1 },
+      { id: 2, request_id: 2, timestamp: new Date('2025-01-17T14:00:00Z'), user_id: 1 },
+      { id: 3, request_id: 3, timestamp: new Date('2025-01-17T16:30:00Z'), user_id: 1 },
+    ];
+
+    for (const log of requestLogs) {
+      await prisma.request_log.upsert({
+        where: { id: log.id },
+        update: {
+          request_id: log.request_id,
+          timestamp: log.timestamp,
+          status_request_id: existingStatusRequest[0]?.id || 'PENDING',
+          activity_request_id: existingActivityRequest[0]?.id || 'REQUEST_CREATED',
+          user_id: log.user_id,
+        },
+        create: {
+          request_id: log.request_id,
+          timestamp: log.timestamp,
+          status_request_id: existingStatusRequest[0]?.id || 'PENDING',
+          activity_request_id: existingActivityRequest[0]?.id || 'REQUEST_CREATED',
+          user_id: log.user_id,
+        },
+      });
+    }
+
+    // Create request_sample entries
+    const requestSamples = [
+      { id: 1, sample_code: 'SAMPLE001', sample_name: 'Water Sample A', material_code: 'MAT001', batch_no: 'BATCH001', request_id: 1 },
+      { id: 2, sample_code: 'SAMPLE002', sample_name: 'Water Sample B', material_code: 'MAT002', batch_no: 'BATCH002', request_id: 2 },
+      { id: 3, sample_code: 'SAMPLE003', sample_name: 'Water Sample C', material_code: 'MAT003', batch_no: 'BATCH003', request_id: 3 },
+    ];
+
+    for (const sample of requestSamples) {
+      await prisma.request_sample.upsert({
+        where: { id: sample.id },
+        update: {
+          sample_code: sample.sample_code,
+          sample_name: sample.sample_name,
+          material_code: sample.material_code,
+          batch_no: sample.batch_no,
+          request_id: sample.request_id,
+          updated_by: 1,
+        },
+        create: {
+          id: sample.id,
+          sample_code: sample.sample_code,
+          sample_name: sample.sample_name,
+          material_code: sample.material_code,
+          batch_no: sample.batch_no,
+          request_id: sample.request_id,
+          created_by: 1,
+          updated_by: 1,
+        },
+      });
+    }
+
+    // Create request_sample_item entries using existing lab_test
+    const requestSampleItems = [
+      { id: 1, request_sample_id: 1, lab_test_id: existingLabTest.id, time: '10:30:00', seq: 1 },
+      { id: 2, request_sample_id: 1, lab_test_id: existingLabTest.id, time: '11:00:00', seq: 2 },
+      { id: 3, request_sample_id: 1, lab_test_id: existingLabTest.id, time: '11:30:00', seq: 3 },
+      { id: 4, request_sample_id: 2, lab_test_id: existingLabTest.id, time: '14:00:00', seq: 1 },
+      { id: 5, request_sample_id: 3, lab_test_id: existingLabTest.id, time: '16:30:00', seq: 1 },
+    ];
+
+    for (const item of requestSampleItems) {
+      await prisma.request_sample_item.upsert({
+        where: { id: item.id },
+        update: {
+          request_sample_id: item.request_sample_id,
+          lab_test_id: item.lab_test_id,
+          time: item.time,
+          seq: item.seq,
+          updated_by: 1,
+        },
+        create: {
+          id: item.id,
+          request_sample_id: item.request_sample_id,
+          lab_test_id: item.lab_test_id,
+          time: item.time,
+          seq: item.seq,
+          created_by: 1,
+          updated_by: 1,
+        },
+      });
+    }
+
+    // Create request_sample_chemical using existing chemical parameters
+    // Only for sample_id 1 (request_type = 'REQUEST' to test the 'request' condition)
+    const requestSampleChemical = existingChemicalParams.slice(0, 3).map((param, index) => ({
+      id: index + 1,
+      request_sample_id: 1,
+      chemical_parameter_id: param.id,
+      status: true,
+    }));
+
+    for (const chemical of requestSampleChemical) {
+      await prisma.request_sample_chemical.upsert({
+        where: { id: chemical.id },
+        update: {
+          request_sample_id: chemical.request_sample_id,
+          chemical_parameter_id: chemical.chemical_parameter_id,
+          created_by: 1,
+        },
+        create: {
+          id: chemical.id,
+          request_sample_id: chemical.request_sample_id,
+          chemical_parameter_id: chemical.chemical_parameter_id,
+          created_by: 1,
+        },
+      });
+    }
+
+    // Create request_sample_microbiology using existing microbiology parameters
+    // Only for sample_id 1 (request_type = 'REQUEST' to test the 'request' condition)
+    const requestSampleMicrobiology = existingMicrobiologyParams.slice(0, 2).map((param, index) => ({
+      id: index + 1,
+      request_sample_id: 1,
+      microbiology_parameter_id: param.id,
+      status: true,
+    }));
+
+    for (const microbiology of requestSampleMicrobiology) {
+      await prisma.request_sample_microbiology.upsert({
+        where: { id: microbiology.id },
+        update: {
+          request_sample_id: microbiology.request_sample_id,
+          microbiology_parameter_id: microbiology.microbiology_parameter_id,
+          created_by: 1,
+        },
+        create: {
+          id: microbiology.id,
+          request_sample_id: microbiology.request_sample_id,
+          microbiology_parameter_id: microbiology.microbiology_parameter_id,
+          created_by: 1,
+        },
+      });
+    }
+
+    console.log('✅ request_sample_label seeded using existing data');
+    console.log(`   - Used ${existingChemicalParams.length} existing chemical parameters`);
+    console.log(`   - Used ${existingMicrobiologyParams.length} existing microbiology parameters`);
+    console.log(`   - Used existing lab_test: ${existingLabTest.name}`);
+    console.log(`   - Used existing status_request: ${existingStatusRequest.length} found`);
+    console.log(`   - Created 3 test samples with different request types`);
+
+  } catch (error) {
+    console.error('❌ Error seeding request_sample_label:', error);
+  }
+}
 /* ---------- main runner ---------- */
 
 async function main() {
@@ -1139,6 +1435,7 @@ async function main() {
   await seedObjectiveFromNew();
   await seedLineFromNew();
   await upsert_user_api();
+  // await seedRequestSampleLabel();
   // await seedUnitFromNew();
   // await seedChemicalParameterFromNew();
   // await createOrUpdateUser();
