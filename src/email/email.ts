@@ -26,8 +26,7 @@ const mailbody = (
     message: string,
     SubmittedBy: string,
     id: string
-) => `<!DOCTYPE html>
-        <!DOCTYPE html>
+) => `  <!DOCTYPE html>
         <html lang="en">
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
