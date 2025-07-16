@@ -9,7 +9,7 @@ import { GetObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } fr
 import { CancelRequestDto } from './dto/cancel-request.dto';
 import path from 'path';
 import { ListRequestDto } from './dto/list-request.dto';
-import { sendMail } from '../email/email';
+import { sendMail, testEmail } from '../email/email';
 import { stat } from 'fs';
 
 @Injectable()
@@ -448,8 +448,8 @@ export class RequestService {
             quantity: item.quantity ?? 0,
             unit_id: item.unit_id ?? 0,
             time: item.time ?? "",
-            sample_condition_id: item.sample_condition_id ?? 0,
-            lab_test_id: item.lab_test_id ?? 0,
+            sample_condition_id: item.sample_condition_id ?? "",
+            lab_test_id: item.lab_test_id ?? "",
             remark: item.remark ?? "",
             remark_lab: item.remark_lab ?? "",
             created_on: item.created_on ?? "",
@@ -1121,7 +1121,7 @@ export class RequestService {
   async test(@Body() payload: { sender: string, subject: string, receivers: string, message: string }) {
     const { sender, subject, receivers, message } = payload;
     const link = 'https://www.google.com';
-    return await sendMail(
+    return await testEmail(
       sender,
       subject,
       receivers,
