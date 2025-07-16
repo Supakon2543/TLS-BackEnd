@@ -282,6 +282,7 @@ export class RequestService {
               timestamp: true,
               remark: true,
             },
+            orderBy: { timestamp: 'desc' },
           },
         },
       });
@@ -1101,19 +1102,19 @@ export class RequestService {
     });
     return request.map(req => ({
       id: req.id,
-      request_number: req.request_number,
-      requester_id: req.requester?.id,
-      requester_name: req.requester?.fullname,
-      lab_site_id: req.lab_site?.id,
-      lab_site_name: req.lab_site?.name,
-      request_type_id: req.request_type?.id,
-      request_type_name: req.request_type?.name,
-      request_date: req.request_date,
-      due_date: req.due_date,
-      status_request_id: req.status_request?.id,
-      status_request_name: req.status_request?.name,
-      status_sample_id: req.status_sample?.id,
-      status_sample_name: req.status_sample?.name,
+      request_number: req.request_number ?? "",
+      requester_id: req.requester?.id ?? 0,
+      requester_name: req.requester?.fullname ?? "",
+      lab_site_id: req.lab_site?.id ?? "",
+      lab_site_name: req.lab_site?.name ?? "",
+      request_type_id: req.request_type?.id ?? "",
+      request_type_name: req.request_type?.name ?? "",
+      request_date: req.request_date ?? "",
+      due_date: req.due_date ?? "",
+      status_request_id: req.status_request?.id ?? "",
+      status_request_name: req.status_request?.name ?? "",
+      status_sample_id: req.status_sample?.id ?? "",
+      status_sample_name: req.status_sample?.name ?? "",
     }));
   }
 
