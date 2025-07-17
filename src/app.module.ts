@@ -64,6 +64,7 @@ import { AuthApiModule } from './auth_api/auth_api.module';
 import { StockRetainModule } from './stock_retain/stock_retain.module';
 import { UserDataModule } from './user_data/user_data.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ImageController } from './image/image.controller';
 
 
 @Module({
@@ -131,7 +132,7 @@ import { PrismaModule } from './prisma/prisma.module';
     StockRetainModule, // Importing the StockRetainModule
     UserDataModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, ImageController],
   providers: [AppService],
 })
 export class AppModule /*implements NestModule*/{
