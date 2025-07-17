@@ -9,7 +9,7 @@ import { GetObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } fr
 import { CancelRequestDto } from './dto/cancel-request.dto';
 import path from 'path';
 import { ListRequestDto } from './dto/list-request.dto';
-import { sendMail } from '../email/email';
+import { sendMail, testEmail } from '../email/email';
 import { stat } from 'fs';
 
 @Injectable()
@@ -448,8 +448,8 @@ export class RequestService {
             quantity: item.quantity ?? 0,
             unit_id: item.unit_id ?? 0,
             time: item.time ?? "",
-            sample_condition_id: item.sample_condition_id ?? 0,
-            lab_test_id: item.lab_test_id ?? 0,
+            sample_condition_id: item.sample_condition_id ?? "",
+            lab_test_id: item.lab_test_id ?? "",
             remark: item.remark ?? "",
             remark_lab: item.remark_lab ?? "",
             created_on: item.created_on ?? "",
@@ -722,48 +722,39 @@ export class RequestService {
         let filename = attachments.filename;
 
         // 1. Fetch all attachments for the request
-        const attachmentsToDelete = await this.prisma.request_detail_attachment.findMany({
+        const attachmentsInDb = await this.prisma.request_detail_attachment.findMany({
           where: { request_id: requestId }
         });
-  
-        // 2. Loop and delete each file from S3
-        for (const attachment of attachmentsToDelete) {
-          if (attachment.path && typeof attachment.path === 'string' && attachment.path.trim() !== '') {
-            // Remove leading slash if present
-            const s3Key = attachment.path.startsWith('/') ? attachment.path.slice(1) : attachment.path;
-            try {
-              await this.s3.send(
-                new (await import('@aws-sdk/client-s3')).DeleteObjectCommand({
-                  Bucket: process.env.AWS_S3_BUCKET!,
-                  Key: s3Key,
-                }),
-              );
-            } catch (err) {
-              // Log but don't throw, so the process continues
-              console.warn('Failed to delete S3 file:', s3Key, err?.message || err);
+
+        // 2. Prepare a map for quick lookup
+        const payloadAttachmentIds = new Set((attachments ?? []).map(a => a.id).filter(id => id));
+
+        // 3. Delete attachments in DB that are not in the payload
+        for (const dbAttachment of attachmentsInDb) {
+          if (!payloadAttachmentIds.has(dbAttachment.id)) {
+            // Remove from S3 if path exists
+            if (dbAttachment.path && typeof dbAttachment.path === 'string' && dbAttachment.path.trim() !== '') {
+              const s3Key = dbAttachment.path.startsWith('/') ? dbAttachment.path.slice(1) : dbAttachment.path;
+              try {
+                await this.s3.send(
+                  new (await import('@aws-sdk/client-s3')).DeleteObjectCommand({
+                    Bucket: process.env.AWS_S3_BUCKET!,
+                    Key: s3Key,
+                  }),
+                );
+              } catch (err) {
+                console.warn('Failed to delete S3 file:', s3Key, err?.message || err);
+              }
             }
+            // Remove from DB
+            await tx.request_detail_attachment.delete({ where: { id: dbAttachment.id } });
           }
         }
-        await tx.request_email.deleteMany({ where: { request_id: requestId } });
-        await tx.request_detail_attachment.deleteMany({ where: { request_id: requestId } });
-        
-        // Before deleting request_sample, delete all nested records for each sample
-        const samplesToDelete = await tx.request_sample.findMany({
-          where: { request_id: requestId },
-        });
-        for (const sample of samplesToDelete) {
-          await tx.request_sample_chemical.deleteMany({ where: { request_sample_id: sample.id } });
-          await tx.request_sample_microbiology.deleteMany({ where: { request_sample_id: sample.id } });
-          await tx.request_sample_item.deleteMany({ where: { request_sample_id: sample.id } });
-        }
-        await tx.request_sample.deleteMany({ where: { request_id: requestId } });
-        await tx.request_detail.deleteMany({ where: { request_id: requestId } });
 
-        await tx.request_email.createMany({ data: emails });
-        if (detail) await tx.request_detail.create({ data: detail });
-        // If base64 is provided (raw, not data URL), upload to S3
+        // 4. Upsert or create/update attachments
         for (const attachment of attachments) {
           if (attachment.base64 && attachment.base64 !== '') {
+            // Upload to S3
             let buffer: Buffer;
             let mimeType = 'application/octet-stream';
             let filename = attachment.filename || `file_${Date.now()}`;
@@ -776,20 +767,12 @@ export class RequestService {
               buffer = Buffer.from(matches[2], 'base64');
             } else {
               buffer = Buffer.from(attachment.base64, 'base64');
-              // Optionally, set mimeType based on file extension
-              if (filename.endsWith('.pdf')) {
-                mimeType = 'application/pdf';
-              } else if (filename.endsWith('.png')) {
-                mimeType = 'image/png';
-              } else if (filename.endsWith('.jpg') || filename.endsWith('.jpeg')) {
-                mimeType = 'image/jpeg';
-              } else if (filename.endsWith('.txt')) {
-                mimeType = 'text/plain';
-              } else if (filename.endsWith('.docx')) {
-                mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-              } else if (filename.endsWith('.xlsx')) {
-                mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-              }
+              if (filename.endsWith('.pdf')) mimeType = 'application/pdf';
+              else if (filename.endsWith('.png')) mimeType = 'image/png';
+              else if (filename.endsWith('.jpg') || filename.endsWith('.jpeg')) mimeType = 'image/jpeg';
+              else if (filename.endsWith('.txt')) mimeType = 'text/plain';
+              else if (filename.endsWith('.docx')) mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+              else if (filename.endsWith('.xlsx')) mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
             }
 
             await this.s3.send(
@@ -800,16 +783,39 @@ export class RequestService {
                 ContentType: mimeType,
               }),
             );
-            // Set the S3 path for later DB insert
             attachment.path = `/${s3Key}`;
-            // Optionally, remove base64 to avoid storing it in DB
             delete attachment.base64;
+
+            // Upsert (create or update) in DB
+            if (attachment.id) {
+              await tx.request_detail_attachment.update({
+                where: { id: attachment.id },
+                data: { ...attachment, path: `/${s3Key}` },
+              });
+            } else {
+              await tx.request_detail_attachment.create({
+                data: attachment,
+              });
+            }
+          } else if (attachment.id) {
+            // base64 is empty, but attachment exists in DB: update other fields, don't upload
+            const { base64, ...rest } = attachment;
+            await tx.request_detail_attachment.update({
+              where: { id: attachment.id },
+              data: rest,
+            });
+          } else {
+            // New attachment with no base64: skip (or handle as needed)
           }
         }
-        await tx.request_detail_attachment.createMany({ data: attachments });
+
+        // ...existing code...
+        console.log('samples:', samples);
 
         for (const sample of samples) {
+          // Change destructuring here as well:
           const { request_sample_item, request_sample_chemical, request_sample_microbiology, ...sampleData } = sample;
+          
           const createdSample = await tx.request_sample.create({
             data: sampleData,
           });
@@ -1120,13 +1126,15 @@ export class RequestService {
 
   async test(@Body() payload: { sender: string, subject: string, receivers: string, message: string }) {
     const { sender, subject, receivers, message } = payload;
+    console.log('Testing email with payload:', payload);
     const link = 'https://www.google.com';
-    return await sendMail(
-      sender,
-      subject,
+    const response = await sendMail(
       receivers,
-      message,
+      'Title',
+      subject,
+      'SEND',
       link
     );
+    return response.data
   }
 }
