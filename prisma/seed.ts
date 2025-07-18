@@ -2428,11 +2428,6 @@ async function seedLocationEmailFromNew() {
   for (const r of rows) {
     try {
       // Skip rows without required data
-      if (!r.email || r.email === null || r.email === '') {
-        console.warn('⚠️ Skipping row with missing email:', r);
-        skipped++;
-        continue;
-      }
 
       let locationId: number | undefined;
       if (r.location_id != null && r.location_id !== '') {
@@ -2627,6 +2622,7 @@ async function main() {
   await seedManufacturerFromNew();
   await seedChemicalFromNew();
   await seedEquipmentTypeFromNew();
+  await seedLocationEmailFromNew();
 
   // await upsert_user_api();
 
