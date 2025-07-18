@@ -1408,7 +1408,6 @@ async function seedRequestSampleLabel() {
 async function main() {
   // Comment out clearOldData if you want to preserve existing data
   // await clearOldData();
-
   await seedLabProcess();
   await seedSampleStage();
   await seedSampleRetaining();
