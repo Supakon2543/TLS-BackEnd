@@ -12,20 +12,6 @@ CREATE TABLE "activity_retain" (
     CONSTRAINT "activity_retain_pkey" PRIMARY KEY ("id")
 );
 
--- Insert required data for activity_retain
-INSERT INTO "activity_retain" ("id", "order", "name", "status") VALUES
-('AR01', 1, 'Initial', true),
-('AR02', 2, 'In Progress', true),
-('AR03', 3, 'Completed', true)
-ON CONFLICT ("id") DO NOTHING;
-
--- Insert required data for status_retain (if it doesn't exist)
-INSERT INTO "status_retain" ("id", "name", "description") VALUES
-('SR01', 'Active', 'Active retain status'),
-('SR02', 'Inactive', 'Inactive retain status'),
-('SR03', 'Pending', 'Pending retain status')
-ON CONFLICT ("id") DO NOTHING;
-
 -- AddForeignKey
 ALTER TABLE "status_request" ADD CONSTRAINT "status_request_state_id_fkey" FOREIGN KEY ("state_id") REFERENCES "state"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
