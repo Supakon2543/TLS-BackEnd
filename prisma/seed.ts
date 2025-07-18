@@ -2574,7 +2574,7 @@ async function main() {
   // Comment out clearOldData if you want to preserve existing data
   // await clearOldData();
 
-  // await seedLabSite();
+  await seedLabSite();
   await seedRequestType();
   await seedState();
   await seedStatusRequest();
@@ -2619,7 +2619,7 @@ async function main() {
 
   // await seedRequestSampleLabel();
 
-  // await createOrUpdateUser();
+  await createOrUpdateUser();
   // await createOrUpdateRequest();
   // await createOrUpdateStockRetain();
   // await createOrUpdateStockRetainItem();
