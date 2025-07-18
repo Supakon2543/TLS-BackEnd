@@ -2519,6 +2519,69 @@ async function seedLocationEmailFromNew() {
   );
 }
 
+async function seedLocationFromNew() {
+  const fileName = 'Location.xlsx';
+  const filePath = path.join(__dirname, 'staticfile', fileName);
+  const wb = xlsx.readFile(filePath);
+  const sheet = wb.SheetNames[0];
+  const rows = xlsx.utils.sheet_to_json<any>(wb.Sheets[sheet], {
+    defval: null,
+  });
+
+  let created = 0;
+  let updated = 0;
+  let skipped = 0;
+
+  for (const r of rows) {
+    try {
+      // Skip rows without required data
+      if (!r.name || r.name === null || r.name === '') {
+        console.warn('⚠️ Skipping row with missing name:', r);
+        skipped++;
+        continue;
+      }
+
+      // Check if record exists by name first, then by code if available
+      let existingLocation = await prisma.location.findFirst({
+        where: { name: r.name },
+      });
+
+      // Common data object
+      const locationData = {
+        name: r.name,
+        status: toBool(r.status),
+      };
+
+      if (existingLocation) {
+        // Update existing record
+        await prisma.location.update({
+          where: { id: existingLocation.id },
+          data: locationData,
+        });
+        updated++;
+        console.log(`✅ Updated: ${r.name} (code: ${r.code})`);
+      } else {
+        // Create new record
+        await prisma.location.create({
+          data: {
+            ...locationData,
+            created_by: r.created_by ? Number(r.created_by) : 0,
+          },
+        });
+        created++;
+        console.log(`✅ Created: ${r.name} (code: ${r.code})`);
+      }
+    } catch (e) {
+      console.error('❌ Failed to process location:', r, e.message);
+      skipped++;
+    }
+  }
+
+  console.log(
+    `✅ location seeded: ${created} created, ${updated} updated, ${skipped} skipped`,
+  );
+}
+
 /* ---------- main runner ---------- */
 
 async function main() {
@@ -2558,6 +2621,7 @@ async function main() {
   await seedMaterialChemicalParameterFromNew();
   await seedEditCategoryFromNew();
   await seedUserLocation();
+  await seedLocationFromNew();
   await seedSectionFromNew();
   await seedBoxFromNew();
   await seedManufacturerFromNew();
