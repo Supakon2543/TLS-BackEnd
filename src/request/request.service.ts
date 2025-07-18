@@ -1206,7 +1206,7 @@ export class RequestService {
         
       });
       console.log('request_id:', request_id);
-      console.log('get_info:', await this.get_info({ id: request_id }));
+      // console.log('get_info:', await this.get_info({ id: request_id }));
       // 4. Return the full request info
       // return await this.get_info({ id: request_id });
       return {
