@@ -2428,80 +2428,71 @@ async function seedLocationEmailFromNew() {
   for (const r of rows) {
     try {
       // Skip rows without required data
-
-      let locationId: number | undefined;
-      if (r.location_id != null && r.location_id !== '') {
-        const location = await prisma.location.findFirst({
+      if (!r.email_notification || r.email_notification === null || r.email_notification === '') {
+        console.warn('⚠️ Skipping row with missing email_notification:', r);
+        skipped++;
+        continue;
+      }
+      let userLocationId: string | undefined;
+      if (r.user_location_id != null && r.user_location_id !== '') {
+        const userLocation = await prisma.user_location.findFirst({
           where: {
             OR: [
-              { name: r.location_id },
-              ...(isNaN(parseInt(r.location_id))
-                ? []
-                : [{ id: parseInt(r.location_id) }]),
+              { name: r.user_location_id },
+              { id: r.user_location_id },
             ],
           },
           select: { id: true },
         });
-        locationId = location ? location.id : undefined;
+        userLocationId = userLocation ? userLocation.id : undefined;
       }
-
-      // Check if record exists by user_location_id first
+      
+      // Check if record exists by email first
       let existingLocationEmail = await prisma.location_email.findFirst({
         where: {
-          user_location_id: locationId?.toString() || '',
+          email_notification: r.email_notification,
         },
       });
 
-      // If not found and locationId exists, try to find by user_location_id and email combination
-      if (!existingLocationEmail && locationId) {
-        existingLocationEmail = await prisma.location_email.findFirst({
-          where: {
-            // ✅ Use the correct field name
-            user_location_id: locationId.toString(),
-          },
-        });
-      }
-
       // Base location email data
       const baseLocationEmailData = {
-        user_location_id: locationId ? locationId.toString() : null,
-        email_notification: r.email || null,
+        email_notification: r.email_notification,
         status: toBool(r.status),
+        updated_by: r.updated_by ? Number(r.updated_by) : 0,
       };
 
       if (existingLocationEmail) {
-        // Update existing record
-        const updateData = { ...baseLocationEmailData };
-
-        // Add location_id only if it has valid value
-        if (locationId !== undefined && locationId !== null) {
-          (updateData as any).location_id = locationId.toString();
-        }
-
+        // Update existing record using relation syntax
         await prisma.location_email.update({
           where: { id: existingLocationEmail.id },
-          data: updateData,
+          data: {
+            ...baseLocationEmailData,
+            // ✅ Use relation syntax instead of direct field assignment
+            ...(userLocationId ? {
+              user_location: {
+                connect: { id: userLocationId }
+              }
+            } : {}),
+          },
         });
         updated++;
-        console.log(`✅ Updated: ${r.email} (location: ${r.location_id})`);
+        console.log(`✅ Updated: ${r.email_notification} (location: ${r.user_location_id})`);
       } else {
-        // Create new record
-        const createData: typeof prisma.location_email.create extends (args: { data: infer U }) => any ? U : never = {
-          ...baseLocationEmailData,
-          created_by: r.created_by ? Number(r.created_by) : 0,
-          status: toBool(r.status),
-        };
-
-        // Add location_id only if it has valid value
-        if (locationId !== undefined && locationId !== null) {
-          (createData as any).location_id = locationId.toString();
-        }
-
+        // Create new record using relation syntax
         await prisma.location_email.create({
-          data: createData,
+          data: {
+            ...baseLocationEmailData,
+            created_by: r.created_by ? Number(r.created_by) : 0,
+            // ✅ Use relation syntax instead of direct field assignment
+            ...(userLocationId ? {
+              user_location: {
+                connect: { id: userLocationId }
+              }
+            } : {}),
+          },
         });
         created++;
-        console.log(`✅ Created: ${r.email} (location: ${r.location_id})`);
+        console.log(`✅ Created: ${r.email_notification} (location: ${r.user_location_id})`);
       }
     } catch (e) {
       console.error('❌ Failed to process location_email:', r, e.message);
