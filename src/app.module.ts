@@ -65,6 +65,7 @@ import { StockRetainModule } from './stock_retain/stock_retain.module';
 import { UserDataModule } from './user_data/user_data.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ReportModule } from './report/report.module';
+import { ImageController } from './image/image.controller';
 
 
 @Module({
@@ -132,7 +133,7 @@ import { ReportModule } from './report/report.module';
     StockRetainModule, // Importing the StockRetainModule
     UserDataModule, ReportModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, ImageController],
   providers: [AppService],
 })
 export class AppModule /*implements NestModule*/{

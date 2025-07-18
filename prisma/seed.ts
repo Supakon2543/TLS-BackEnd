@@ -897,7 +897,7 @@ async function seedChemicalParameterFromNew() {
 
     try {
       await prisma.chemical_parameter.upsert({
-        where: { id: r.id },
+        where: { id: r.id ?? -1},
         update: {
           order: Number(r.order),
           name: r.name,
@@ -919,7 +919,7 @@ async function seedChemicalParameterFromNew() {
           updated_by: r.updated_by ? Number(r.updated_by) : 0,
         },
         create: {
-          id: r.id,
+          // id: r.id,
           order: Number(r.order),
           name: r.name,
           name_abb: r.name_abb,
