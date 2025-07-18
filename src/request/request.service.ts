@@ -11,6 +11,7 @@ import path from 'path';
 import { ListRequestDto } from './dto/list-request.dto';
 import { sendMail, testEmail } from '../email/email';
 import { stat } from 'fs';
+import { time } from 'console';
 
 @Injectable()
 export class RequestService {
@@ -690,7 +691,7 @@ export class RequestService {
         }
 
         // ...rest of your save logic remains unchanged...
-        if (request_log.activity_request_id === "DRAFT" && (request.status_request_id === "" || request.status_request_id === "DRAFT")) {
+        if (request_log.activity_request_id === "DRAFT" && (request.status_request_id === "" || request.status_request_id === null || request.status_request_id === "DRAFT")) {
           request.status_request_id = "DRAFT";
           request_log.status_request_id = "DRAFT";
         }
@@ -828,10 +829,69 @@ export class RequestService {
         }));
         // Ensure request_log is always a record (single object)
         const record = request_log
-          ? { ...request_log, request_id: requestId }
+          ? { ...request_log, request_id: requestId, user_id: payload.user_id, timestamp: now, status_request_id: request.status_request_id }
           : undefined;
+        // 1. Fetch all request_email for the request
+        const emailsInDb = await tx.request_email.findMany({
+          where: { request_id: requestId }
+        });
 
+        // 2. Prepare a set of email IDs from the payload
+        const emailIdsInPayload = new Set(emails.filter(e => e.id).map(e => e.id));
+
+        // 3. Delete emails in DB that are not in the payload
+        for (const dbEmail of emailsInDb) {
+          if (!emailIdsInPayload.has(dbEmail.id)) {
+            await tx.request_email.delete({ where: { id: dbEmail.id } });
+          }
+        }
+
+        // 4. Upsert or create/update emails
+        for (const email of emails) {
+          const { id, ...emailData } = email;
+          if (email.id) {
+            await tx.request_email.upsert({
+              where: { id: email.id ?? -1 },
+              update: {
+                ...email,
+                request_id: requestId,
+              },
+              create: {
+                ...emailData,
+                request_id: requestId,
+                created_on: email.created_on ?? now,
+                created_by: email.created_by,
+              },
+            });
+          } else {
+            await tx.request_email.create({
+              data: {
+                ...emailData,
+                request_id: requestId,
+                created_on: email.created_on ?? now,
+                created_by: email.created_by,
+              },
+            });
+          }
+        }
         // 3. Upsert or replace nested entities
+        await tx.request_detail.upsert({
+          where: { id: detail.id ?? -1 },
+          update: {
+            ...detail,
+            request_id: requestId,
+            updated_on: now,
+            updated_by: detail?.updated_by,
+          },
+          create: {
+            ...detail,
+            request_id: requestId,
+            created_on: detail?.created_on ?? now,
+            created_by: detail?.created_by,
+            updated_on: now,
+            updated_by: detail?.updated_by,
+          },
+        });
         let s3Path = `tls/${process.env.ENVNAME}/request/${requestId}/attachment/${attachments.filename}`;
         let filename = attachments.filename;
 
@@ -985,23 +1045,37 @@ export class RequestService {
             }
           }
           for (const item of items) {
-            await tx.request_sample_item.upsert({
-              where: { id: item.id ?? -1 },
-              update: {
-                ...item,
-                request_sample_id: sampleId,
-                updated_on: now,
-                updated_by: item.updated_by,
-              },
-              create: {
-                ...item,
-                request_sample_id: sampleId,
-                created_on: item.created_on ?? now,
-                created_by: item.created_by,
-                updated_on: now,
-                updated_by: item.updated_by,
-              },
-            });
+            const { id, ...itemData } = item;
+            if (item.id) {
+              await tx.request_sample_item.upsert({
+                where: { id: item.id ?? -1 },
+                update: {
+                  ...item,
+                  request_sample_id: sampleId,
+                  updated_on: now,
+                  updated_by: item.updated_by,
+                },
+                create: {
+                  ...itemData,
+                  request_sample_id: sampleId,
+                  created_on: item.created_on ?? now,
+                  created_by: item.created_by,
+                  updated_on: now,
+                  updated_by: item.updated_by,
+                },
+              });
+            }  else {
+              await tx.request_sample_item.create({
+                data: {
+                  ...itemData,
+                  request_sample_id: sampleId,
+                  created_on: item.created_on ?? now,
+                  created_by: item.created_by,
+                  updated_on: now,
+                  updated_by: item.updated_by,
+                },
+              });
+            }
           }
 
           // --- Upsert and delete for request_sample_chemical ---
@@ -1020,23 +1094,37 @@ export class RequestService {
             }
           }
           for (const chemical of chemicals) {
-            await tx.request_sample_chemical.upsert({
-              where: { id: chemical.id ?? -1 },
-              update: {
-                ...chemical,
-                request_sample_id: sampleId,
-                updated_on: now,
-                updated_by: chemical.updated_by,
-              },
-              create: {
-                ...chemical,
-                request_sample_id: sampleId,
-                created_on: chemical.created_on ?? now,
-                created_by: chemical.created_by,
-                updated_on: now,
-                updated_by: chemical.updated_by,
-              },
-            });
+            const { id, ...chemicalData } = chemical;
+            if (chemical.id) {
+              await tx.request_sample_chemical.upsert({
+                where: { id: chemical.id ?? -1 },
+                update: {
+                  ...chemical,
+                  request_sample_id: sampleId,
+                  updated_on: now,
+                  updated_by: chemical.updated_by,
+                },
+                create: {
+                  ...chemicalData,
+                  request_sample_id: sampleId,
+                  created_on: chemical.created_on ?? now,
+                  created_by: chemical.created_by,
+                  updated_on: now,
+                  updated_by: chemical.updated_by,
+                },
+              });
+            } else {
+              await tx.request_sample_chemical.create({
+                data: {
+                  ...chemicalData,
+                  request_sample_id: sampleId,
+                  created_on: chemical.created_on ?? now,
+                  created_by: chemical.created_by,
+                  updated_on: now,
+                  updated_by: chemical.updated_by,
+                },
+              });
+            }
           }
 
           // --- Upsert and delete for request_sample_microbiology ---
@@ -1055,23 +1143,37 @@ export class RequestService {
             }
           }
           for (const m of micro) {
-            await tx.request_sample_microbiology.upsert({
-              where: { id: m.id ?? -1 },
-              update: {
-                ...m,
-                request_sample_id: sampleId,
-                updated_on: now,
-                updated_by: m.updated_by,
-              },
-              create: {
-                ...m,
-                request_sample_id: sampleId,
-                created_on: m.created_on ?? now,
-                created_by: m.created_by,
-                updated_on: now,
-                updated_by: m.updated_by,
-              },
-            });
+            const { id, ...microData } = m;
+            if (m.id) {
+              await tx.request_sample_microbiology.upsert({
+                where: { id: m.id ?? -1 },
+                update: {
+                  ...m,
+                  request_sample_id: sampleId,
+                  updated_on: now,
+                  updated_by: m.updated_by,
+                },
+                create: {
+                  ...microData,
+                  request_sample_id: sampleId,
+                  created_on: m.created_on ?? now,
+                  created_by: m.created_by,
+                  updated_on: now,
+                  updated_by: m.updated_by,
+                },
+              });
+            } else {
+              await tx.request_sample_microbiology.create({
+                data: {
+                  ...microData,
+                  request_sample_id: sampleId,
+                  created_on: m.created_on ?? now,
+                  created_by: m.created_by,
+                  updated_on: now,
+                  updated_by: m.updated_by,
+                },
+              });
+            }
           }
         }
         // record.request = { connect: { id: requestId } };
