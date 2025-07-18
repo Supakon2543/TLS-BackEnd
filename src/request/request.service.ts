@@ -296,6 +296,115 @@ export class RequestService {
         ? (request.request_detail[0] ?? null)
         : request.request_detail;
 
+      // console.log("Request Sample Chemical:", request.request_sample.map(sample => sample.request_sample_chemical.length));
+      if (request.id !== 0 && request.request_type_id === "REQUEST") {
+        // Always fetch all chemical parameters
+        // console.log("test");
+        const allChemicalParameters = await this.prisma.chemical_parameter.findMany({
+          include: {
+            unit: true,
+          },
+        });
+        const allMicrobiologyParameters = await this.prisma.microbiology_parameter.findMany({
+          include: {
+            unit: true,
+          },
+        });
+
+        if (request.request_sample && Array.isArray(request.request_sample)) {
+          request.request_sample.forEach(sample => {
+          // Build a map of existing sample_chemical by chemical_parameter_id for quick lookup
+          const existingChemicals = {};
+          const existingMicrobiologies = {};
+          (sample.request_sample_chemical ?? []).forEach(sc => {
+            if (sc.chemical_parameter_id != null) {
+              existingChemicals[sc.chemical_parameter_id] = sc;
+            }
+          });
+          (sample.request_sample_microbiology ?? []).forEach(sm => {
+            if (sm.microbiology_parameter_id != null) {
+              existingMicrobiologies[sm.microbiology_parameter_id] = sm;
+            }
+          });
+
+          // Always build the full array for all parameters
+          sample.request_sample_chemical = allChemicalParameters.map(param => {
+            const sc = existingChemicals[param.id] || {};
+            return {
+              // Sample-chemical fields (empty/default if not present)
+              id: sc.id ?? 0,
+              created_on: sc.created_on ?? null,
+              created_by: sc.created_by ?? null,
+              request_sample_id: sample.id ?? 0,
+              chemical_parameter_id: param.id ?? null,
+              lab_result: sc.lab_result ?? "",
+              test_by: sc.test_by ?? null,
+              test_date: sc.test_date ?? null,
+              // Add the required chemical_parameter property
+              chemical_parameter: {
+                id: param.id ?? 0,
+                name: param.name ?? "",
+                name_abb: param.name_abb ?? "",
+                request_min: param.request_min ?? null,
+                unit_id: param.unit_id ?? null,
+                unit: param.unit ? { name: param.unit.name ?? "" } : null,
+                sample_type_id: param.sample_type_id ?? null,
+                spec_type_id: param.spec_type_id ?? null,
+                spec: param.spec ?? "",
+                spec_min: param.spec_min ?? null,
+                spec_max: param.spec_max ?? null,
+                warning_min: param.warning_min ?? null,
+                warning_max: param.warning_max ?? null,
+                final_result: param.final_result ?? "",
+                decimal: param.decimal ?? null,
+                is_enter_spec_min: !!param.is_enter_spec_min,
+                is_enter_spec_max: !!param.is_enter_spec_max,
+                is_enter_warning_min: !!param.is_enter_warning_min,
+                is_enter_warning_max: !!param.is_enter_warning_max,
+                is_enter_decimal: !!param.is_enter_decimal,
+              }
+            };
+          });
+          sample.request_sample_microbiology = allMicrobiologyParameters.map(param => {
+            const sm = existingMicrobiologies[param.id] || {};
+            return {
+              // Sample-microbiology fields (empty/default if not present)
+              id: sm.id ?? 0,
+              created_on: sm.created_on ?? null,
+              created_by: sm.created_by ?? null,
+              request_sample_id: sample.id ?? 0,
+              microbiology_parameter_id: param.id ?? null,
+              lab_result: sm.lab_result ?? "",
+              test_by: sm.test_by ?? null,
+              test_date: sm.test_date ?? null,
+              // Add the required microbiology_parameter property
+              microbiology_parameter: {
+                id: param.id ?? 0,
+                name: param.name ?? "",
+                name_abb: param.name_abb ?? "",
+                request_min: param.request_min ?? null,
+                unit_id: param.unit_id ?? null,
+                unit: param.unit ? { name: param.unit.name ?? "" } : null,
+                sample_type_id: param.sample_type_id ?? null,
+                spec_type_id: param.spec_type_id ?? null,
+                spec: param.spec ?? "",
+                spec_min: param.spec_min ?? null,
+                spec_max: param.spec_max ?? null,
+                warning_min: param.warning_min ?? null,
+                warning_max: param.warning_max ?? null,
+                final_result: param.final_result ?? "",
+                decimal: param.decimal ?? null,
+                is_enter_spec_min: !!param.is_enter_spec_min,
+                is_enter_spec_max: !!param.is_enter_spec_max,
+                is_enter_warning_min: !!param.is_enter_warning_min,
+                is_enter_warning_max: !!param.is_enter_warning_max,
+                is_enter_decimal: !!param.is_enter_decimal,
+              }
+            };
+          });
+        });
+        }
+      }
       // Build the response
       return {
         request: {
@@ -577,14 +686,18 @@ export class RequestService {
 
         if (request_log && (!request_log.id || request_log.id === 0)) {
           request_log.timestamp = now;
+          request_log.user_id = payload.user_id || null; // Ensure user_id is set from payload
         }
 
         // ...rest of your save logic remains unchanged...
-        if (request_log.activity_request_id === "DRAFT") {
+        if (request_log.activity_request_id === "DRAFT" && (request.status_request_id === "" || request.status_request_id === "DRAFT")) {
           request.status_request_id = "DRAFT";
           request_log.status_request_id = "DRAFT";
         }
-        else if (request_log.activity_request_id === "SEND") {
+        // else if (request_log.activity_request_id === "DRAFT" && request.status_request_id !== "DRAFT" && request.status_request_id !== "") {
+        //   request.status_request_id = request.status_request_id;
+        // }
+        else if (request_log.activity_request_id === "SEND" && request.request_number === "") {
           request.status_request_id = "REVIEW";
           request.review_role_id = "REQ_HEAD";
           request_log.status_request_id = "REVIEW";
@@ -699,6 +812,7 @@ export class RequestService {
         });
   
         const requestId = mainRequest.id;
+        console.log('Upserted request with ID:', requestId);
   
         // 2. Prepare nested DTOs with correct request_id
         const emails = (request_email ?? []).map(e => ({ ...e, request_id: requestId }));
@@ -812,52 +926,152 @@ export class RequestService {
         // ...existing code...
         console.log('samples:', samples);
 
+        // 2. Prepare a set of sample IDs from the payload
+        const sampleIdsInPayload = new Set(samples.filter(s => s.id).map(s => s.id));
+
+        // 3. Get all existing samples in DB for this request
+        const samplesInDb = await tx.request_sample.findMany({
+          where: { request_id: requestId },
+        });
+
+        // 4. Delete samples (and their children) not in the payload
+        for (const dbSample of samplesInDb) {
+          if (!sampleIdsInPayload.has(dbSample.id)) {
+            // Delete children first to avoid FK constraint errors
+            await tx.request_sample_item.deleteMany({ where: { request_sample_id: dbSample.id } });
+            await tx.request_sample_chemical.deleteMany({ where: { request_sample_id: dbSample.id } });
+            await tx.request_sample_microbiology.deleteMany({ where: { request_sample_id: dbSample.id } });
+            await tx.request_sample.delete({ where: { id: dbSample.id } });
+          }
+        }
+
+        // 5. Upsert samples and their children
         for (const sample of samples) {
-          // Change destructuring here as well:
           const { request_sample_item, request_sample_chemical, request_sample_microbiology, ...sampleData } = sample;
-          
-          const createdSample = await tx.request_sample.create({
-            data: sampleData,
+
+          // Upsert sample
+          const createdSample = await tx.request_sample.upsert({
+            where: { id: sample.id ?? -1 },
+            update: {
+              ...sampleData,
+              request_id: requestId,
+              updated_on: now,
+              updated_by: sample.updated_by,
+            },
+            create: {
+              ...sampleData,
+              request_id: requestId,
+              created_on: sample.created_on ?? now,
+              created_by: sample.created_by,
+              updated_on: now,
+              updated_by: sample.updated_by,
+            },
           });
 
           const sampleId = createdSample.id;
 
-          const items = (request_sample_item ?? []).map(i => {
-            // Remove undefined fields
-            const clean = Object.fromEntries(
-              Object.entries(i).filter(([_, v]) => v !== undefined)
-            );
-            return { ...clean, request_sample_id: sampleId };
+          // --- Upsert and delete for request_sample_item ---
+          const items = (request_sample_item ?? []).map(i => ({
+            ...i,
+            request_sample_id: sampleId,
+          }));
+          const itemsInDb = await tx.request_sample_item.findMany({
+            where: { request_sample_id: sampleId },
           });
-          console.log('items:', items);
-          const chemicals = (request_sample_chemical ?? []).map(c => ({ ...c, request_id: undefined, request_sample_id: sampleId }));
-          const micro = (request_sample_microbiology ?? []).map(m => ({ ...m, request_id: undefined, request_sample_id: sampleId }));
-
-          if (items.length > 0) {
-            const BATCH_SIZE = 10; // Try a smaller batch size
-            for (let i = 0; i < items.length; i += BATCH_SIZE) {
-              const batch = items.slice(i, i + BATCH_SIZE);
-
-              // Validate and log the batch
-              for (const [idx, item] of batch.entries()) {
-                if (!item || typeof item !== 'object') {
-                  console.error('Invalid item at batch index', idx, item);
-                  throw new Error('Invalid item in request_sample_item batch');
-                }
-                // Add more field checks as needed, e.g.:
-                // if (!item.requiredField) { ... }
-              }
-
-              await tx.request_sample_item.createMany({ data: batch });
+          const itemIdsInPayload = new Set(items.filter(i => i.id).map(i => i.id));
+          for (const dbItem of itemsInDb) {
+            if (!itemIdsInPayload.has(dbItem.id)) {
+              await tx.request_sample_item.delete({ where: { id: dbItem.id } });
             }
           }
-          console.log('chemicals:', chemicals);
-          if (chemicals.length > 0) {
-            await tx.request_sample_chemical.createMany({ data: chemicals });
+          for (const item of items) {
+            await tx.request_sample_item.upsert({
+              where: { id: item.id ?? -1 },
+              update: {
+                ...item,
+                request_sample_id: sampleId,
+                updated_on: now,
+                updated_by: item.updated_by,
+              },
+              create: {
+                ...item,
+                request_sample_id: sampleId,
+                created_on: item.created_on ?? now,
+                created_by: item.created_by,
+                updated_on: now,
+                updated_by: item.updated_by,
+              },
+            });
           }
-          console.log('micro:', micro);
-          if (micro.length > 0) {
-            await tx.request_sample_microbiology.createMany({ data: micro });
+
+          // --- Upsert and delete for request_sample_chemical ---
+          const chemicals = (request_sample_chemical ?? []).map(c => ({
+            ...c,
+            request_id: undefined,
+            request_sample_id: sampleId,
+          }));
+          const chemicalsInDb = await tx.request_sample_chemical.findMany({
+            where: { request_sample_id: sampleId },
+          });
+          const chemicalIdsInPayload = new Set(chemicals.filter(c => c.id).map(c => c.id));
+          for (const dbChemical of chemicalsInDb) {
+            if (!chemicalIdsInPayload.has(dbChemical.id)) {
+              await tx.request_sample_chemical.delete({ where: { id: dbChemical.id } });
+            }
+          }
+          for (const chemical of chemicals) {
+            await tx.request_sample_chemical.upsert({
+              where: { id: chemical.id ?? -1 },
+              update: {
+                ...chemical,
+                request_sample_id: sampleId,
+                updated_on: now,
+                updated_by: chemical.updated_by,
+              },
+              create: {
+                ...chemical,
+                request_sample_id: sampleId,
+                created_on: chemical.created_on ?? now,
+                created_by: chemical.created_by,
+                updated_on: now,
+                updated_by: chemical.updated_by,
+              },
+            });
+          }
+
+          // --- Upsert and delete for request_sample_microbiology ---
+          const micro = (request_sample_microbiology ?? []).map(m => ({
+            ...m,
+            request_id: undefined,
+            request_sample_id: sampleId,
+          }));
+          const microInDb = await tx.request_sample_microbiology.findMany({
+            where: { request_sample_id: sampleId },
+          });
+          const microIdsInPayload = new Set(micro.filter(m => m.id).map(m => m.id));
+          for (const dbMicro of microInDb) {
+            if (!microIdsInPayload.has(dbMicro.id)) {
+              await tx.request_sample_microbiology.delete({ where: { id: dbMicro.id } });
+            }
+          }
+          for (const m of micro) {
+            await tx.request_sample_microbiology.upsert({
+              where: { id: m.id ?? -1 },
+              update: {
+                ...m,
+                request_sample_id: sampleId,
+                updated_on: now,
+                updated_by: m.updated_by,
+              },
+              create: {
+                ...m,
+                request_sample_id: sampleId,
+                created_on: m.created_on ?? now,
+                created_by: m.created_by,
+                updated_on: now,
+                updated_by: m.updated_by,
+              },
+            });
           }
         }
         // record.request = { connect: { id: requestId } };
@@ -867,18 +1081,22 @@ export class RequestService {
         }
         const requester = await tx.user.findUnique({
           where: { id: request.requester_id },
-          include: {
-            supervisor: { select: { fullname: true, email: true } },
-          }
+          // include: {
+          //   supervisor: { select: { fullname: true, email: true } },
+          // }
+        });
+        const supervisor = await tx.user.findUnique({
+          where: { id: requester?.supervisor_id ?? 0 },
+          select: { fullname: true, email: true },
         });
 
         if (request_log.activity_request_id === "SEND") {
           await sendMail(
-            requester?.supervisor?.email ?? '',
-            requester?.supervisor?.fullname ?? '',
+            supervisor?.email ?? '',
+            supervisor?.fullname ?? '',
             'ขออนุมัติใบส่งตัวอย่าง',
             request_log.activity_request_id,
-            `${process.env.FRONTEND_URL}/request/${requestId}`,
+            `${process.env.FRONTEND_URL}/request/${requestId}/detail`,
           );
         }
         return requestId;
@@ -1017,11 +1235,23 @@ export class RequestService {
         }
       }
 
-      // 6. Return the new duplicated request info
-      // return await this.get_info({ id: newRequest.id });
+      // 6. Duplicate request_log as a new one
+      const request_log = {
+        request_id: newRequest.id, // Keep the original request ID for reference
+        status_request_id: 'DRAFT', // Set to DRAFT or as needed
+        activity_request_id: 'DRAFT', // Set to DRAFT or as needed
+        user_id: user_id,
+        timestamp: new Date(),
+        remark: '',
+      };
+      await this.prisma.request_log.create({
+        data: request_log,
+      });
+
+      // 7. Return the new duplicated request info
       return {
         message: 'Success', //`Request with ID ${id} has been duplicated successfully.`,
-        // id: newRequest.id,
+        id: newRequest.id,
       };
     }
 
@@ -1062,79 +1292,79 @@ export class RequestService {
       return {
         message: `Request with ID ${request_id} has been cancelled successfully.`,
     }
-  }
+    }
 
-  async list(@Body() payload: ListRequestDto) {
-    const request = await this.prisma.request.findMany({
-      select: {
-        id: true,
-        request_number: true,
-        request_date: true,
-        due_date: true,
-        requester: {
-          select: {
-            id: true,
-            fullname: true,
-            email: true,
-          }
+    async list(@Body() payload: ListRequestDto) {
+      const request = await this.prisma.request.findMany({
+        select: {
+          id: true,
+          request_number: true,
+          request_date: true,
+          due_date: true,
+          requester: {
+            select: {
+              id: true,
+              fullname: true,
+              email: true,
+            }
+          },
+          status_request: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+          status_sample: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+          request_type: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+          lab_site: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
         },
-        status_request: {
-          select: {
-            id: true,
-            name: true,
-          }
-        },
-        status_sample: {
-          select: {
-            id: true,
-            name: true,
-          }
-        },
-        request_type: {
-          select: {
-            id: true,
-            name: true,
-          }
-        },
-        lab_site: {
-          select: {
-            id: true,
-            name: true,
-          }
-        },
-      },
 
-      orderBy: { created_on: 'desc' },
-    });
-    return request.map(req => ({
-      id: req.id,
-      request_number: req.request_number ?? "",
-      requester_id: req.requester?.id ?? 0,
-      requester_name: req.requester?.fullname ?? "",
-      lab_site_id: req.lab_site?.id ?? "",
-      lab_site_name: req.lab_site?.name ?? "",
-      request_type_id: req.request_type?.id ?? "",
-      request_type_name: req.request_type?.name ?? "",
-      request_date: req.request_date ?? "",
-      due_date: req.due_date ?? "",
-      status_request_id: req.status_request?.id ?? "",
-      status_request_name: req.status_request?.name ?? "",
-      status_sample_id: req.status_sample?.id ?? "",
-      status_sample_name: req.status_sample?.name ?? "",
-    }));
-  }
+        orderBy: { created_on: 'desc' },
+      });
+      return request.map(req => ({
+        id: req.id,
+        request_number: req.request_number ?? "",
+        requester_id: req.requester?.id ?? 0,
+        requester_name: req.requester?.fullname ?? "",
+        lab_site_id: req.lab_site?.id ?? "",
+        lab_site_name: req.lab_site?.name ?? "",
+        request_type_id: req.request_type?.id ?? "",
+        request_type_name: req.request_type?.name ?? "",
+        request_date: req.request_date ?? "",
+        due_date: req.due_date ?? "",
+        status_request_id: req.status_request?.id ?? "",
+        status_request_name: req.status_request?.name ?? "",
+        status_sample_id: req.status_sample?.id ?? "",
+        status_sample_name: req.status_sample?.name ?? "",
+      }));
+    }
 
-  async test(@Body() payload: { sender: string, subject: string, receivers: string, message: string }) {
-    const { sender, subject, receivers, message } = payload;
-    console.log('Testing email with payload:', payload);
-    const link = 'https://www.google.com';
-    const response = await sendMail(
-      receivers,
-      'Title',
-      subject,
-      'SEND',
-      link
-    );
-    return response.data
-  }
+    async test(@Body() payload: { sender: string, subject: string, receivers: string, message: string }) {
+      const { sender, subject, receivers, message } = payload;
+      console.log('Testing email with payload:', payload);
+      const link = 'https://www.google.com';
+      const response = await sendMail(
+        receivers,
+        'Title',
+        'ขออนุมัติใบส่งตัวอย่าง',
+        'SEND',
+        link
+      );
+      return response.data
+    }
 }
