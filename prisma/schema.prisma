@@ -212,7 +212,7 @@ model user {
   created_on       DateTime? @default(now()) @db.Timestamptz(3)
   updated_on       DateTime? @updatedAt @db.Timestamptz(3)
 
-  supervisor user? @relation("Supervisor", fields: [supervisor_id], references: [id])
+  // supervisor user? @relation("Supervisor", fields: [supervisor_id], references: [id])
 
   request request[]
 
@@ -227,7 +227,7 @@ model user {
   user_role user_role[]
   signature signature[]
 
-  user user[] @relation("Supervisor")
+  // user user[] @relation("Supervisor")
 }
 
 model user_role {
@@ -707,12 +707,14 @@ model request_sample {
   material_code          String?   @db.VarChar(20)
   sample_code            String?   @db.VarChar(10)
   sample_name            String?   @db.VarChar(100)
+  input_sample_name      String?   @db.VarChar(50)
   line_id                Int?
   sampling_date          DateTime?
   expiry_date            DateTime?
   batch_no               String?   @db.VarChar(10)
   is_display_special     Boolean?  @default(false)
   special_test_time      DateTime?
+  packing_size           String?   @db.VarChar(50)
   due_date               DateTime?
   status_sample_id       String?
   note                   String?   @db.VarChar(200)
