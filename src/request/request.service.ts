@@ -262,6 +262,7 @@ export class RequestService {
                   updated_on: true,
                   updated_by: true,
                 },
+                orderBy: { seq: 'asc' },
               },
             },
           },
@@ -299,7 +300,7 @@ export class RequestService {
         : request.request_detail;
 
       // console.log("Request Sample Chemical:", request.request_sample.map(sample => sample.request_sample_chemical.length));
-      if (request.id !== 0 && request.request_type_id === "REQUEST") {
+      if (request.id !== 0) {
         // Always fetch all chemical parameters
         // console.log("test");
         const allChemicalParameters = await this.prisma.chemical_parameter.findMany({
@@ -337,7 +338,7 @@ export class RequestService {
               id: sc.id ?? 0,
               created_on: sc.created_on ?? null,
               created_by: sc.created_by ?? null,
-              request_sample_id: sample.id ?? 0,
+              request_sample_id: sample.id || 0,
               chemical_parameter_id: param.id ?? null,
               lab_result: sc.lab_result ?? "",
               test_by: sc.test_by ?? null,
@@ -688,7 +689,7 @@ export class RequestService {
 
         if (request_log && (!request_log.id || request_log.id === 0)) {
           request_log.timestamp = now;
-          request_log.user_id = payload.user_id || null; // Ensure user_id is set from payload
+          // request_log.user_id = payload.user_id || null; // Ensure user_id is set from payload
         }
 
         // ...rest of your save logic remains unchanged...
@@ -1178,6 +1179,7 @@ export class RequestService {
           }
         }
         // record.request = { connect: { id: requestId } };
+        record.user_id = request_log.user_id;
         console.log('record:', record);
         if (record) {
           await tx.request_log.create({ data: record });
@@ -1195,15 +1197,15 @@ export class RequestService {
         });
         console.log('supervisor:', supervisor);
 
-        if (request_log.activity_request_id === "SEND") {
-          await sendMail(
-            supervisor?.email ?? '',
-            supervisor?.fullname ?? '',
-            'ขออนุมัติใบส่งตัวอย่าง',
-            request_log.activity_request_id,
-            `${process.env.FRONTEND_URL}/request/${requestId}/detail`,
-          );
-        }
+        // if (request_log.activity_request_id === "SEND") {
+        //   await sendMail(
+        //     supervisor?.email ?? '',
+        //     supervisor?.fullname ?? '',
+        //     'ขออนุมัติใบส่งตัวอย่าง',
+        //     request_log.activity_request_id,
+        //     `${process.env.FRONTEND_URL}/request/${requestId}/detail`,
+        //   );
+        // }
         return requestId;
         
         
@@ -1239,6 +1241,10 @@ export class RequestService {
         updated_by: user_id,
         updated_on: new Date(),
       };
+
+      const request_detail = await this.prisma.request_detail.findFirst({
+        where: { request_id: request_id },
+      });
       
       
       await this.prisma.$transaction(async (tx) => {
