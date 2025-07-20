@@ -2574,6 +2574,9 @@ async function main() {
   // Comment out clearOldData if you want to preserve existing data
   // await clearOldData();
 
+  await seedLabProcess();
+  await seedSampleStage();
+  await seedSampleRetaining();
   await seedLabSite();
   await seedRequestType();
   await seedState();
@@ -2620,6 +2623,15 @@ async function main() {
   // await seedRequestSampleLabel();
 
   await createOrUpdateUser();
+  await seedUserLocation();
+  await seedSampleDescription();
+  await seedReportHeading();
+  await seedObjectiveFromNew();
+  await seedLineFromNew();
+  // await upsert_user_api();
+  // await seedUnitFromNew();
+  // await seedChemicalParameterFromNew();
+  // await createOrUpdateUser();
   // await createOrUpdateRequest();
   // await createOrUpdateStockRetain();
   // await createOrUpdateStockRetainItem();

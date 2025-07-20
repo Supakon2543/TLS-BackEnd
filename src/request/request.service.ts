@@ -12,6 +12,7 @@ import { ListRequestDto } from './dto/list-request.dto';
 import { sendMail, testEmail } from '../email/email';
 import { stat } from 'fs';
 import { time } from 'console';
+import { request } from 'http';
 
 @Injectable()
 export class RequestService {
@@ -261,6 +262,7 @@ export class RequestService {
                   updated_on: true,
                   updated_by: true,
                 },
+                orderBy: { seq: 'asc' },
               },
             },
           },
@@ -298,7 +300,7 @@ export class RequestService {
         : request.request_detail;
 
       // console.log("Request Sample Chemical:", request.request_sample.map(sample => sample.request_sample_chemical.length));
-      if (request.id !== 0 && request.request_type_id === "REQUEST") {
+      if (request.id !== 0) {
         // Always fetch all chemical parameters
         // console.log("test");
         const allChemicalParameters = await this.prisma.chemical_parameter.findMany({
@@ -336,7 +338,7 @@ export class RequestService {
               id: sc.id ?? 0,
               created_on: sc.created_on ?? null,
               created_by: sc.created_by ?? null,
-              request_sample_id: sample.id ?? 0,
+              request_sample_id: sample.id || 0,
               chemical_parameter_id: param.id ?? null,
               lab_result: sc.lab_result ?? "",
               test_by: sc.test_by ?? null,
@@ -687,7 +689,7 @@ export class RequestService {
 
         if (request_log && (!request_log.id || request_log.id === 0)) {
           request_log.timestamp = now;
-          request_log.user_id = payload.user_id || null; // Ensure user_id is set from payload
+          // request_log.user_id = payload.user_id || null; // Ensure user_id is set from payload
         }
 
         // ...rest of your save logic remains unchanged...
@@ -1177,6 +1179,7 @@ export class RequestService {
           }
         }
         // record.request = { connect: { id: requestId } };
+        record.user_id = request_log.user_id;
         console.log('record:', record);
         if (record) {
           await tx.request_log.create({ data: record });
@@ -1187,20 +1190,22 @@ export class RequestService {
           //   supervisor: { select: { fullname: true, email: true } },
           // }
         });
+        console.log('requester:', requester);
         const supervisor = await tx.user.findUnique({
           where: { id: requester?.supervisor_id ?? 0 },
           select: { fullname: true, email: true },
         });
+        console.log('supervisor:', supervisor);
 
-        if (request_log.activity_request_id === "SEND") {
-          await sendMail(
-            supervisor?.email ?? '',
-            supervisor?.fullname ?? '',
-            'ขออนุมัติใบส่งตัวอย่าง',
-            request_log.activity_request_id,
-            `${process.env.FRONTEND_URL}/request/${requestId}/detail`,
-          );
-        }
+        // if (request_log.activity_request_id === "SEND") {
+        //   await sendMail(
+        //     supervisor?.email ?? '',
+        //     supervisor?.fullname ?? '',
+        //     'ขออนุมัติใบส่งตัวอย่าง',
+        //     request_log.activity_request_id,
+        //     `${process.env.FRONTEND_URL}/request/${requestId}/detail`,
+        //   );
+        // }
         return requestId;
         
         
@@ -1216,16 +1221,57 @@ export class RequestService {
     }
 
     async accept(@Body() payload: any) {
+      const { request_id, request_sample, activity_request_id, review_role_id, user_id, remark } = payload;
+      let status_id = '';
+      if (activity_request_id !== 'RETURN') {
+        status_id = 'REJECT';
+      } else if (activity_request_id === 'CONFIRM') {
+        status_id = 'REVIEW';
+      } else if (activity_request_id === 'REJECT') {
+        status_id = 'CANCEL';
+      } else if (activity_request_id === 'ACCEPT') {
+        status_id = 'TESTING';
+      }
+      // const request = await this.prisma.request.findUnique({
+      //   where: { id: request_id },
+      // });
+      const requestUpdate = {
+        status_request_id: status_id,
+        review_role_id: review_role_id,
+        updated_by: user_id,
+        updated_on: new Date(),
+      };
+
+      const request_detail = await this.prisma.request_detail.findFirst({
+        where: { request_id: request_id },
+      });
+      
+      
       await this.prisma.$transaction(async (tx) => {
-        const { request_id, request_sample, request_sample_item, activity_request_id, review_role_id, user_id, remark } = payload;
+        await tx.request.update({
+          where: { id: request_id },
+          data: requestUpdate,
+        });
+        await tx.request_log.create({
+          data: {
+            request_id: request_id,
+            status_request_id: status_id,
+            activity_request_id: activity_request_id,
+            user_id: user_id,
+            timestamp: new Date(),
+            remark: remark,
+          },
+        });
+      });
+
+        
         console.log('request_id:', request_id);
         console.log('activity_request_id:', activity_request_id);
         console.log('review_role_id:', review_role_id);
         console.log('user_id:', user_id);
         console.log('remark:', remark);
         console.log('request_sample:', request_sample);
-        console.log('request_sample_item:', request_sample_item);
-      });
+        console.log('request_sample_item:', request_sample?.map(s => s.request_sample_item).flat());
     }
 
     async duplicate(@Query() payload: DuplicateRequestDto) {
