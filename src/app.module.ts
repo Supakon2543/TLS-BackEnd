@@ -64,6 +64,7 @@ import { AuthApiModule } from './auth_api/auth_api.module';
 import { StockRetainModule } from './stock_retain/stock_retain.module';
 import { UserDataModule } from './user_data/user_data.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ReportModule } from './report/report.module';
 import { ImageController } from './image/image.controller';
 
 
@@ -130,7 +131,7 @@ import { ImageController } from './image/image.controller';
     RequestLogModule,
     DowloadS3Module,
     StockRetainModule, // Importing the StockRetainModule
-    UserDataModule,
+    UserDataModule, ReportModule,
   ],
   controllers: [AppController, ImageController],
   providers: [AppService],
