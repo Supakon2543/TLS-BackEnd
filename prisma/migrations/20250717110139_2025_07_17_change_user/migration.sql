@@ -11,4 +11,3 @@ BEGIN
         ALTER TABLE "user" DROP CONSTRAINT "user_supervisor_id_fkey";
     END IF;
 END $$;
-
