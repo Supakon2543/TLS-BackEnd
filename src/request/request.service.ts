@@ -338,7 +338,7 @@ export class RequestService {
               id: sc.id ?? 0,
               created_on: sc.created_on ?? null,
               created_by: sc.created_by ?? null,
-              request_sample_id: sample.id || 0,
+              request_sample_id: (sc.id ?? 0) === 0 ? 0 : sample.id || 0,
               chemical_parameter_id: param.id ?? null,
               lab_result: sc.lab_result ?? "",
               test_by: sc.test_by ?? null,
@@ -375,7 +375,7 @@ export class RequestService {
               id: sm.id ?? 0,
               created_on: sm.created_on ?? null,
               created_by: sm.created_by ?? null,
-              request_sample_id: sample.id ?? 0,
+              request_sample_id: (sm.id ?? 0) === 0 ? 0 : sample.id || 0,
               microbiology_parameter_id: param.id ?? null,
               lab_result: sm.lab_result ?? "",
               test_by: sm.test_by ?? null,
@@ -1103,16 +1103,12 @@ export class RequestService {
                 update: {
                   ...chemical,
                   request_sample_id: sampleId,
-                  updated_on: now,
-                  updated_by: chemical.updated_by,
                 },
                 create: {
                   ...chemicalData,
                   request_sample_id: sampleId,
                   created_on: chemical.created_on ?? now,
                   created_by: chemical.created_by,
-                  updated_on: now,
-                  updated_by: chemical.updated_by,
                 },
               });
             } else {
@@ -1122,8 +1118,6 @@ export class RequestService {
                   request_sample_id: sampleId,
                   created_on: chemical.created_on ?? now,
                   created_by: chemical.created_by,
-                  updated_on: now,
-                  updated_by: chemical.updated_by,
                 },
               });
             }
@@ -1152,16 +1146,12 @@ export class RequestService {
                 update: {
                   ...m,
                   request_sample_id: sampleId,
-                  updated_on: now,
-                  updated_by: m.updated_by,
                 },
                 create: {
                   ...microData,
                   request_sample_id: sampleId,
                   created_on: m.created_on ?? now,
                   created_by: m.created_by,
-                  updated_on: now,
-                  updated_by: m.updated_by,
                 },
               });
             } else {
@@ -1171,8 +1161,6 @@ export class RequestService {
                   request_sample_id: sampleId,
                   created_on: m.created_on ?? now,
                   created_by: m.created_by,
-                  updated_on: now,
-                  updated_by: m.updated_by,
                 },
               });
             }
@@ -1221,8 +1209,44 @@ export class RequestService {
     }
 
     async accept(@Body() payload: any) {
+      // Log function call time
+      const callTime = new Date();
+      console.log('=== ACCEPT FUNCTION CALLED ===');
+      console.log('UTC Time:', callTime.toISOString());
+      console.log('Thailand Time:', callTime.toLocaleString('th-TH', { 
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }));
+      console.log('Timestamp:', callTime.getTime());
+      
+      // Check if time is within 00:00 - 15:00 range
+      const thailandTime = new Date(callTime.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }));
+      const currentHour = thailandTime.getHours();
+      const isWithinRange = currentHour >= 0 && currentHour <= 15;
+      
+      // More precise time range check (e.g., 00:00:00 - 15:00:00)
+      const timeString = thailandTime.toTimeString().slice(0, 8); // HH:MM:SS format
+      const isWithinPreciseRange = timeString >= '00:00:00' && timeString <= '15:00:00';
+
+      console.log('Current Hour (Thailand):', currentHour);
+      console.log('Is within 00:00-15:00 range:', isWithinRange);
+      console.log('=====================================');
+
       const { request_id, request_sample, activity_request_id, review_role_id, user_id, remark } = payload;
+      const request = await this.prisma.request.findUnique({
+        where: { id: request_id },
+        include: {
+          lab_site: true,
+          requester: true,
+        },
+      });
       let status_id = '';
+      let status_sample_id = request?.status_sample_id ?? '';
       if (activity_request_id !== 'RETURN') {
         status_id = 'REJECT';
       } else if (activity_request_id === 'CONFIRM') {
@@ -1231,12 +1255,14 @@ export class RequestService {
         status_id = 'CANCEL';
       } else if (activity_request_id === 'ACCEPT') {
         status_id = 'TESTING';
+        status_sample_id = 'TESTING';
       }
       // const request = await this.prisma.request.findUnique({
       //   where: { id: request_id },
       // });
       const requestUpdate = {
         status_request_id: status_id,
+        status_sample_id: status_sample_id ?? request?.status_sample_id,
         review_role_id: review_role_id,
         updated_by: user_id,
         updated_on: new Date(),
@@ -1245,12 +1271,18 @@ export class RequestService {
       const request_detail = await this.prisma.request_detail.findFirst({
         where: { request_id: request_id },
       });
-      
-      
+
       await this.prisma.$transaction(async (tx) => {
         await tx.request.update({
           where: { id: request_id },
           data: requestUpdate,
+        });
+        await tx.request_detail.update({
+          where: { id: request_detail?.id },
+          data: {
+            updated_by: user_id,
+            updated_on: new Date(),
+          },
         });
         await tx.request_log.create({
           data: {
@@ -1262,16 +1294,212 @@ export class RequestService {
             remark: remark,
           },
         });
-      });
 
-        
-        console.log('request_id:', request_id);
-        console.log('activity_request_id:', activity_request_id);
-        console.log('review_role_id:', review_role_id);
-        console.log('user_id:', user_id);
-        console.log('remark:', remark);
-        console.log('request_sample:', request_sample);
-        console.log('request_sample_item:', request_sample?.map(s => s.request_sample_item).flat());
+        // Upsert request_sample and request_sample_item if provided
+        if (request_sample && Array.isArray(request_sample)) {
+          const now = new Date();
+          
+          // Prepare samples with correct request_id
+          const samples = request_sample.map(s => ({
+            ...s,
+            request_id: request_id,
+            request_sample_item: s.request_sample_item?.map(i => ({ ...i })) ?? [],
+          }));
+
+          // Get sample IDs from payload (only valid IDs)
+          const sampleIdsInPayload = new Set(samples.filter(s => s.id && s.id !== 0).map(s => s.id));
+
+          // Get all existing samples in DB for this request
+          const samplesInDb = await tx.request_sample.findMany({
+            where: { request_id: request_id },
+          });
+
+          // Delete samples (and their children) not in the payload
+          for (const dbSample of samplesInDb) {
+            if (!sampleIdsInPayload.has(dbSample.id)) {
+              // Delete children first to avoid FK constraint errors
+              await tx.request_sample_item.deleteMany({ where: { request_sample_id: dbSample.id } });
+              await tx.request_sample_chemical.deleteMany({ where: { request_sample_id: dbSample.id } });
+              await tx.request_sample_microbiology.deleteMany({ where: { request_sample_id: dbSample.id } });
+              await tx.request_sample.delete({ where: { id: dbSample.id } });
+            }
+          }
+
+          // Upsert samples and their children
+          for (const sample of samples) {
+            if (activity_request_id === "ACCEPT") {
+              sample.status_sample_id = "TESTING";
+            }
+            const { request_sample_item, ...sampleData } = sample;
+
+            // Upsert sample
+            const createdSample = await tx.request_sample.upsert({
+              where: { id: sample.id && sample.id !== 0 ? sample.id : -1 },
+              update: {
+                ...sampleData,
+                request_id: request_id,
+                updated_on: now,
+                updated_by: user_id,
+              },
+              create: {
+                ...sampleData,
+                request_id: request_id,
+                created_on: now,
+                created_by: user_id,
+                updated_on: now,
+                updated_by: user_id,
+              },
+            });
+
+            const sampleId = createdSample.id;
+
+            // Upsert and delete for request_sample_item
+            const items = (request_sample_item ?? []).map(i => ({
+              ...i,
+              request_sample_id: sampleId,
+            }));
+            
+            const itemsInDb = await tx.request_sample_item.findMany({
+              where: { request_sample_id: sampleId },
+            });
+            
+            const itemIdsInPayload = new Set(items.filter(i => i.id && i.id !== 0).map(i => i.id));
+            
+            for (const dbItem of itemsInDb) {
+              if (!itemIdsInPayload.has(dbItem.id)) {
+                await tx.request_sample_item.delete({ where: { id: dbItem.id } });
+              }
+            }
+            
+            for (const item of items) {
+              const { id, ...itemData } = item;
+              if (item.id && item.id !== 0) {
+                await tx.request_sample_item.upsert({
+                  where: { id: item.id },
+                  update: {
+                    ...item,
+                    request_sample_id: sampleId,
+                    updated_on: now,
+                    updated_by: user_id,
+                  },
+                  create: {
+                    ...itemData,
+                    request_sample_id: sampleId,
+                    created_on: now,
+                    created_by: user_id,
+                    updated_on: now,
+                    updated_by: user_id,
+                  },
+                });
+              } else {
+                await tx.request_sample_item.create({
+                  data: {
+                    ...itemData,
+                    request_sample_id: sampleId,
+                    created_on: now,
+                    created_by: user_id,
+                    updated_on: now,
+                    updated_by: user_id,
+                  },
+                });
+              }
+            }
+          }
+        }
+      });
+      if (activity_request_id === "CONFIRM") {
+        const role = await this.prisma.user_role.findMany({
+          where: { user_id: user_id, role_id: 'LAB_HEAD' },
+        });
+        if (role.length > 0) {
+          // Log the confirmation time
+          console.log('Request confirmed by LAB_HEAD');
+          const user_location = await this.prisma.user_location.findUnique({
+            where: { id: request?.lab_site?.id ?? '' },
+          });
+          if (user_location) {
+            const lab_officer = await this.prisma.user.findFirst({
+              where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_OFF' } } },
+              select: { user_role: { select: { role_id: true } }, email: true, fullname: true },
+            });
+            if (lab_officer) {
+              await sendMail(
+                lab_officer.email,
+                lab_officer.fullname,
+                'ขออนุมัติใบส่งตัวอย่าง',
+                activity_request_id,
+                `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
+              );
+            }
+          }
+        } else {
+          if (isWithinPreciseRange) {
+          // Log the acceptance time
+            console.log('Request accepted within 00:00 - 15:00 range');
+            const user_location = await this.prisma.user_location.findUnique({
+              where: { id: request?.lab_site?.id ?? '' },
+            });
+            if (user_location) {
+              const lab_officer = await this.prisma.user.findFirst({
+                where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_OFF' } } },
+                select: { user_role: { select: { role_id: true } }, email: true, fullname: true },
+              });
+              if (lab_officer) {
+                await sendMail(
+                  lab_officer.email,
+                  lab_officer.fullname,
+                  'ขออนุมัติใบส่งตัวอย่าง',
+                  activity_request_id,
+                  `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
+                );
+              }
+            }
+          } else {
+            // Log the acceptance time outside the range
+            console.log('Request accepted outside 00:00 - 15:00 range');
+            const user_location = await this.prisma.user_location.findUnique({
+              where: { id: request?.lab_site?.id ?? '' },
+            });
+            if (user_location) {
+              const lab_head = await this.prisma.user.findFirst({
+                where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_HEAD' } } },
+                select: { user_role: { select: { role_id: true } }, email: true, fullname: true },
+              });
+              if (lab_head) {
+                await sendMail(
+                  lab_head.email,
+                  lab_head.fullname,
+                  'ขออนุมัติทำการทดสอบนอกเวลาทำการ',
+                  activity_request_id,
+                  `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
+                );
+              }
+            }
+          }
+        }
+      } else if (activity_request_id === "ACCEPT") {
+        const requestSample_duedate = await this.prisma.request_sample.findFirst({
+          where: { request_id: request_id },
+          orderBy: { due_date: 'desc' },
+        });
+        await sendMail(
+          request?.requester?.email ?? '',
+          request?.requester?.fullname ?? '',
+          'ขออนุมัติทำการทดสอบนอกเวลาทำการ',
+          activity_request_id,
+          `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
+          request,
+          requestSample_duedate?.due_date?.toISOString() ?? '',
+        );
+      }
+      return { message: 'Success' };
+      console.log('request_id:', request_id);
+      console.log('activity_request_id:', activity_request_id);
+      console.log('review_role_id:', review_role_id);
+      console.log('user_id:', user_id);
+      console.log('remark:', remark);
+      console.log('request_sample:', request_sample);
+      console.log('request_sample_item:', request_sample?.map(s => s.request_sample_item).flat());
     }
 
     async duplicate(@Query() payload: DuplicateRequestDto) {
