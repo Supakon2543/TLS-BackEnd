@@ -1138,7 +1138,7 @@ async function main() {
   await seedReportHeading();
   await seedObjectiveFromNew();
   await seedLineFromNew();
-  await upsert_user_api();
+  // await upsert_user_api();
   // await seedUnitFromNew();
   // await seedChemicalParameterFromNew();
   // await createOrUpdateUser();
