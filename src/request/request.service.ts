@@ -1185,15 +1185,15 @@ export class RequestService {
         });
         console.log('supervisor:', supervisor);
 
-        // if (request_log.activity_request_id === "SEND") {
-        //   await sendMail(
-        //     supervisor?.email ?? '',
-        //     supervisor?.fullname ?? '',
-        //     'ขออนุมัติใบส่งตัวอย่าง',
-        //     request_log.activity_request_id,
-        //     `${process.env.FRONTEND_URL}/request/${requestId}/detail`,
-        //   );
-        // }
+        if (request_log.activity_request_id === "SEND") {
+          await sendMail(
+            supervisor?.email ?? '',
+            supervisor?.fullname ?? '',
+            'ขออนุมัติใบส่งตัวอย่าง',
+            request_log.activity_request_id,
+            `${process.env.FRONTEND_URL}/request/${requestId}/detail`,
+          );
+        }
         return requestId;
         
         
