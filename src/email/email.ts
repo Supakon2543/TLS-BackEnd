@@ -144,12 +144,16 @@ export async function sendMail(
     } else if (activity_request_id === 'ACCEPT') {
       message = emailTemplate(name, `ใบส่งตัวอย่างเลขที่ ${request?.request_number} ของคุณได้รับเข้าระบบห้องปฏิบัติการเรียบร้อยแล้ว ห้องปฏิบัติการสามารถรายงานผลให้คุณได้ภายในวันที่ ${due_date}`, buttonUrl, '');
     }
-    return await axios.post(
+    if (process.env.SEND_EMAIL !== 'false') {
+      return await axios.post(
         `${process.env.EMAILBASEURL}/send_email`, {
             sender: process.env.SENDER_EMAIL,
             subject: subject,
             receivers: to,
             message: message,
         }
-    );
+      );
+    } else {
+      console.log('Email sending is disabled in the environment variables.');
+    }
 }
