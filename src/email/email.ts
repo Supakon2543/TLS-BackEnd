@@ -5,7 +5,7 @@ const emailTemplate = (
   name: string,
   message: string,
   buttonUrl: string,
-  buttonText: string = 'View Request'
+  buttonText: string = 'View Request',
 ) => `
   <div style="background:#1a428a;padding:0.5rem 0 0.5rem 0;">
     <img src="${process.env.LOGO_URL}" alt="OSOTSPA" style="height:40px;margin-left:20px;">
@@ -131,12 +131,18 @@ export async function sendMail(
   name: string,
   subject: string,
   activity_request_id: string,
-  buttonUrl: string
+  buttonUrl: string,
+  request?: any,
+  due_date?: string,
 ) {
     let message = '';
     if (activity_request_id === 'SEND'){
-        // message = emailTemplate_send(name, buttonUrl);
-        message = emailTemplate(name, 'คุณมีเอกสารใบส่งตัวอย่างรอพิจารณา กรุณากด Link ด้านล่าง เพื่อทวนสอบและอนุมัติ/พิจารณา', buttonUrl, 'รายละเอียดใบส่งตัวอย่าง');
+      // message = emailTemplate_send(name, buttonUrl);
+      message = emailTemplate(name, 'คุณมีเอกสารใบส่งตัวอย่างรอพิจารณา กรุณากด Link ด้านล่าง เพื่อทวนสอบและอนุมัติ/พิจารณา', buttonUrl, 'รายละเอียดใบส่งตัวอย่าง');
+    } else if (activity_request_id === 'CONFIRM') {
+      message = emailTemplate(name, 'คุณมีเอกสารใบส่งตัวอย่างรอพิจารณา กรุณากด Link ด้านล่าง เพื่อทวนสอบและอนุมัติ/พิจารณา', buttonUrl, 'รายละเอียดใบส่งตัวอย่าง');
+    } else if (activity_request_id === 'ACCEPT') {
+      message = emailTemplate(name, `ใบส่งตัวอย่างเลขที่ ${request?.request_number} ของคุณได้รับเข้าระบบห้องปฏิบัติการเรียบร้อยแล้ว ห้องปฏิบัติการสามารถรายงานผลให้คุณได้ภายในวันที่ ${due_date}`, buttonUrl, '');
     }
     return await axios.post(
         `${process.env.EMAILBASEURL}/send_email`, {
