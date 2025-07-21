@@ -70,6 +70,12 @@ export class MicrobiologyParameter {
   is_enter_warning_max: boolean;
 
   @IsBoolean()
+  is_enter_decimal: boolean;
+
+  @IsString()
+  method: string;
+
+  @IsBoolean()
   status: boolean;
 
   @IsOptional()

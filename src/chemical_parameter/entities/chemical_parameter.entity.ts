@@ -71,6 +71,9 @@ export class ChemicalParameterEntity {
   @IsBoolean()
   is_enter_decimal: boolean;
 
+  @IsString()
+  method: string;
+
   @IsBoolean()
   status: boolean;
 
