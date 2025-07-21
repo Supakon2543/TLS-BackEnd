@@ -270,6 +270,7 @@ export class ChemicalParameterService {
         is_enter_warning_min: param.is_enter_warning_min,
         is_enter_warning_max: param.is_enter_warning_max,
         is_enter_decimal: param.is_enter_decimal,
+        method: param.method,
         status: param.status,
         created_on: param.created_on,
         created_by: param.created_by,

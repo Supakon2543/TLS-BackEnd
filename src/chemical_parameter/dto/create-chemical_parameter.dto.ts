@@ -112,6 +112,9 @@ export class CreateChemicalParameterDto {
   @IsBoolean()
   is_enter_decimal: boolean;
 
+  @IsString()
+  method: string;
+
   @ApiProperty({ example: true })
   @IsBoolean()
   status: boolean;
