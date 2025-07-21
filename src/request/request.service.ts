@@ -197,6 +197,7 @@ export class RequestService {
                       is_enter_warning_min: true,
                       is_enter_warning_max: true,
                       is_enter_decimal: true,
+                      method: true,
                     }
                   },
                   id: true,
@@ -233,6 +234,7 @@ export class RequestService {
                       is_enter_warning_min: true,
                       is_enter_warning_max: true,
                       is_enter_decimal: true,
+                      method: true,
                     }
                   },
                   id: true,
@@ -365,6 +367,7 @@ export class RequestService {
                 is_enter_warning_min: !!param.is_enter_warning_min,
                 is_enter_warning_max: !!param.is_enter_warning_max,
                 is_enter_decimal: !!param.is_enter_decimal,
+                method: param.method ?? "", // Include method if available
               }
             };
           });
@@ -402,6 +405,7 @@ export class RequestService {
                 is_enter_warning_min: !!param.is_enter_warning_min,
                 is_enter_warning_max: !!param.is_enter_warning_max,
                 is_enter_decimal: !!param.is_enter_decimal,
+                method: param.method ?? "", // Include method if available
               }
             };
           });
@@ -513,6 +517,7 @@ export class RequestService {
             is_enter_warning_min: sample_chemical.chemical_parameter?.is_enter_warning_min ?? false,
             is_enter_warning_max: sample_chemical.chemical_parameter?.is_enter_warning_max ?? false,
             is_enter_decimal: sample_chemical.chemical_parameter?.is_enter_decimal ?? false,
+            method: sample_chemical.chemical_parameter?.method ?? "",
             // Include the sample_chemical fields
             id: sample_chemical.id ?? 0,
             request_sample_id: sample_chemical.request_sample_id ?? 0,
@@ -543,6 +548,7 @@ export class RequestService {
             is_enter_warning_min: sample_microbiology.microbiology_parameter?.is_enter_warning_min ?? false,
             is_enter_warning_max: sample_microbiology.microbiology_parameter?.is_enter_warning_max ?? false,
             is_enter_decimal: sample_microbiology.microbiology_parameter?.is_enter_decimal ?? false,
+            method: sample_microbiology.microbiology_parameter?.method ?? "",
             // Include the sample_microbiology fields
             id: sample_microbiology.id ?? 0,
             request_sample_id: sample_microbiology.request_sample_id ?? 0,
@@ -1741,6 +1747,6 @@ export class RequestService {
         'SEND',
         link
       );
-      return response.data
+      return response?.data
     }
 }
