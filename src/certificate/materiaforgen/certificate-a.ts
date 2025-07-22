@@ -1,6 +1,5 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import '../../pdf/AngsanaNew';
 import { convertImageToBase64 } from './convertImageToBase64';
 import { CertTemplateA } from './model';
 
@@ -35,7 +34,7 @@ const generateReportA = async (data: CertTemplateA) => {
       doc.addImage(ilacMRALogo, 'PNG', pageWidth - margin - (logoWidth * 2) - logoGap - 2, logoY, logoWidth, logoHeight);
       doc.addImage(qaLogo, 'JPEG', pageWidth - margin - logoWidth - logoGap, logoY, logoWidth, logoHeight);
 
-      doc.setFont('AngsanaNew', 'normal');
+      doc.setFont('helvetica', 'normal');
       doc.setFontSize(12);
       const isoText = 'ISO/IEC 17025';
       const isoTextMaxWidth = 30;
@@ -52,7 +51,7 @@ const generateReportA = async (data: CertTemplateA) => {
       doc.text(accreditNo, accreditNoX, accreditNoY);
     }
 
-    doc.setFont('AngsanaNew', 'bolditalic');
+    doc.setFont('helvetica', 'bolditalic');
     doc.setFontSize(26);
     const certName = data.header.report_heading;
     const certNameWidth = doc.getTextWidth(certName);
@@ -77,14 +76,14 @@ const generateReportA = async (data: CertTemplateA) => {
     let infoY = defaultInfoY;
 
     doc.setFontSize(12);
-    doc.setFont('AngsanaNew', 'normal');
+    doc.setFont('helvetica', 'normal');
     doc.text('Sample Name', info1LabelX, infoY);
     doc.text(':', info1ColonX, infoY);
-    doc.setFont('AngsanaNew', 'bold');
+    doc.setFont('helvetica', 'bold');
     doc.text(data.header.sample_name, info1ValueX, infoY);
 
     infoY += lineHeight;
-    doc.setFont('AngsanaNew', 'normal');
+    doc.setFont('helvetica', 'normal');
     
     doc.text('Sample Detail', info1LabelX, infoY);
     doc.text(':', info1ColonX, infoY);
@@ -150,14 +149,14 @@ const generateReportA = async (data: CertTemplateA) => {
   const addFooter = (pageNumber: number, totalPages: number) => {
     let footerY = 273;
     doc.setFontSize(10);
-    doc.setFont('AngsanaNew', 'italic');
+    doc.setFont('helvetica', 'italic');
     doc.text('The above results are valid only for the tested sample(s) as received and indicated in this report. No part of this report may be reproduced in any form without written consent from the laboratory.', margin, footerY);
     footerY += 4;
     doc.text('OSOTSPA PUBLIC COMPANY LIMITED strongly recommends that this report is not reproduced except in full.', margin, footerY);
     
     footerY += 6;
     doc.setFontSize(12);
-    doc.setFont('AngsanaNew', 'normal');
+    doc.setFont('helvetica', 'normal');
     doc.text(data.footer.form_id, margin, footerY);
     footerY += 4;
     doc.setFontSize(10);
@@ -169,9 +168,9 @@ const generateReportA = async (data: CertTemplateA) => {
     const addressLines = doc.splitTextToSize(addressText, maxAddressWidth);
 
     footerY -= 4;
-    doc.setFont('AngsanaNew', 'bold');
+    doc.setFont('helvetica', 'bold');
     doc.text(companyName, margin + 80, footerY);
-    doc.setFont('AngsanaNew', 'normal');
+    doc.setFont('helvetica', 'normal');
     doc.text(addressLines[0], margin + 83 + doc.getTextWidth(companyName), footerY);
 
     for (let i = 1; i < addressLines.length; i++) {
@@ -217,7 +216,7 @@ const generateReportA = async (data: CertTemplateA) => {
       },
       theme: 'plain',
       styles: {
-        font: 'AngsanaNew',
+        font: 'helvetica',
         fontSize: 12,
       },
       headStyles: {
@@ -287,7 +286,7 @@ const generateReportA = async (data: CertTemplateA) => {
       },
       theme: 'plain',
       styles: {
-        font: 'AngsanaNew',
+        font: 'helvetica',
         fontSize: 12,
       },
       headStyles: {
@@ -340,17 +339,17 @@ const generateReportA = async (data: CertTemplateA) => {
 
   const contentValueX = 30;
   if (data.decision !== "") {
-    doc.setFont('AngsanaNew', 'normal');
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(12);
     doc.text('Decision', margin, contentY);
     doc.text(':', 26, contentY);
-    doc.setFont('AngsanaNew', 'bold');
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
     doc.text(data.decision, contentValueX, contentY);
     contentY += 5;
   }
 
-  doc.setFont('AngsanaNew', 'normal');
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(12);
   doc.text('Remark', margin, contentY);
   doc.text(':', 26, contentY);
@@ -375,7 +374,7 @@ const generateReportA = async (data: CertTemplateA) => {
 
   doc.addImage(data.approver.signature, 'PNG', signCenterX - signatureWidth / 2, signImageY, signatureWidth, signatureHeight);
 
-  doc.setFont('AngsanaNew', 'normal');
+  doc.setFont('helvetica', 'normal');
   doc.text('......................................................................', signCenterX, signImageY + signatureHeight + 3, { align: 'center' });
 
   doc.text(`( ${data.approver.name} )`, signCenterX, signTextY, { align: 'center' });
@@ -388,9 +387,12 @@ const generateReportA = async (data: CertTemplateA) => {
     addFooter(i, totalPages);
   }
 
-  const pdfBlob = doc.output('blob');
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, '_blank');
+  const pdfBase64 = btoa(
+    new Uint8Array(await doc.output('arraybuffer'))
+      .reduce((data, byte) => data + String.fromCharCode(byte), '')
+  );
+
+  return pdfBase64
 };
 
 export default generateReportA;

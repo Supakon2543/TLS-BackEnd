@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { convertImageToBase64 } from '../certificate/materiaforgen/convertImageToBase64';
 import { CertTemplateA } from '../certificate/materiaforgen/model';
+import generateReportA from '../certificate/materiaforgen/certificate-a';
 
 @Injectable()
 export class ReportService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {} 
 
   async getReportDataA(sampleId: number): Promise<CertTemplateA> {
     try {
@@ -279,6 +280,21 @@ export class ReportService {
     } catch (error) {
       console.error('Error getting report data A:', error);
       throw new Error(`Failed to get report data A: ${error.message}`);
+    }
+  }
+
+  async generateReportA(sampleId: number): Promise<string> {
+    try {
+      // Get the report data first
+      const reportData = await this.getReportDataA(sampleId);
+      
+      // Generate the PDF and return base64
+      const pdfBase64 = await generateReportA(reportData);
+      
+      return pdfBase64;
+    } catch (error) {
+      console.error('Error generating report A:', error);
+      throw new Error(`Failed to generate report A: ${error.message}`);
     }
   }
 

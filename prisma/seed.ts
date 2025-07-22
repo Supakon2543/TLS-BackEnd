@@ -2620,9 +2620,14 @@ async function main() {
 
   await upsert_user_api();
 
-  // await seedRequestSampleLabel();
+  
 
   await createOrUpdateUser();
+  await seedUserLocation();
+  await seedSampleDescription();
+  await seedReportHeading();
+  await seedObjectiveFromNew();
+  await seedLineFromNew();
   // await seedUserLocation();
   // await seedSampleDescription();
   // await seedReportHeading();
