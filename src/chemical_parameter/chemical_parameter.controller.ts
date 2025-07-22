@@ -50,7 +50,7 @@ export class ChemicalParameterController {
   @ApiQuery({ name: 'status', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'List of chemical parameters.' })
   getChemicalParameters(
-    @Query() params: { id?: number; keyword?: string; status?: number },
+    @Query() params: { id?: number; keyword?: string; status?: number; material_id?: string },
   ) {
     return this.chemicalParameterService.getChemicalParameters(params);
   }

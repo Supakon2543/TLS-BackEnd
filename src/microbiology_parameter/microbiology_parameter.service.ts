@@ -271,8 +271,9 @@ export class MicrobiologyParameterService {
     id?: number | string;
     keyword?: string;
     status?: number | string;
+    material_id?: string;
   }) {
-    let { id, keyword, status } = params;
+    let { id, keyword, status, material_id } = params;
 
     // Convert id and status to numbers if they are strings
     id = id !== undefined ? +id : undefined;
@@ -307,6 +308,15 @@ export class MicrobiologyParameterService {
           },
         },
       ];
+    }
+
+    // ✅ Add material_id filter through material_microbiology mapping
+    if (material_id && material_id.trim() !== '') {
+      whereClause.material_microbiology = {
+        some: {
+          material_id: material_id.trim(),
+        },
+      };
     }
 
     // Get microbiology parameters with filters
