@@ -44,9 +44,26 @@ export class ChemicalParameterService {
     }
 
     if (!id) {
+      // Clean parameterData for creation as well
+      const cleanCreateData: any = { ...parameterData };
+      
+      // Validate unit_id - remove if null, undefined, or 0 to avoid foreign key constraint
+      if (!cleanCreateData.unit_id || cleanCreateData.unit_id === 0) {
+        delete cleanCreateData.unit_id;
+      }
+      
+      // Validate other optional foreign key fields
+      if (!cleanCreateData.sample_type_id || cleanCreateData.sample_type_id === '') {
+        delete cleanCreateData.sample_type_id;
+      }
+      
+      if (!cleanCreateData.spec_type_id || cleanCreateData.spec_type_id === '') {
+        delete cleanCreateData.spec_type_id;
+      }
+
       // Create chemical_parameter first
       const createdParam = await this.prisma.chemical_parameter.create({
-        data: { ...parameterData },
+        data: { ...cleanCreateData },
       });
 
       // Now create chemical_sample_description with the new chemical_parameter_id
@@ -73,10 +90,27 @@ export class ChemicalParameterService {
     }
 
     // For update: update parameter and handle nested chemical_sample_description
+    // Clean parameterData to handle foreign key constraints
+    const cleanParameterData: any = { ...parameterData };
+    
+    // Validate unit_id - remove if null, undefined, or 0 to avoid foreign key constraint
+    if (!cleanParameterData.unit_id || cleanParameterData.unit_id === 0) {
+      delete cleanParameterData.unit_id;
+    }
+    
+    // Validate other optional foreign key fields
+    if (!cleanParameterData.sample_type_id || cleanParameterData.sample_type_id === '') {
+      delete cleanParameterData.sample_type_id;
+    }
+    
+    if (!cleanParameterData.spec_type_id || cleanParameterData.spec_type_id === '') {
+      delete cleanParameterData.spec_type_id;
+    }
+
     return this.prisma.chemical_parameter.update({
       where: { id },
       data: {
-        ...parameterData,
+        ...cleanParameterData,
         chemical_sample_description: chemicalSampleDescriptions.length
           ? {
               create: chemicalSampleDescriptions.filter(
