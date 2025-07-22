@@ -2620,7 +2620,7 @@ async function main() {
 
   // await upsert_user_api();
 
-  // await seedRequestSampleLabel();
+  
 
   await createOrUpdateUser();
   await seedUserLocation();
@@ -2628,6 +2628,7 @@ async function main() {
   await seedReportHeading();
   await seedObjectiveFromNew();
   await seedLineFromNew();
+  await seedRequestSampleLabel();
   // await upsert_user_api();
   // await seedUnitFromNew();
   // await seedChemicalParameterFromNew();
