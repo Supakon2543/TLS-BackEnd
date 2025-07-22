@@ -470,6 +470,7 @@ model material {
   special_parameter_name  String?   @db.VarChar(100)
   special_parameter_type  String?
   remark_report           String?   @db.VarChar(200)
+  is_external             Boolean?  @default(false)
   status                  Boolean
   created_on              DateTime? @default(now())
   created_by              Int?
@@ -492,6 +493,7 @@ model staging_material {
   special_parameter_name  String?   @db.VarChar(100)
   special_parameter_type  String?
   remark_report           String?   @db.VarChar(200)
+  is_external             Boolean?  @default(false)
   status                  Boolean
   created_on              DateTime? @default(now())
   created_by              Int?
