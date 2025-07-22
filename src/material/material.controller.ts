@@ -47,7 +47,7 @@ export class MaterialController {
 
   @Get()
   getMaterials(
-    @Query() params: { id?: string; keyword?: string; status?: number },
+    @Query() params: { id?: string; keyword?: string; status?: number; is_external?: boolean },
   ) {
     return this.materialService.getMaterials(params);
   }
