@@ -135,6 +135,9 @@ export class MaterialService {
     is_external?: boolean;
   }) {
     let { id, keyword, status, is_external } = params;
+    if( typeof is_external === 'string') {
+      is_external = is_external === 'true' || is_external === '1';
+    }
 
     // Convert status to number if it's a string
     status = status !== undefined ? +status : undefined;
