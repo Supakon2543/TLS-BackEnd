@@ -1660,6 +1660,8 @@ export class RequestService {
         },
       });
 
+      await this
+
       // Create a cancellation log entry
       await this.prisma.request_log.create({
         data: {

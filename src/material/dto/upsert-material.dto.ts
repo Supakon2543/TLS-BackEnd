@@ -44,6 +44,10 @@ export class UpsertMaterialDto {
 
   @IsBoolean()
   @IsOptional()
+  is_external: boolean;
+
+  @IsBoolean()
+  @IsOptional()
   status: boolean;
 
   @IsString()

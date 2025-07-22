@@ -38,6 +38,7 @@ export class MaterialService {
         special_parameter_name: material.special_parameter_name,
         special_parameter_type: material.special_parameter_type,
         remark_report: material.remark_report,
+        is_external: material.is_external,
         status: material.status,
         updated_by: material.updated_by,
         updated_on: now,
@@ -52,6 +53,7 @@ export class MaterialService {
         special_parameter_name: material.special_parameter_name,
         special_parameter_type: material.special_parameter_type,
         remark_report: material.remark_report,
+        is_external: material.is_external,
         status: material.status,
         created_by: material.created_by,
         updated_by: material.updated_by,
@@ -130,8 +132,9 @@ export class MaterialService {
     id?: string;
     keyword?: string;
     status?: number | string;
+    is_external?: boolean;
   }) {
-    let { id, keyword, status } = params;
+    let { id, keyword, status, is_external } = params;
 
     // Convert status to number if it's a string
     status = status !== undefined ? +status : undefined;
@@ -170,6 +173,10 @@ export class MaterialService {
       ];
     }
 
+    if (is_external !== undefined) {
+      whereClause.is_external = is_external;
+    }
+
     // ✅ If no filters provided, get all materials (empty where clause)
     const materials = await this.prisma.material.findMany({
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
@@ -205,6 +212,7 @@ export class MaterialService {
       special_parameter_name: material.special_parameter_name,
       special_parameter_type: material.special_parameter_type,
       remark_report: material.remark_report,
+      is_external: material.is_external,
       status: material.status,
       created_on: material.created_on,
       created_by: material.created_by,
