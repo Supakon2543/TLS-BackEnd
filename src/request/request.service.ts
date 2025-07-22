@@ -175,31 +175,31 @@ export class RequestService {
               updated_by: true,
               request_sample_chemical: {
                 select: {
-                  chemical_parameter: {
-                    select: {
-                      id: true,
-                      name: true,
-                      name_abb: true,
-                      request_min: true,
-                      unit_id: true,
-                      unit: { select: { name: true } },
-                      sample_type_id: true,
-                      spec_type_id: true,
-                      spec: true,
-                      spec_min: true,
-                      spec_max: true,
-                      warning_min: true,
-                      warning_max: true,
-                      final_result: true,
-                      decimal: true,
-                      is_enter_spec_min: true,
-                      is_enter_spec_max: true,
-                      is_enter_warning_min: true,
-                      is_enter_warning_max: true,
-                      is_enter_decimal: true,
-                      method: true,
-                    }
-                  },
+                  // chemical_parameter: {
+                  //   select: {
+                  //     id: true,
+                  //     name: true,
+                  //     name_abb: true,
+                  //     request_min: true,
+                  //     unit_id: true,
+                  //     unit: { select: { name: true } },
+                  //     sample_type_id: true,
+                  //     spec_type_id: true,
+                  //     spec: true,
+                  //     spec_min: true,
+                  //     spec_max: true,
+                  //     warning_min: true,
+                  //     warning_max: true,
+                  //     final_result: true,
+                  //     decimal: true,
+                  //     is_enter_spec_min: true,
+                  //     is_enter_spec_max: true,
+                  //     is_enter_warning_min: true,
+                  //     is_enter_warning_max: true,
+                  //     is_enter_decimal: true,
+                  //     method: true,
+                  //   }
+                  // },
                   id: true,
                   request_sample_id: true,
                   chemical_parameter_id: true,
@@ -212,31 +212,31 @@ export class RequestService {
               },
               request_sample_microbiology: {
                 select: {
-                  microbiology_parameter: {
-                    select: {
-                      id: true,
-                      name: true,
-                      name_abb: true,
-                      request_min: true,
-                      unit_id: true,
-                      unit: { select: { name: true } },
-                      sample_type_id: true,
-                      spec_type_id: true,
-                      spec: true,
-                      spec_min: true,
-                      spec_max: true,
-                      warning_min: true,
-                      warning_max: true,
-                      final_result: true,
-                      decimal: true,
-                      is_enter_spec_min: true,
-                      is_enter_spec_max: true,
-                      is_enter_warning_min: true,
-                      is_enter_warning_max: true,
-                      is_enter_decimal: true,
-                      method: true,
-                    }
-                  },
+                  // microbiology_parameter: {
+                  //   select: {
+                  //     id: true,
+                  //     name: true,
+                  //     name_abb: true,
+                  //     request_min: true,
+                  //     unit_id: true,
+                  //     unit: { select: { name: true } },
+                  //     sample_type_id: true,
+                  //     spec_type_id: true,
+                  //     spec: true,
+                  //     spec_min: true,
+                  //     spec_max: true,
+                  //     warning_min: true,
+                  //     warning_max: true,
+                  //     final_result: true,
+                  //     decimal: true,
+                  //     is_enter_spec_min: true,
+                  //     is_enter_spec_max: true,
+                  //     is_enter_warning_min: true,
+                  //     is_enter_warning_max: true,
+                  //     is_enter_decimal: true,
+                  //     method: true,
+                  //   }
+                  // },
                   id: true,
                   request_sample_id: true,
                   microbiology_parameter_id: true,
@@ -302,116 +302,116 @@ export class RequestService {
         : request.request_detail;
 
       // console.log("Request Sample Chemical:", request.request_sample.map(sample => sample.request_sample_chemical.length));
-      if (request.id !== 0) {
-        // Always fetch all chemical parameters
-        // console.log("test");
-        const allChemicalParameters = await this.prisma.chemical_parameter.findMany({
-          include: {
-            unit: true,
-          },
-        });
-        const allMicrobiologyParameters = await this.prisma.microbiology_parameter.findMany({
-          include: {
-            unit: true,
-          },
-        });
+      // if (request.id !== 0) {
+      //   // Always fetch all chemical parameters
+      //   // console.log("test");
+      //   const allChemicalParameters = await this.prisma.chemical_parameter.findMany({
+      //     include: {
+      //       unit: true,
+      //     },
+      //   });
+      //   const allMicrobiologyParameters = await this.prisma.microbiology_parameter.findMany({
+      //     include: {
+      //       unit: true,
+      //     },
+      //   });
 
-        if (request.request_sample && Array.isArray(request.request_sample)) {
-          request.request_sample.forEach(sample => {
-          // Build a map of existing sample_chemical by chemical_parameter_id for quick lookup
-          const existingChemicals = {};
-          const existingMicrobiologies = {};
-          (sample.request_sample_chemical ?? []).forEach(sc => {
-            if (sc.chemical_parameter_id != null) {
-              existingChemicals[sc.chemical_parameter_id] = sc;
-            }
-          });
-          (sample.request_sample_microbiology ?? []).forEach(sm => {
-            if (sm.microbiology_parameter_id != null) {
-              existingMicrobiologies[sm.microbiology_parameter_id] = sm;
-            }
-          });
+      //   if (request.request_sample && Array.isArray(request.request_sample)) {
+      //     request.request_sample.forEach(sample => {
+      //     // Build a map of existing sample_chemical by chemical_parameter_id for quick lookup
+      //     const existingChemicals = {};
+      //     const existingMicrobiologies = {};
+      //     (sample.request_sample_chemical ?? []).forEach(sc => {
+      //       if (sc.chemical_parameter_id != null) {
+      //         existingChemicals[sc.chemical_parameter_id] = sc;
+      //       }
+      //     });
+      //     (sample.request_sample_microbiology ?? []).forEach(sm => {
+      //       if (sm.microbiology_parameter_id != null) {
+      //         existingMicrobiologies[sm.microbiology_parameter_id] = sm;
+      //       }
+      //     });
 
-          // Always build the full array for all parameters
-          sample.request_sample_chemical = allChemicalParameters.map(param => {
-            const sc = existingChemicals[param.id] || {};
-            return {
-              // Sample-chemical fields (empty/default if not present)
-              id: sc.id ?? 0,
-              created_on: sc.created_on ?? null,
-              created_by: sc.created_by ?? null,
-              request_sample_id: (sc.id ?? 0) === 0 ? 0 : sample.id || 0,
-              chemical_parameter_id: param.id ?? null,
-              lab_result: sc.lab_result ?? "",
-              test_by: sc.test_by ?? null,
-              test_date: sc.test_date ?? null,
-              // Add the required chemical_parameter property
-              chemical_parameter: {
-                id: param.id ?? 0,
-                name: param.name ?? "",
-                name_abb: param.name_abb ?? "",
-                request_min: param.request_min ?? null,
-                unit_id: param.unit_id ?? null,
-                unit: param.unit ? { name: param.unit.name ?? "" } : null,
-                sample_type_id: param.sample_type_id ?? null,
-                spec_type_id: param.spec_type_id ?? null,
-                spec: param.spec ?? "",
-                spec_min: param.spec_min ?? null,
-                spec_max: param.spec_max ?? null,
-                warning_min: param.warning_min ?? null,
-                warning_max: param.warning_max ?? null,
-                final_result: param.final_result ?? "",
-                decimal: param.decimal ?? null,
-                is_enter_spec_min: !!param.is_enter_spec_min,
-                is_enter_spec_max: !!param.is_enter_spec_max,
-                is_enter_warning_min: !!param.is_enter_warning_min,
-                is_enter_warning_max: !!param.is_enter_warning_max,
-                is_enter_decimal: !!param.is_enter_decimal,
-                method: param.method ?? "", // Include method if available
-              }
-            };
-          });
-          sample.request_sample_microbiology = allMicrobiologyParameters.map(param => {
-            const sm = existingMicrobiologies[param.id] || {};
-            return {
-              // Sample-microbiology fields (empty/default if not present)
-              id: sm.id ?? 0,
-              created_on: sm.created_on ?? null,
-              created_by: sm.created_by ?? null,
-              request_sample_id: (sm.id ?? 0) === 0 ? 0 : sample.id || 0,
-              microbiology_parameter_id: param.id ?? null,
-              lab_result: sm.lab_result ?? "",
-              test_by: sm.test_by ?? null,
-              test_date: sm.test_date ?? null,
-              // Add the required microbiology_parameter property
-              microbiology_parameter: {
-                id: param.id ?? 0,
-                name: param.name ?? "",
-                name_abb: param.name_abb ?? "",
-                request_min: param.request_min ?? null,
-                unit_id: param.unit_id ?? null,
-                unit: param.unit ? { name: param.unit.name ?? "" } : null,
-                sample_type_id: param.sample_type_id ?? null,
-                spec_type_id: param.spec_type_id ?? null,
-                spec: param.spec ?? "",
-                spec_min: param.spec_min ?? null,
-                spec_max: param.spec_max ?? null,
-                warning_min: param.warning_min ?? null,
-                warning_max: param.warning_max ?? null,
-                final_result: param.final_result ?? "",
-                decimal: param.decimal ?? null,
-                is_enter_spec_min: !!param.is_enter_spec_min,
-                is_enter_spec_max: !!param.is_enter_spec_max,
-                is_enter_warning_min: !!param.is_enter_warning_min,
-                is_enter_warning_max: !!param.is_enter_warning_max,
-                is_enter_decimal: !!param.is_enter_decimal,
-                method: param.method ?? "", // Include method if available
-              }
-            };
-          });
-        });
-        }
-      }
+      //     // Always build the full array for all parameters
+      //     sample.request_sample_chemical = allChemicalParameters.map(param => {
+      //       const sc = existingChemicals[param.id] || {};
+      //       return {
+      //         // Sample-chemical fields (empty/default if not present)
+      //         id: sc.id ?? 0,
+      //         created_on: sc.created_on ?? null,
+      //         created_by: sc.created_by ?? null,
+      //         request_sample_id: (sc.id ?? 0) === 0 ? 0 : sample.id || 0,
+      //         chemical_parameter_id: param.id ?? null,
+      //         lab_result: sc.lab_result ?? "",
+      //         test_by: sc.test_by ?? null,
+      //         test_date: sc.test_date ?? null,
+      //         // Add the required chemical_parameter property
+      //         chemical_parameter: {
+      //           id: param.id ?? 0,
+      //           name: param.name ?? "",
+      //           name_abb: param.name_abb ?? "",
+      //           request_min: param.request_min ?? null,
+      //           unit_id: param.unit_id ?? null,
+      //           unit: param.unit ? { name: param.unit.name ?? "" } : null,
+      //           sample_type_id: param.sample_type_id ?? null,
+      //           spec_type_id: param.spec_type_id ?? null,
+      //           spec: param.spec ?? "",
+      //           spec_min: param.spec_min ?? null,
+      //           spec_max: param.spec_max ?? null,
+      //           warning_min: param.warning_min ?? null,
+      //           warning_max: param.warning_max ?? null,
+      //           final_result: param.final_result ?? "",
+      //           decimal: param.decimal ?? null,
+      //           is_enter_spec_min: !!param.is_enter_spec_min,
+      //           is_enter_spec_max: !!param.is_enter_spec_max,
+      //           is_enter_warning_min: !!param.is_enter_warning_min,
+      //           is_enter_warning_max: !!param.is_enter_warning_max,
+      //           is_enter_decimal: !!param.is_enter_decimal,
+      //           method: param.method ?? "", // Include method if available
+      //         }
+      //       };
+      //     });
+      //     sample.request_sample_microbiology = allMicrobiologyParameters.map(param => {
+      //       const sm = existingMicrobiologies[param.id] || {};
+      //       return {
+      //         // Sample-microbiology fields (empty/default if not present)
+      //         id: sm.id ?? 0,
+      //         created_on: sm.created_on ?? null,
+      //         created_by: sm.created_by ?? null,
+      //         request_sample_id: (sm.id ?? 0) === 0 ? 0 : sample.id || 0,
+      //         microbiology_parameter_id: param.id ?? null,
+      //         lab_result: sm.lab_result ?? "",
+      //         test_by: sm.test_by ?? null,
+      //         test_date: sm.test_date ?? null,
+      //         // Add the required microbiology_parameter property
+      //         microbiology_parameter: {
+      //           id: param.id ?? 0,
+      //           name: param.name ?? "",
+      //           name_abb: param.name_abb ?? "",
+      //           request_min: param.request_min ?? null,
+      //           unit_id: param.unit_id ?? null,
+      //           unit: param.unit ? { name: param.unit.name ?? "" } : null,
+      //           sample_type_id: param.sample_type_id ?? null,
+      //           spec_type_id: param.spec_type_id ?? null,
+      //           spec: param.spec ?? "",
+      //           spec_min: param.spec_min ?? null,
+      //           spec_max: param.spec_max ?? null,
+      //           warning_min: param.warning_min ?? null,
+      //           warning_max: param.warning_max ?? null,
+      //           final_result: param.final_result ?? "",
+      //           decimal: param.decimal ?? null,
+      //           is_enter_spec_min: !!param.is_enter_spec_min,
+      //           is_enter_spec_max: !!param.is_enter_spec_max,
+      //           is_enter_warning_min: !!param.is_enter_warning_min,
+      //           is_enter_warning_max: !!param.is_enter_warning_max,
+      //           is_enter_decimal: !!param.is_enter_decimal,
+      //           method: param.method ?? "", // Include method if available
+      //         }
+      //       };
+      //     });
+      //   });
+      //   }
+      // }
       // Build the response
       return {
         request: {
@@ -498,26 +498,26 @@ export class RequestService {
           updated_on: sample.updated_on ?? "",
           updated_by: sample.updated_by ?? 0,
           request_sample_chemical: (sample.request_sample_chemical ?? []).map(sample_chemical => ({
-            parameter_id: sample_chemical.chemical_parameter?.id ?? 0,
-            name: sample_chemical.chemical_parameter?.name ?? "",
-            request_min: sample_chemical.chemical_parameter?.request_min ?? 0,
-            unit_id: sample_chemical.chemical_parameter?.unit_id ?? 0,
-            unit_name: sample_chemical.chemical_parameter?.unit?.name ?? "",
-            sample_type_id: sample_chemical.chemical_parameter?.sample_type_id ?? "",
-            spec_type_id: sample_chemical.chemical_parameter?.spec_type_id ?? "",
-            spec: sample_chemical.chemical_parameter?.spec ?? "",
-            spec_min: sample_chemical.chemical_parameter?.spec_min ?? 0,
-            spec_max: sample_chemical.chemical_parameter?.spec_max ?? 0,
-            warning_min: sample_chemical.chemical_parameter?.warning_min ?? 0,
-            warning_max: sample_chemical.chemical_parameter?.warning_max ?? 0,
-            final_result: sample_chemical.chemical_parameter?.final_result ?? "",
-            decimal: sample_chemical.chemical_parameter?.decimal ?? 0,
-            is_enter_spec_min: sample_chemical.chemical_parameter?.is_enter_spec_min ?? false,
-            is_enter_spec_max: sample_chemical.chemical_parameter?.is_enter_spec_max ?? false,
-            is_enter_warning_min: sample_chemical.chemical_parameter?.is_enter_warning_min ?? false,
-            is_enter_warning_max: sample_chemical.chemical_parameter?.is_enter_warning_max ?? false,
-            is_enter_decimal: sample_chemical.chemical_parameter?.is_enter_decimal ?? false,
-            method: sample_chemical.chemical_parameter?.method ?? "",
+            // parameter_id: sample_chemical.chemical_parameter?.id ?? 0,
+            // name: sample_chemical.chemical_parameter?.name ?? "",
+            // request_min: sample_chemical.chemical_parameter?.request_min ?? 0,
+            // unit_id: sample_chemical.chemical_parameter?.unit_id ?? 0,
+            // unit_name: sample_chemical.chemical_parameter?.unit?.name ?? "",
+            // sample_type_id: sample_chemical.chemical_parameter?.sample_type_id ?? "",
+            // spec_type_id: sample_chemical.chemical_parameter?.spec_type_id ?? "",
+            // spec: sample_chemical.chemical_parameter?.spec ?? "",
+            // spec_min: sample_chemical.chemical_parameter?.spec_min ?? 0,
+            // spec_max: sample_chemical.chemical_parameter?.spec_max ?? 0,
+            // warning_min: sample_chemical.chemical_parameter?.warning_min ?? 0,
+            // warning_max: sample_chemical.chemical_parameter?.warning_max ?? 0,
+            // final_result: sample_chemical.chemical_parameter?.final_result ?? "",
+            // decimal: sample_chemical.chemical_parameter?.decimal ?? 0,
+            // is_enter_spec_min: sample_chemical.chemical_parameter?.is_enter_spec_min ?? false,
+            // is_enter_spec_max: sample_chemical.chemical_parameter?.is_enter_spec_max ?? false,
+            // is_enter_warning_min: sample_chemical.chemical_parameter?.is_enter_warning_min ?? false,
+            // is_enter_warning_max: sample_chemical.chemical_parameter?.is_enter_warning_max ?? false,
+            // is_enter_decimal: sample_chemical.chemical_parameter?.is_enter_decimal ?? false,
+            // method: sample_chemical.chemical_parameter?.method ?? "",
             // Include the sample_chemical fields
             id: sample_chemical.id ?? 0,
             request_sample_id: sample_chemical.request_sample_id ?? 0,
@@ -529,26 +529,26 @@ export class RequestService {
             created_by: sample_chemical.created_by ?? 0,
           })),
           request_sample_microbiology: (sample.request_sample_microbiology ?? []).map(sample_microbiology => ({
-            parameter_id: sample_microbiology.microbiology_parameter?.id ?? 0,
-            name: sample_microbiology.microbiology_parameter?.name ?? "",
-            request_min: sample_microbiology.microbiology_parameter?.request_min ?? 0,
-            unit_id: sample_microbiology.microbiology_parameter?.unit_id ?? 0,
-            unit_name: sample_microbiology.microbiology_parameter?.unit?.name ?? "",
-            sample_type_id: sample_microbiology.microbiology_parameter?.sample_type_id ?? "",
-            spec_type_id: sample_microbiology.microbiology_parameter?.spec_type_id ?? "",
-            spec: sample_microbiology.microbiology_parameter?.spec ?? "",
-            spec_min: sample_microbiology.microbiology_parameter?.spec_min ?? 0,
-            spec_max: sample_microbiology.microbiology_parameter?.spec_max ?? 0,
-            warning_min: sample_microbiology.microbiology_parameter?.warning_min ?? 0,
-            warning_max: sample_microbiology.microbiology_parameter?.warning_max ?? 0,
-            final_result: sample_microbiology.microbiology_parameter?.final_result ?? "",
-            decimal: sample_microbiology.microbiology_parameter?.decimal ?? 0,
-            is_enter_spec_min: sample_microbiology.microbiology_parameter?.is_enter_spec_min ?? false,
-            is_enter_spec_max: sample_microbiology.microbiology_parameter?.is_enter_spec_max ?? false,
-            is_enter_warning_min: sample_microbiology.microbiology_parameter?.is_enter_warning_min ?? false,
-            is_enter_warning_max: sample_microbiology.microbiology_parameter?.is_enter_warning_max ?? false,
-            is_enter_decimal: sample_microbiology.microbiology_parameter?.is_enter_decimal ?? false,
-            method: sample_microbiology.microbiology_parameter?.method ?? "",
+            // parameter_id: sample_microbiology.microbiology_parameter?.id ?? 0,
+            // name: sample_microbiology.microbiology_parameter?.name ?? "",
+            // request_min: sample_microbiology.microbiology_parameter?.request_min ?? 0,
+            // unit_id: sample_microbiology.microbiology_parameter?.unit_id ?? 0,
+            // unit_name: sample_microbiology.microbiology_parameter?.unit?.name ?? "",
+            // sample_type_id: sample_microbiology.microbiology_parameter?.sample_type_id ?? "",
+            // spec_type_id: sample_microbiology.microbiology_parameter?.spec_type_id ?? "",
+            // spec: sample_microbiology.microbiology_parameter?.spec ?? "",
+            // spec_min: sample_microbiology.microbiology_parameter?.spec_min ?? 0,
+            // spec_max: sample_microbiology.microbiology_parameter?.spec_max ?? 0,
+            // warning_min: sample_microbiology.microbiology_parameter?.warning_min ?? 0,
+            // warning_max: sample_microbiology.microbiology_parameter?.warning_max ?? 0,
+            // final_result: sample_microbiology.microbiology_parameter?.final_result ?? "",
+            // decimal: sample_microbiology.microbiology_parameter?.decimal ?? 0,
+            // is_enter_spec_min: sample_microbiology.microbiology_parameter?.is_enter_spec_min ?? false,
+            // is_enter_spec_max: sample_microbiology.microbiology_parameter?.is_enter_spec_max ?? false,
+            // is_enter_warning_min: sample_microbiology.microbiology_parameter?.is_enter_warning_min ?? false,
+            // is_enter_warning_max: sample_microbiology.microbiology_parameter?.is_enter_warning_max ?? false,
+            // is_enter_decimal: sample_microbiology.microbiology_parameter?.is_enter_decimal ?? false,
+            // method: sample_microbiology.microbiology_parameter?.method ?? "",
             // Include the sample_microbiology fields
             id: sample_microbiology.id ?? 0,
             request_sample_id: sample_microbiology.request_sample_id ?? 0,
