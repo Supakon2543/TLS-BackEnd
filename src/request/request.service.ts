@@ -1243,7 +1243,52 @@ export class RequestService {
       console.log('Is within 00:00-15:00 range:', isWithinRange);
       console.log('=====================================');
 
+      function clearZeroIdsAndDatesAndBy(obj: any) {
+        if (Array.isArray(obj)) {
+          obj.forEach(clearZeroIdsAndDatesAndBy);
+        } else if (obj && typeof obj === 'object') {
+          if ('id' in obj && obj.id === 0) obj.id = undefined;
+          for (const key in obj) {
+            // Set all foreign key fields to null if input as "" or 0 or undefined
+            if (
+              key.endsWith('_id') &&
+              (obj[key] === "" || obj[key] === 0 || obj[key] === undefined)
+            ) {
+              obj[key] = null;
+            }
+            // Set all date fields to null if input as ""
+            if (
+              (key.endsWith('_date') || key.endsWith('_on') || key.endsWith('_time')) &&
+              obj[key] === ""
+            ) {
+              obj[key] = null;
+            }
+            // Ensure all date fields are Date objects if not null
+            if (
+              (key.endsWith('_date') || key.endsWith('_on') || key.endsWith('_time')) &&
+              obj[key] !== null &&
+              obj[key] !== undefined &&
+              obj[key] !== ""
+            ) {
+              // Convert to Date if not already a Date object
+              if (!(obj[key] instanceof Date)) {
+                obj[key] = new Date(obj[key]);
+              }
+            }
+            // Set all *_by fields to null if input as 0
+            if (
+              key.endsWith('_by') &&
+              obj[key] === 0
+            ) {
+              obj[key] = null;
+            }
+          }
+          Object.values(obj).forEach(clearZeroIdsAndDatesAndBy);
+        }
+      }
+
       const { request_id, request_sample, activity_request_id, review_role_id, user_id, remark } = payload;
+      clearZeroIdsAndDatesAndBy(request_sample);
       const request = await this.prisma.request.findUnique({
         where: { id: request_id },
         include: {
@@ -1251,29 +1296,46 @@ export class RequestService {
           requester: true,
         },
       });
+      console.log('activity_request_id:', activity_request_id);
       let status_id = '';
       let status_sample_id = request?.status_sample_id ?? '';
-      if (activity_request_id !== 'RETURN') {
-        status_id = 'REJECT';
+      let new_review_role_id = review_role_id;
+      if (activity_request_id === 'RETURN') {
+        status_id = 'REJECTED';
       } else if (activity_request_id === 'CONFIRM') {
         status_id = 'REVIEW';
       } else if (activity_request_id === 'REJECT') {
         status_id = 'CANCEL';
+        status_sample_id = 'CANCEL';
       } else if (activity_request_id === 'ACCEPT') {
         status_id = 'TESTING';
         status_sample_id = 'TESTING';
       }
+      if (activity_request_id === 'CONFIRM' || activity_request_id === 'ACCEPT') {
+        if (review_role_id === 'REQ_HEAD') {
+          if (isWithinRange && isWithinPreciseRange) {
+            new_review_role_id = 'LAB_OFF';
+          } else {
+            new_review_role_id = 'LAB_HEAD';
+          }
+        } else if (review_role_id === 'LAB_HEAD') {
+          new_review_role_id = 'LAB_OFF';
+        } else if (review_role_id === 'LAB_OFF') {
+          new_review_role_id = 'LAB_LEAD';
+        }
+      }
       // const request = await this.prisma.request.findUnique({
       //   where: { id: request_id },
       // });
+      console.log('status_id:', status_id);
       const requestUpdate = {
         status_request_id: status_id,
-        status_sample_id: status_sample_id ?? request?.status_sample_id,
-        review_role_id: review_role_id,
+        status_sample_id: (status_sample_id ?? request?.status_sample_id) === '' ? undefined : (status_sample_id ?? 0),
+        review_role_id: new_review_role_id,
         updated_by: user_id,
         updated_on: new Date(),
       };
-
+      console.log('requestUpdate:', requestUpdate);
       const request_detail = await this.prisma.request_detail.findFirst({
         where: { request_id: request_id },
       });
@@ -1660,7 +1722,15 @@ export class RequestService {
         },
       });
 
-      await this
+      // Update status_sample_id in every request_sample for this request
+      await this.prisma.request_sample.updateMany({
+        where: { request_id: request_id },
+        data: {
+          status_sample_id: 'CANCEL',
+          updated_by: user_id,
+          updated_on: new Date(),
+        },
+      });
 
       // Create a cancellation log entry
       await this.prisma.request_log.create({
@@ -1675,7 +1745,7 @@ export class RequestService {
       });
       return {
         message: `Request with ID ${request_id} has been cancelled successfully.`,
-    }
+      }
     }
 
     async list(@Body() payload: ListRequestDto) {
