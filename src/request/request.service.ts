@@ -27,7 +27,7 @@ export class RequestService {
   constructor(private readonly prisma: PrismaService){}
     clearZeroIdsAndDatesAndBy(obj: any) {
       if (Array.isArray(obj)) {
-        obj.forEach(this.clearZeroIdsAndDatesAndBy);
+        obj.forEach((item) => this.clearZeroIdsAndDatesAndBy(item));
       } else if (obj && typeof obj === 'object') {
         if ('id' in obj && obj.id === 0) obj.id = undefined;
         for (const key in obj) {
@@ -65,7 +65,7 @@ export class RequestService {
             obj[key] = null;
           }
         }
-        Object.values(obj).forEach(this.clearZeroIdsAndDatesAndBy);
+        Object.values(obj).forEach((item) => this.clearZeroIdsAndDatesAndBy(item));
       }
     }
     
