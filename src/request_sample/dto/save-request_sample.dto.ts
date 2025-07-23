@@ -34,6 +34,11 @@ export class SaveRequestSampleDto {
     @MaxLength(100)
     sample_name: string;
 
+    @IsString()
+    @IsOptional()
+    @MaxLength(50)
+    input_sample_name: string;
+
     @IsNumber()
     @IsOptional()
     line_id: number;

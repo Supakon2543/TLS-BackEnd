@@ -26,17 +26,33 @@ export class CreateRequestDetailDto {
     @IsOptional()
     objective_id: number;
 
+    @IsString()
+    @IsOptional()
+    objective_text: string;
+
     @IsNumber()
     @IsOptional()
     sample_stage_id: number;
+
+    @IsString()
+    @IsOptional()
+    sample_stage_text: string;
 
     @IsNumber()
     @IsOptional()
     lab_process_id: number;
 
+    @IsString()
+    @IsOptional()
+    lab_process_text: string;
+
     @IsNumber()
     @IsOptional()
     sample_retaining_id: number;
+    
+    @IsString()
+    @IsOptional()
+    sample_retaining_text: string;
 
     @IsString()
     @IsOptional()
