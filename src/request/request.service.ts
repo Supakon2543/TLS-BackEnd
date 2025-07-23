@@ -720,72 +720,34 @@ export class RequestService {
         // else if (request_log.activity_request_id === "DRAFT" && request.status_request_id !== "DRAFT" && request.status_request_id !== "") {
         //   request.status_request_id = request.status_request_id;
         // }
-        else if (request_log.activity_request_id === "SEND" && request.request_number === "") {
+        else if (request_log.activity_request_id === "SEND") {
           request.status_request_id = "REVIEW";
           request.review_role_id = "REQ_HEAD";
           request_log.status_request_id = "REVIEW";
-          if (request.request_type_id === "REQUEST") {
+          
+          const year = new Date().getFullYear().toString().slice(-2);
+          let prefix = "";
+          if (request.request_type_id === "REQUEST") prefix = "RQ" + year;
+          else if (request.request_type_id === "ROUTINE") prefix = "RT" + year;
+          else if (request.request_type_id === "QIP") prefix = "RE" + year;
+
+          if (prefix && request.request_number === "") {
+            // Find the latest request with the same prefix
             const last_request = await this.prisma.request.findFirst({
-              where: { request_type_id: 'REQUEST' },
-              orderBy: { created_on: 'desc' },
+              where: {
+                request_number: {
+                  startsWith: prefix,
+                },
+              },
+              orderBy: { created_on: "desc" },
             });
 
-            // Get current year as 2 digits
-            const year = new Date().getFullYear().toString().slice(-2);
-
             let lastNumber = 0;
-            if (last_request?.request_number) {
-              // Expect format: RQYYNNNN, e.g., RQ240001
-              const lastReqNum = String(last_request.request_number);
-              // Only increment if the year matches, otherwise reset to 0
-              const lastYear = lastReqNum.slice(2, 4);
-              if (lastYear === year) {
-                lastNumber = parseInt(lastReqNum.slice(-4), 10) || 0;
-              }
+            if (last_request?.request_number && last_request.request_number.length === 8) {
+              // Extract running number (last 4 digits)
+              lastNumber = parseInt(last_request.request_number.slice(-4), 10) || 0;
             }
-            request.request_number = "RQ" + year + (lastNumber + 1).toString().padStart(4, "0");
-          }
-          else if (request.request_type_id === "ROUTINE") {
-            const last_request = await this.prisma.request.findFirst({
-              where: { request_type_id: 'ROUTINE' },
-              orderBy: { created_on: 'desc' },
-            });
-
-            // Get current year as 2 digits
-            const year = new Date().getFullYear().toString().slice(-2);
-
-            let lastNumber = 0;
-            if (last_request?.request_number) {
-              // Expect format: RQYYNNNN, e.g., RQ240001
-              const lastReqNum = String(last_request.request_number);
-              // Only increment if the year matches, otherwise reset to 0
-              const lastYear = lastReqNum.slice(2, 4);
-              if (lastYear === year) {
-                lastNumber = parseInt(lastReqNum.slice(-4), 10) || 0;
-              }
-            }
-            request.request_number = "RT" + year + (lastNumber + 1).toString().padStart(4, "0");
-          }
-          else if (request.request_type_id === "QIP") {
-            const last_request = await this.prisma.request.findFirst({
-              where: { request_type_id: 'QIP' },
-              orderBy: { created_on: 'desc' },
-            });
-
-            // Get current year as 2 digits
-            const year = new Date().getFullYear().toString().slice(-2);
-
-            let lastNumber = 0;
-            if (last_request?.request_number) {
-              // Expect format: RQYYNNNN, e.g., RQ240001
-              const lastReqNum = String(last_request.request_number);
-              // Only increment if the year matches, otherwise reset to 0
-              const lastYear = lastReqNum.slice(2, 4);
-              if (lastYear === year) {
-                lastNumber = parseInt(lastReqNum.slice(-4), 10) || 0;
-              }
-            }
-            request.request_number = "RE" + year + (lastNumber + 1).toString().padStart(4, "0");
+            request.request_number = prefix + (lastNumber + 1).toString().padStart(4, "0");
           }
         }
   
@@ -1146,7 +1108,6 @@ export class RequestService {
           // --- Upsert and delete for request_sample_microbiology ---
           const micro = (request_sample_microbiology ?? []).map(m => ({
             ...m,
-            request_id: undefined,
             request_sample_id: sampleId,
           }));
           const microInDb = await tx.request_sample_microbiology.findMany({
@@ -1208,6 +1169,7 @@ export class RequestService {
         if (request_log.activity_request_id === "SEND") {
           await sendMail(
             supervisor?.email ?? '',
+            '',
             supervisor?.fullname ?? '',
             'ขออนุมัติใบส่งตัวอย่าง',
             request_log.activity_request_id,
@@ -1294,17 +1256,45 @@ export class RequestService {
           new_review_role_id = 'LAB_LEAD';
         }
       }
+
+      // 1. Get all request_sample for this request and find the earliest due_date
+      let earliestDueDate: Date | null = null;
+      if (request_sample && Array.isArray(request_sample)) {
+        for (const s of request_sample) {
+          if (s.due_date && (!earliestDueDate || new Date(s.due_date) < earliestDueDate)) {
+            earliestDueDate = new Date(s.due_date);
+          }
+        }
+      }
+      // const samplesWithDueDate = await this.prisma.request_sample.findMany({
+      //   where: { request_id: request_id },
+      //   select: { due_date: true },
+      // });
+
+      // let earliestDueDate: Date | null = null;
+      // for (const s of samplesWithDueDate) {
+      //   if (s.due_date && (!earliestDueDate || new Date(s.due_date) < earliestDueDate)) {
+      //     earliestDueDate = new Date(s.due_date);
+      //   }
+      // }
+
+      
       // const request = await this.prisma.request.findUnique({
       //   where: { id: request_id },
       // });
       console.log('status_id:', status_id);
       const requestUpdate = {
+        due_date: request?.due_date ?? null,
         status_request_id: status_id,
         status_sample_id: (status_sample_id ?? request?.status_sample_id) === '' ? undefined : (status_sample_id ?? 0),
         review_role_id: new_review_role_id,
         updated_by: user_id,
         updated_on: new Date(),
       };
+      // 2. Add to requestUpdate if found
+      if (earliestDueDate) {
+        requestUpdate.due_date = earliestDueDate;
+      }
       console.log('requestUpdate:', requestUpdate);
       const request_detail = await this.prisma.request_detail.findFirst({
         where: { request_id: request_id },
@@ -1368,7 +1358,7 @@ export class RequestService {
             if (activity_request_id === "ACCEPT") {
               sample.status_sample_id = "TESTING";
             }
-            const { request_sample_item, ...sampleData } = sample;
+            const { request_sample_chemical, request_sample_microbiology, request_sample_item, ...sampleData } = sample;
 
             // Upsert sample
             const createdSample = await tx.request_sample.upsert({
@@ -1390,6 +1380,98 @@ export class RequestService {
             });
 
             const sampleId = createdSample.id;
+            
+            // Upsert and delete for request_sample_chemical
+            const chemicals = (request_sample_chemical ?? []).map(c => ({
+              ...c,
+              request_sample_id: sampleId,
+            }));
+
+            const chemicalsInDb = await tx.request_sample_chemical.findMany({
+              where: { request_sample_id: sampleId },
+            });
+
+            const chemicalIdsInPayload = new Set(chemicals.filter(c => c.id && c.id !== 0).map(c => c.id));
+
+            for (const dbChemical of chemicalsInDb) {
+              if (!chemicalIdsInPayload.has(dbChemical.id)) {
+                await tx.request_sample_chemical.delete({ where: { id: dbChemical.id } });
+              }
+            }
+
+            for (const chemical of chemicals) {
+              const { id, ...chemicalData } = chemical;
+              if (chemical.id && chemical.id !== 0) {
+                await tx.request_sample_chemical.upsert({
+                  where: { id: chemical.id },
+                  update: {
+                    ...chemical,
+                    request_sample_id: sampleId,
+                  },
+                  create: {
+                    ...chemicalData,
+                    request_sample_id: sampleId,
+                    created_on: now,
+                    created_by: user_id,
+                  },
+                });
+              } else {
+                await tx.request_sample_chemical.create({
+                  data: {
+                    ...chemicalData,
+                    request_sample_id: sampleId,
+                    created_on: now,
+                    created_by: user_id,
+                  },
+                });
+              }
+            }
+
+            // Upsert and delete for request_sample_microbiology
+            const micro = (request_sample_microbiology ?? []).map(m => ({
+              ...m,
+              request_sample_id: sampleId,
+            }));
+
+            const microInDb = await tx.request_sample_microbiology.findMany({
+              where: { request_sample_id: sampleId },
+            });
+
+            const microIdsInPayload = new Set(micro.filter(m => m.id && m.id !== 0).map(m => m.id));
+
+            for (const dbMicro of microInDb) {
+              if (!microIdsInPayload.has(dbMicro.id)) {
+                await tx.request_sample_microbiology.delete({ where: { id: dbMicro.id } });
+              }
+            }
+
+            for (const m of micro) {
+              const { id, ...microData } = m;
+              if (m.id && m.id !== 0) {
+                await tx.request_sample_microbiology.upsert({
+                  where: { id: m.id },
+                  update: {
+                    ...m,
+                    request_sample_id: sampleId,
+                  },
+                  create: {
+                    ...microData,
+                    request_sample_id: sampleId,
+                    created_on: now,
+                    created_by: user_id,
+                  },
+                });
+              } else {
+                await tx.request_sample_microbiology.create({
+                  data: {
+                    ...microData,
+                    request_sample_id: sampleId,
+                    created_on: now,
+                    created_by: user_id,
+                  },
+                });
+              }
+            }
 
             // Upsert and delete for request_sample_item
             const items = (request_sample_item ?? []).map(i => ({
@@ -1456,41 +1538,57 @@ export class RequestService {
             where: { id: request?.lab_site?.id ?? '' },
           });
           if (user_location) {
-            const lab_officer = await this.prisma.user.findFirst({
+            // LAB_OFF
+            const lab_officers = await this.prisma.user.findMany({
               where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_OFF' } } },
-              select: { user_role: { select: { role_id: true } }, email: true, fullname: true },
+              select: { email: true, fullname: true },
             });
-            if (lab_officer) {
-              await sendMail(
-                lab_officer.email,
-                lab_officer.fullname,
-                'ขออนุมัติใบส่งตัวอย่าง',
-                activity_request_id,
-                `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
-              );
-            }
+            // LAB_LEAD
+            const lab_leads = await this.prisma.user.findMany({
+              where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_LEAD' } } },
+              select: { email: true, fullname: true },
+            });
+            const lab_officer_emails = lab_officers.map(u => u.email).join(', ');
+            const lab_lead_emails = lab_leads.map(u => u.email).join(', ');
+            const lab_officer_names = lab_officers.map(u => u.fullname).join(', ');
+            await sendMail(
+              lab_officer_emails,
+              lab_lead_emails,
+              lab_officer_names,
+              'ขออนุมัติใบส่งตัวอย่าง',
+              activity_request_id,
+              `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
+            );
           }
         } else {
           if (isWithinPreciseRange) {
-          // Log the acceptance time
+            // Log the acceptance time
             console.log('Request accepted within 00:00 - 15:00 range');
             const user_location = await this.prisma.user_location.findUnique({
               where: { id: request?.lab_site?.id ?? '' },
             });
             if (user_location) {
-              const lab_officer = await this.prisma.user.findFirst({
+              // LAB_OFF
+              const lab_officers = await this.prisma.user.findMany({
                 where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_OFF' } } },
-                select: { user_role: { select: { role_id: true } }, email: true, fullname: true },
+                select: { email: true, fullname: true },
               });
-              if (lab_officer) {
-                await sendMail(
-                  lab_officer.email,
-                  lab_officer.fullname,
-                  'ขออนุมัติใบส่งตัวอย่าง',
-                  activity_request_id,
-                  `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
-                );
-              }
+              // LAB_LEAD
+              const lab_leads = await this.prisma.user.findMany({
+                where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_LEAD' } } },
+                select: { email: true, fullname: true },
+              });
+              const lab_officer_emails = lab_officers.map(u => u.email).join(', ');
+              const lab_lead_emails = lab_leads.map(u => u.email).join(', ');
+              const lab_officer_names = lab_officers.map(u => u.fullname).join(', ');
+              await sendMail(
+                lab_officer_emails,
+                lab_lead_emails,
+                lab_officer_names,
+                'ขออนุมัติใบส่งตัวอย่าง',
+                activity_request_id,
+                `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
+              );
             }
           } else {
             // Log the acceptance time outside the range
@@ -1499,35 +1597,53 @@ export class RequestService {
               where: { id: request?.lab_site?.id ?? '' },
             });
             if (user_location) {
-              const lab_head = await this.prisma.user.findFirst({
+              // LAB_HEAD
+              const lab_heads = await this.prisma.user.findMany({
                 where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_HEAD' } } },
-                select: { user_role: { select: { role_id: true } }, email: true, fullname: true },
+                select: { email: true, fullname: true },
               });
-              if (lab_head) {
-                await sendMail(
-                  lab_head.email,
-                  lab_head.fullname,
-                  'ขออนุมัติทำการทดสอบนอกเวลาทำการ',
-                  activity_request_id,
-                  `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
-                );
-              }
+              // LAB_LEAD
+              const lab_leads = await this.prisma.user.findMany({
+                where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_LEAD' } } },
+                select: { email: true, fullname: true },
+              });
+              const lab_head_emails = lab_heads.map(u => u.email).join(', ');
+              const lab_lead_emails = lab_leads.map(u => u.email).join(', ');
+              const lab_head_names = lab_heads.map(u => u.fullname).join(', ');
+              await sendMail(
+                lab_head_emails,
+                lab_lead_emails,
+                lab_head_names,
+                'ขออนุมัติทำการทดสอบนอกเวลาทำการ',
+                activity_request_id,
+                `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
+              );
             }
           }
         }
       } else if (activity_request_id === "ACCEPT") {
-        const requestSample_duedate = await this.prisma.request_sample.findFirst({
-          where: { request_id: request_id },
-          orderBy: { due_date: 'desc' },
+        // LAB_LEAD for CC
+        const user_location = await this.prisma.user_location.findUnique({
+          where: { id: request?.lab_site?.id ?? '' },
         });
+        let lab_leads: any[] = [];
+        if (user_location) {
+          lab_leads = await this.prisma.user.findMany({
+            where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_LEAD' } } },
+            select: { email: true, fullname: true },
+          });
+        }
+        const lab_lead_emails = lab_leads.map(u => u.email).join(', ');
         await sendMail(
           request?.requester?.email ?? '',
+          lab_lead_emails,
           request?.requester?.fullname ?? '',
           'ขออนุมัติทำการทดสอบนอกเวลาทำการ',
           activity_request_id,
           `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
           request,
-          requestSample_duedate?.due_date?.toISOString() ?? '',
+          // You may want to update this to use the correct due_date from payload if needed
+          request?.due_date?.toISOString().slice(0, 10) ?? '',
         );
       }
       return { message: 'Success' };
@@ -1784,6 +1900,7 @@ export class RequestService {
       const link = 'https://www.google.com';
       const response = await sendMail(
         receivers,
+        '',
         'Title',
         'ขออนุมัติใบส่งตัวอย่าง',
         'SEND',

@@ -128,6 +128,7 @@ const emailTemplate_send = (
 
 export async function sendMail(
   to: string,
+  cc: string,
   name: string,
   subject: string,
   activity_request_id: string,
@@ -150,6 +151,7 @@ export async function sendMail(
             sender: process.env.SENDER_EMAIL,
             subject: subject,
             receivers: to,
+            cc: cc,
             message: message,
         }
       );
