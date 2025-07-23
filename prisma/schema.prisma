@@ -717,7 +717,7 @@ model request_sample {
   expiry_date            DateTime?
   batch_no               String?   @db.VarChar(10)
   is_display_special     Boolean?  @default(false)
-  special_test_time      DateTime?
+  special_test_time      String?
   packing_size           String?   @db.VarChar(50)
   due_date               DateTime?
   status_sample_id       String?
