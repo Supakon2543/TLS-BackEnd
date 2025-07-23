@@ -640,9 +640,13 @@ model request_detail {
   accredited_id         String?
   report_heading_id     String?
   objective_id          Int?
+  objective_text        String?   @db.VarChar(100)
   sample_stage_id       Int?
+  sample_stage_text     String?   @db.VarChar(100)
   lab_process_id        Int?
+  lab_process_text      String?   @db.VarChar(100)
   sample_retaining_id   Int?
+  sample_retaining_text String?   @db.VarChar(100)
   note                  String?   @db.VarChar(200)
   lab_receiver_id       Int?
   received_date         DateTime?
