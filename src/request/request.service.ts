@@ -1108,7 +1108,6 @@ export class RequestService {
           // --- Upsert and delete for request_sample_microbiology ---
           const micro = (request_sample_microbiology ?? []).map(m => ({
             ...m,
-            request_id: undefined,
             request_sample_id: sampleId,
           }));
           const microInDb = await tx.request_sample_microbiology.findMany({
@@ -1170,6 +1169,7 @@ export class RequestService {
         if (request_log.activity_request_id === "SEND") {
           await sendMail(
             supervisor?.email ?? '',
+            '',
             supervisor?.fullname ?? '',
             'ขออนุมัติใบส่งตัวอย่าง',
             request_log.activity_request_id,
@@ -1538,41 +1538,57 @@ export class RequestService {
             where: { id: request?.lab_site?.id ?? '' },
           });
           if (user_location) {
-            const lab_officer = await this.prisma.user.findFirst({
+            // LAB_OFF
+            const lab_officers = await this.prisma.user.findMany({
               where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_OFF' } } },
-              select: { user_role: { select: { role_id: true } }, email: true, fullname: true },
+              select: { email: true, fullname: true },
             });
-            if (lab_officer) {
-              await sendMail(
-                lab_officer.email,
-                lab_officer.fullname,
-                'ขออนุมัติใบส่งตัวอย่าง',
-                activity_request_id,
-                `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
-              );
-            }
+            // LAB_LEAD
+            const lab_leads = await this.prisma.user.findMany({
+              where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_LEAD' } } },
+              select: { email: true, fullname: true },
+            });
+            const lab_officer_emails = lab_officers.map(u => u.email).join(', ');
+            const lab_lead_emails = lab_leads.map(u => u.email).join(', ');
+            const lab_officer_names = lab_officers.map(u => u.fullname).join(', ');
+            await sendMail(
+              lab_officer_emails,
+              lab_lead_emails,
+              lab_officer_names,
+              'ขออนุมัติใบส่งตัวอย่าง',
+              activity_request_id,
+              `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
+            );
           }
         } else {
           if (isWithinPreciseRange) {
-          // Log the acceptance time
+            // Log the acceptance time
             console.log('Request accepted within 00:00 - 15:00 range');
             const user_location = await this.prisma.user_location.findUnique({
               where: { id: request?.lab_site?.id ?? '' },
             });
             if (user_location) {
-              const lab_officer = await this.prisma.user.findFirst({
+              // LAB_OFF
+              const lab_officers = await this.prisma.user.findMany({
                 where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_OFF' } } },
-                select: { user_role: { select: { role_id: true } }, email: true, fullname: true },
+                select: { email: true, fullname: true },
               });
-              if (lab_officer) {
-                await sendMail(
-                  lab_officer.email,
-                  lab_officer.fullname,
-                  'ขออนุมัติใบส่งตัวอย่าง',
-                  activity_request_id,
-                  `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
-                );
-              }
+              // LAB_LEAD
+              const lab_leads = await this.prisma.user.findMany({
+                where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_LEAD' } } },
+                select: { email: true, fullname: true },
+              });
+              const lab_officer_emails = lab_officers.map(u => u.email).join(', ');
+              const lab_lead_emails = lab_leads.map(u => u.email).join(', ');
+              const lab_officer_names = lab_officers.map(u => u.fullname).join(', ');
+              await sendMail(
+                lab_officer_emails,
+                lab_lead_emails,
+                lab_officer_names,
+                'ขออนุมัติใบส่งตัวอย่าง',
+                activity_request_id,
+                `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
+              );
             }
           } else {
             // Log the acceptance time outside the range
@@ -1581,35 +1597,53 @@ export class RequestService {
               where: { id: request?.lab_site?.id ?? '' },
             });
             if (user_location) {
-              const lab_head = await this.prisma.user.findFirst({
+              // LAB_HEAD
+              const lab_heads = await this.prisma.user.findMany({
                 where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_HEAD' } } },
-                select: { user_role: { select: { role_id: true } }, email: true, fullname: true },
+                select: { email: true, fullname: true },
               });
-              if (lab_head) {
-                await sendMail(
-                  lab_head.email,
-                  lab_head.fullname,
-                  'ขออนุมัติทำการทดสอบนอกเวลาทำการ',
-                  activity_request_id,
-                  `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
-                );
-              }
+              // LAB_LEAD
+              const lab_leads = await this.prisma.user.findMany({
+                where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_LEAD' } } },
+                select: { email: true, fullname: true },
+              });
+              const lab_head_emails = lab_heads.map(u => u.email).join(', ');
+              const lab_lead_emails = lab_leads.map(u => u.email).join(', ');
+              const lab_head_names = lab_heads.map(u => u.fullname).join(', ');
+              await sendMail(
+                lab_head_emails,
+                lab_lead_emails,
+                lab_head_names,
+                'ขออนุมัติทำการทดสอบนอกเวลาทำการ',
+                activity_request_id,
+                `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
+              );
             }
           }
         }
       } else if (activity_request_id === "ACCEPT") {
-        const requestSample_duedate = await this.prisma.request_sample.findFirst({
-          where: { request_id: request_id },
-          orderBy: { due_date: 'desc' },
+        // LAB_LEAD for CC
+        const user_location = await this.prisma.user_location.findUnique({
+          where: { id: request?.lab_site?.id ?? '' },
         });
+        let lab_leads: any[] = [];
+        if (user_location) {
+          lab_leads = await this.prisma.user.findMany({
+            where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_LEAD' } } },
+            select: { email: true, fullname: true },
+          });
+        }
+        const lab_lead_emails = lab_leads.map(u => u.email).join(', ');
         await sendMail(
           request?.requester?.email ?? '',
+          lab_lead_emails,
           request?.requester?.fullname ?? '',
           'ขออนุมัติทำการทดสอบนอกเวลาทำการ',
           activity_request_id,
           `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
           request,
-          requestSample_duedate?.due_date?.toISOString() ?? '',
+          // You may want to update this to use the correct due_date from payload if needed
+          request?.due_date?.toISOString().slice(0, 10) ?? '',
         );
       }
       return { message: 'Success' };
@@ -1866,6 +1900,7 @@ export class RequestService {
       const link = 'https://www.google.com';
       const response = await sendMail(
         receivers,
+        '',
         'Title',
         'ขออนุมัติใบส่งตัวอย่าง',
         'SEND',
