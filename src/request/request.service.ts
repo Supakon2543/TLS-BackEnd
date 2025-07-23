@@ -23,7 +23,52 @@ export class RequestService {
       //   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
       // },
   });
+  
   constructor(private readonly prisma: PrismaService){}
+    clearZeroIdsAndDatesAndBy(obj: any) {
+      if (Array.isArray(obj)) {
+        obj.forEach(this.clearZeroIdsAndDatesAndBy);
+      } else if (obj && typeof obj === 'object') {
+        if ('id' in obj && obj.id === 0) obj.id = undefined;
+        for (const key in obj) {
+          // Set all foreign key fields to null if input as "" or 0 or undefined
+          if (
+            key.endsWith('_id') &&
+            (obj[key] === "" || obj[key] === 0 || obj[key] === undefined)
+          ) {
+            obj[key] = null;
+          }
+          // Set all date fields to null if input as ""
+          if (
+            (key.endsWith('_date') || key.endsWith('_on') /*|| key.endsWith('_time')*/) &&
+            obj[key] === ""
+          ) {
+            obj[key] = null;
+          }
+          // Ensure all date fields are Date objects if not null
+          if (
+            (key.endsWith('_date') || key.endsWith('_on') /*|| key.endsWith('_time')*/) &&
+            obj[key] !== null &&
+            obj[key] !== undefined &&
+            obj[key] !== ""
+          ) {
+            // Convert to Date if not already a Date object
+            if (!(obj[key] instanceof Date)) {
+              obj[key] = new Date(obj[key]);
+            }
+          }
+          // Set all *_by fields to null if input as 0
+          if (
+            key.endsWith('_by') &&
+            obj[key] === 0
+          ) {
+            obj[key] = null;
+          }
+        }
+        Object.values(obj).forEach(this.clearZeroIdsAndDatesAndBy);
+      }
+    }
+    
     async create(/*@Request() req: Request, */@Body() payload: CreateRequestDto/*, @Response() res: Response*/) {
       return await this.prisma.request.create({
         data: payload,
@@ -598,51 +643,12 @@ export class RequestService {
     async save(@Body() payload: any) {
       const request_id = await this.prisma.$transaction(async (tx) => {
         // Recursively clear every id if id === 0 in the payload and ensure date values are Date objects or null
-        function clearZeroIdsAndDatesAndBy(obj: any) {
-          if (Array.isArray(obj)) {
-            obj.forEach(clearZeroIdsAndDatesAndBy);
-          } else if (obj && typeof obj === 'object') {
-            if ('id' in obj && obj.id === 0) obj.id = undefined;
-            for (const key in obj) {
-              // Set all foreign key fields to null if input as "" or 0 or undefined
-              if (
-                key.endsWith('_id') &&
-                (obj[key] === "" || obj[key] === 0 || obj[key] === undefined)
-              ) {
-                obj[key] = null;
-              }
-              // Set all date fields to null if input as ""
-              if (
-                (key.endsWith('_date') || key.endsWith('_on') || key.endsWith('_time')) &&
-                obj[key] === ""
-              ) {
-                obj[key] = null;
-              }
-              // Ensure all date fields are Date objects if not null
-              if (
-                (key.endsWith('_date') || key.endsWith('_on') || key.endsWith('_time')) &&
-                obj[key] !== null &&
-                obj[key] !== undefined &&
-                obj[key] !== ""
-              ) {
-                // Convert to Date if not already a Date object
-                if (!(obj[key] instanceof Date)) {
-                  obj[key] = new Date(obj[key]);
-                }
-              }
-              // Set all *_by fields to null if input as 0
-              if (
-                key.endsWith('_by') &&
-                obj[key] === 0
-              ) {
-                obj[key] = null;
-              }
-            }
-            Object.values(obj).forEach(clearZeroIdsAndDatesAndBy);
-          }
-        }
-
-        clearZeroIdsAndDatesAndBy(payload);
+        
+        console.log("Payload before clearing:", payload);
+        console.log("request_sample_item:", payload.request_sample?.[0]?.request_sample_item);
+        this.clearZeroIdsAndDatesAndBy(payload);
+        console.log("Payload after clearing:", payload);
+        console.log("request_sample_item after clearing:", payload.request_sample?.[0]?.request_sample_item);
 
         payload.request.original_id = null; // Ensure original_id is set to 0 for new requests
         // Ensure all nested objects are properly initialized
@@ -1243,52 +1249,8 @@ export class RequestService {
       console.log('Is within 00:00-15:00 range:', isWithinRange);
       console.log('=====================================');
 
-      function clearZeroIdsAndDatesAndBy(obj: any) {
-        if (Array.isArray(obj)) {
-          obj.forEach(clearZeroIdsAndDatesAndBy);
-        } else if (obj && typeof obj === 'object') {
-          if ('id' in obj && obj.id === 0) obj.id = undefined;
-          for (const key in obj) {
-            // Set all foreign key fields to null if input as "" or 0 or undefined
-            if (
-              key.endsWith('_id') &&
-              (obj[key] === "" || obj[key] === 0 || obj[key] === undefined)
-            ) {
-              obj[key] = null;
-            }
-            // Set all date fields to null if input as ""
-            if (
-              (key.endsWith('_date') || key.endsWith('_on') || key.endsWith('_time')) &&
-              obj[key] === ""
-            ) {
-              obj[key] = null;
-            }
-            // Ensure all date fields are Date objects if not null
-            if (
-              (key.endsWith('_date') || key.endsWith('_on') || key.endsWith('_time')) &&
-              obj[key] !== null &&
-              obj[key] !== undefined &&
-              obj[key] !== ""
-            ) {
-              // Convert to Date if not already a Date object
-              if (!(obj[key] instanceof Date)) {
-                obj[key] = new Date(obj[key]);
-              }
-            }
-            // Set all *_by fields to null if input as 0
-            if (
-              key.endsWith('_by') &&
-              obj[key] === 0
-            ) {
-              obj[key] = null;
-            }
-          }
-          Object.values(obj).forEach(clearZeroIdsAndDatesAndBy);
-        }
-      }
-
       const { request_id, request_sample, activity_request_id, review_role_id, user_id, remark } = payload;
-      clearZeroIdsAndDatesAndBy(request_sample);
+      this.clearZeroIdsAndDatesAndBy(request_sample);
       const request = await this.prisma.request.findUnique({
         where: { id: request_id },
         include: {
