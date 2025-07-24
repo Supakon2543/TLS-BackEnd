@@ -13,6 +13,8 @@ import { sendMail, testEmail } from '../email/email';
 import { stat } from 'fs';
 import { time } from 'console';
 import { request } from 'http';
+import { SaveRequestSampleDto } from 'src/request_sample/dto/save-request_sample.dto';
+import { SaveSampleDto } from './dto/save-sample.dto';
 
 @Injectable()
 export class RequestService {
@@ -217,7 +219,11 @@ export class RequestService {
               certificate_name: true,
               path: true,
               revision: true,
+              certificate_name_2: true,
+              path_2: true,
+              revision_2: true,
               is_parameter_completed: true,
+              edit_role_id: true,
               created_on: true,
               created_by: true,
               updated_on: true,
@@ -545,7 +551,11 @@ export class RequestService {
           certificate_name: sample.certificate_name ?? "",
           path: sample.path ?? "",
           revision: sample.revision ?? 0,
+          certificate_name_2: sample.certificate_name_2 ?? "",
+          path_2: sample.path_2 ?? "",
+          revision_2: sample.revision_2 ?? 0,
           is_parameter_completed: sample.is_parameter_completed ?? false,
+          edit_role_id: sample.edit_role_id ?? "",
           created_on: sample.created_on ?? "",
           created_by: sample.created_by ?? 0,
           updated_on: sample.updated_on ?? "",
@@ -1245,7 +1255,7 @@ export class RequestService {
       }
       if (activity_request_id === 'CONFIRM' || activity_request_id === 'ACCEPT') {
         if (review_role_id === 'REQ_HEAD') {
-          if (isWithinRange && isWithinPreciseRange) {
+          if (isWithinPreciseRange) {
             new_review_role_id = 'LAB_OFF';
           } else {
             new_review_role_id = 'LAB_HEAD';
@@ -1654,6 +1664,13 @@ export class RequestService {
       console.log('remark:', remark);
       console.log('request_sample:', request_sample);
       console.log('request_sample_item:', request_sample?.map(s => s.request_sample_item).flat());
+    }
+
+    async save_sample(@Body() payload: SaveSampleDto) {
+      const { request, activity_request_id, user_id } = payload;
+      console.log('save_sample payload:', payload);
+      this.clearZeroIdsAndDatesAndBy(request);
+      console.log('save_sample request:', request);
     }
 
     async duplicate(@Query() payload: DuplicateRequestDto) {
