@@ -92,9 +92,27 @@ export class CreateRequestSampleDto {
     @IsOptional()
     revision: number;
 
+    @IsString()
+    @IsOptional()
+    @MaxLength(150)
+    certificate_name_2: string;
+
+    @IsString()
+    @IsOptional()
+    @MaxLength(500)
+    path_2: string;
+
+    @IsNumber()
+    @IsOptional()
+    revision_2: number;
+
     @IsBoolean()
     @IsOptional()
     is_parameter_completed: boolean;
+
+    @IsString()
+    @IsOptional()
+    edit_role_id: string;
 
     @IsNumber()
     @IsOptional()
