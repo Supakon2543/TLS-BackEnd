@@ -730,7 +730,11 @@ model request_sample {
   certificate_name       String?   @db.VarChar(150)
   path                   String?   @db.VarChar(500)
   revision               Int?
+  certificate_name_2     String?   @db.VarChar(150)
+  path_2                 String?   @db.VarChar(500)
+  revision_2             Int?
   is_parameter_completed Boolean?  @default(false)
+  edit_role_id           String?
   created_on             DateTime? @default(now())
   created_by             Int?
   updated_on             DateTime? @updatedAt
