@@ -1,5 +1,4 @@
 import { jsPDF } from 'jspdf';
-import '../../pdf/AngsanaNew';
 import {
   CertTemplateE,
   MicroParam,
