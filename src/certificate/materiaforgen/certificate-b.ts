@@ -1,6 +1,5 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import '../../pdf/AngsanaNew';
 import { convertImageToBase64 } from './convertImageToBase64';
 import { CertTemplateB } from './model';
 
