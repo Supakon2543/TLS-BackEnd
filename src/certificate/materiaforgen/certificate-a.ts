@@ -388,7 +388,7 @@ const generateReportA = async (data: CertTemplateA) => {
   }
 
   const pdfBase64 = btoa(
-    new Uint8Array(await doc.output('arraybuffer'))
+    new Uint8Array(doc.output('arraybuffer'))
       .reduce((data, byte) => data + String.fromCharCode(byte), '')
   );
 

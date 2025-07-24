@@ -1,6 +1,11 @@
 import { jsPDF } from 'jspdf';
 import '../../pdf/AngsanaNew';
-import { CertTemplateE, MicroParam, MicroParamTable, MicroResultTable } from './model';
+import {
+  CertTemplateE,
+  MicroParam,
+  MicroParamTable,
+  MicroResultTable,
+} from './model';
 import autoTable from 'jspdf-autotable';
 import { convertImageToBase64 } from './convertImageToBase64';
 
@@ -41,41 +46,43 @@ const generateReportE = async (data: CertTemplateE) => {
     sampleCode: startX,
     sampleDesc: startX + colWidths.sampleCode,
     mfg: startX + colWidths.sampleCode + colWidths.sampleDesc,
-    parameterBlock: startX + colWidths.sampleCode + colWidths.sampleDesc + colWidths.mfg,
+    parameterBlock:
+      startX + colWidths.sampleCode + colWidths.sampleDesc + colWidths.mfg,
   };
   const sampleDescX = colPositions.sampleDesc;
   const sampleDescWidth = colWidths.sampleDesc;
   const paramBlockHeight = 45;
   const paramHeaderWidth = 14;
-  const paramColWidth = (colWidths.parameterBlock - paramHeaderWidth) / (paramColCount - 1);
+  const paramColWidth =
+    (colWidths.parameterBlock - paramHeaderWidth) / (paramColCount - 1);
   const subDesColumn = [
     {
       name: 'Sample Name',
-      width: 60
+      width: 60,
     },
     {
       name: 'Time',
-      width: 15
+      width: 15,
     },
     {
       name: 'Unit',
-      width: 15
-    }
-  ]
+      width: 15,
+    },
+  ];
   const subParamColumn = [
     {
       name: 'Parameter',
-      height: 10
+      height: 10,
     },
     {
       name: 'Unit',
-      height: 10
+      height: 10,
     },
     {
       name: 'Method',
-      height: 25
-    }
-  ]
+      height: 25,
+    },
+  ];
 
   function drawCell(
     x: number,
@@ -83,7 +90,11 @@ const generateReportE = async (data: CertTemplateE) => {
     width: number,
     height: number,
     text: string,
-    options: { paddingLeft?: number; paddingTop?: number; align?: 'left' | 'center' | 'right' } = {}
+    options: {
+      paddingLeft?: number;
+      paddingTop?: number;
+      align?: 'left' | 'center' | 'right';
+    } = {},
   ): void {
     doc.rect(x, y, width, height);
     const paddingLeft = options.paddingLeft ?? 2;
@@ -100,27 +111,27 @@ const generateReportE = async (data: CertTemplateE) => {
   }
 
   const addHeader = () => {
-  headerY = defaultHeaderY;
+    headerY = defaultHeaderY;
 
-  doc.addImage(companyLogo, 'JPEG', logoX, logoY, 25, 25);
+    doc.addImage(companyLogo, 'JPEG', logoX, logoY, 25, 25);
 
-  doc.setFont('AngsanaNew', 'normal');
-  doc.setFontSize(32);
-  const certName = 'Microbiological Test Report';
-  const certNameWidth = doc.getTextWidth(certName);
-  const certNameX = (pageWidth - certNameWidth) / 2;
-  const certNameY = 15;
-  doc.text(certName, certNameX, certNameY);
+    doc.setFont('AngsanaNew', 'normal');
+    doc.setFontSize(32);
+    const certName = 'Microbiological Test Report';
+    const certNameWidth = doc.getTextWidth(certName);
+    const certNameX = (pageWidth - certNameWidth) / 2;
+    const certNameY = 15;
+    doc.text(certName, certNameX, certNameY);
 
-  const maxLabelWidth1 = 30;
-  const maxValueWidth1 = 30;
-  const maxLabelWidth2 = 30;
-  const maxValueWidth2 = 150;
+    const maxLabelWidth1 = 30;
+    const maxValueWidth1 = 30;
+    const maxLabelWidth2 = 30;
+    const maxValueWidth2 = 150;
 
-  const info1LabelX = colPositions.sampleDesc + 1;
-  const info1ValueX = info1LabelX + maxLabelWidth1 + (maxValueWidth1 / 2);
-  const info2LabelX = info1ValueX + maxValueWidth1;
-  const info2ValueX = info2LabelX + maxLabelWidth2 + colonGap;
+    const info1LabelX = colPositions.sampleDesc + 1;
+    const info1ValueX = info1LabelX + maxLabelWidth1 + maxValueWidth1 / 2;
+    const info2LabelX = info1ValueX + maxValueWidth1;
+    const info2ValueX = info2LabelX + maxLabelWidth2 + colonGap;
 
     doc.setFontSize(12);
     doc.setFont('AngsanaNew', 'bold');
@@ -143,9 +154,12 @@ const generateReportE = async (data: CertTemplateE) => {
     doc.setFont('AngsanaNew', 'bold');
     doc.text('Receive Result by :', info2LabelX, headerY);
     doc.setFont('AngsanaNew', 'normal');
-    const wrappedRecivedByLines = doc.splitTextToSize(data.header.received_by, maxValueWidth2);
+    const wrappedRecivedByLines = doc.splitTextToSize(
+      data.header.received_by,
+      maxValueWidth2,
+    );
     wrappedRecivedByLines.forEach((line: string, index: number) => {
-      doc.text(line, info2ValueX, headerY + (index * lineHeight));
+      doc.text(line, info2ValueX, headerY + index * lineHeight);
     });
     recivedByLineCount = wrappedRecivedByLines.length;
 
@@ -162,11 +176,12 @@ const generateReportE = async (data: CertTemplateE) => {
     doc.text('Reported Date:', info1LabelX, headerY);
     doc.setFont('AngsanaNew', 'normal');
     doc.text(data.header.report_date, info1ValueX, headerY);
-  
-    headerY += recivedByLineCount > 3? (recivedByLineCount-3) * lineHeight : 0;
+
+    headerY +=
+      recivedByLineCount > 3 ? (recivedByLineCount - 3) * lineHeight : 0;
     headerY += 4;
     infoHeight = headerY;
-  }
+  };
 
   const addFooter = () => {
     let footerY = 194;
@@ -175,7 +190,11 @@ const generateReportE = async (data: CertTemplateE) => {
     doc.setFont('AngsanaNew', 'normal');
     doc.text(data.footer.form_id, margin, footerY);
     footerY += 4;
-    doc.text(`Revision: ${data.footer.revision} Effective Date: ${data.footer.effective_date}`, margin, footerY);
+    doc.text(
+      `Revision: ${data.footer.revision} Effective Date: ${data.footer.effective_date}`,
+      margin,
+      footerY,
+    );
     const addressText = `Beverage Laboratory : ${data.footer.address}`;
     const addressWidth = doc.getTextWidth(addressText);
     doc.text(addressText, pageWidth - addressWidth - margin, footerY);
@@ -195,30 +214,26 @@ const generateReportE = async (data: CertTemplateE) => {
       colWidths.sampleCode,
       paramBlockHeight,
       'Sample Code',
-      { align: 'center', paddingTop: paramBlockHeight / 2 + 1 }
+      { align: 'center', paddingTop: paramBlockHeight / 2 + 1 },
     );
 
     drawCell(
-      sampleDescX, 
-      tableHeadY, 
-      sampleDescWidth, 
-      paramBlockHeight - rowHeight, 
-      'Sample Description', 
-      { align: 'center', paddingTop: (paramBlockHeight - rowHeight) / 2 + 1 }
+      sampleDescX,
+      tableHeadY,
+      sampleDescWidth,
+      paramBlockHeight - rowHeight,
+      'Sample Description',
+      { align: 'center', paddingTop: (paramBlockHeight - rowHeight) / 2 + 1 },
     );
-  
+
     let subDesCurrentWidth = 0;
     subDesColumn.forEach((e) => {
       const x = sampleDescX + subDesCurrentWidth;
       const y = tableHeadY + (paramBlockHeight - rowHeight);
-      drawCell(
-        x, 
-        y, 
-        e.width, 
-        rowHeight, 
-        e.name, 
-        { align: 'center', paddingTop: rowHeight / 2 + 1 }
-      );
+      drawCell(x, y, e.width, rowHeight, e.name, {
+        align: 'center',
+        paddingTop: rowHeight / 2 + 1,
+      });
       subDesCurrentWidth += e.width;
     });
 
@@ -228,7 +243,7 @@ const generateReportE = async (data: CertTemplateE) => {
       colWidths.mfg,
       paramBlockHeight,
       'MFG',
-      { align: 'center', paddingTop: paramBlockHeight / 2 + 3 }
+      { align: 'center', paddingTop: paramBlockHeight / 2 + 3 },
     );
 
     let paramY = tableHeadY;
@@ -236,18 +251,14 @@ const generateReportE = async (data: CertTemplateE) => {
     subParamColumn.forEach((e) => {
       doc.setFont('AngsanaNew', 'bold');
       let paddingTop = e.height / 2 + 1;
-      drawCell(
-        paramX,
-        paramY, 
-        paramHeaderWidth, 
-        e.height, 
-        e.name, 
-        { align: 'center', paddingTop: paddingTop }
-      );
+      drawCell(paramX, paramY, paramHeaderWidth, e.height, e.name, {
+        align: 'center',
+        paddingTop: paddingTop,
+      });
       doc.setFont('AngsanaNew', 'normal');
 
       set.param.forEach((param, col) => {
-        const itemX = paramX + paramHeaderWidth + (col * paramColWidth);
+        const itemX = paramX + paramHeaderWidth + col * paramColWidth;
         let value = '';
         let valueHeight = 0;
         if (e.name === 'Parameter') {
@@ -258,28 +269,34 @@ const generateReportE = async (data: CertTemplateE) => {
           const originalValue = param.unit;
           value = doc.splitTextToSize(originalValue, paramColWidth - 2);
           valueHeight = value.length === 1 ? -1 : value.length * 1.5;
-        }else if (e.name === 'Method') {
+        } else if (e.name === 'Method') {
           doc.setFontSize(6);
           const originalValue = param.method;
           value = doc.splitTextToSize(originalValue, paramColWidth - 2);
           valueHeight = value.length === 1 ? -1 : value.length * 2;
         }
         paddingTop = (e.height - valueHeight) / 2;
-        drawCell(itemX, paramY, paramColWidth, e.height, value, { align: 'center', paddingTop: paddingTop });
+        drawCell(itemX, paramY, paramColWidth, e.height, value, {
+          align: 'center',
+          paddingTop: paddingTop,
+        });
       });
 
       paramY += e.height;
     });
-  }
+  };
 
-  function getSampleRow(sample: MicroResultTable, paramList: MicroParam[]): (string | number)[] {
+  function getSampleRow(
+    sample: MicroResultTable,
+    paramList: MicroParam[],
+  ): (string | number)[] {
     const basicInfo = [
       sample.sample_code ?? '',
       sample.sample_name ?? '',
       sample.time ?? '',
       sample.unit ?? '',
       sample.mfg_date ?? '',
-      ''
+      '',
     ];
 
     const paramResults = getParameterResults(sample, paramList);
@@ -287,12 +304,18 @@ const generateReportE = async (data: CertTemplateE) => {
     return [...basicInfo, ...paramResults];
   }
 
-  function getParameterResults(sample: MicroResultTable, paramList: MicroParam[]): (string | number)[] {
-    return paramList.map(param => getParameterResult(sample, param));
+  function getParameterResults(
+    sample: MicroResultTable,
+    paramList: MicroParam[],
+  ): (string | number)[] {
+    return paramList.map((param) => getParameterResult(sample, param));
   }
 
-  function getParameterResult(sample: MicroResultTable, param: MicroParam): string | number {
-    const matchedParam = sample.parameter?.find(p => p.id === param.id);
+  function getParameterResult(
+    sample: MicroResultTable,
+    param: MicroParam,
+  ): string | number {
+    const matchedParam = sample.parameter?.find((p) => p.id === param.id);
     return matchedParam ? matchedParam.result : '-';
   }
 
@@ -300,16 +323,16 @@ const generateReportE = async (data: CertTemplateE) => {
     if (index > 0) {
       doc.addPage();
     }
-    
+
     autoTable(doc, {
       startY: tableBodyY,
       head: [],
-      body: data.table_source.map(sample => getSampleRow(sample, set.param)),
+      body: data.table_source.map((sample) => getSampleRow(sample, set.param)),
       margin: {
-        left: margin, 
-        right: margin, 
-        top: headerHeight, 
-        bottom: footerHeight
+        left: margin,
+        right: margin,
+        top: headerHeight,
+        bottom: footerHeight,
       },
       theme: 'grid',
       styles: {
@@ -351,19 +374,24 @@ const generateReportE = async (data: CertTemplateE) => {
       },
       didDrawPage: () => {
         addTableHeader(set);
-      }
+      },
     });
   });
-  
+
   const signatureWidth = 25;
   const signatureHeight = 10;
   const signSectionHeight = 30;
-  const finalY = (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? tableBodyY;
+  const finalY =
+    (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable
+      ?.finalY ?? tableBodyY;
   const spaceAfterTable = pageHeight - finalY - footerHeight;
 
   let contentY = finalY + lineHeight;
 
-  if (spaceAfterTable < lineHeight + (data.remark.length * 4) + signSectionHeight) {
+  if (
+    spaceAfterTable <
+    lineHeight + data.remark.length * 4 + signSectionHeight
+  ) {
     doc.addPage();
     contentY = headerHeight + 5;
   }
@@ -376,28 +404,49 @@ const generateReportE = async (data: CertTemplateE) => {
     doc.text('-', contentValueX, contentY);
     contentY += 5;
   } else {
-    data.remark.forEach(e => {
+    data.remark.forEach((e) => {
       doc.text(`${e.text}`, contentValueX, contentY);
       contentY += 5;
     });
   }
 
-  const endReport = '-------------------------------------------End Report-------------------------------------------';
+  const endReport =
+    '-------------------------------------------End Report-------------------------------------------';
   const endReportWidth = doc.getTextWidth(endReport);
   const endReportX = (pageWidth - endReportWidth) / 2;
   doc.text(endReport, endReportX, contentY);
 
   contentY += 5;
-  doc.text('- The above results are valid only for the analyzed/tested sample(s) as indicated in this report. No part of this report or certificate may be reproduced in any from without written consent from the Laboratory.', margin, contentY);
+  doc.text(
+    '- The above results are valid only for the analyzed/tested sample(s) as indicated in this report. No part of this report or certificate may be reproduced in any from without written consent from the Laboratory.',
+    margin,
+    contentY,
+  );
 
-  const signCenterX = pageWidth - (pageWidth / 8);
+  const signCenterX = pageWidth - pageWidth / 8;
   const signImageY = contentY;
   const signTextY = signImageY + signatureHeight + 4;
 
-  doc.addImage(data.approver.signature, 'PNG', signCenterX - signatureWidth / 2, signImageY, signatureWidth, signatureHeight);
-  doc.text('Approved by :', signCenterX - signatureWidth - 10, signTextY - (signatureHeight / 2), { align: 'center' });
-  doc.text(`(${data.approver.name})`, signCenterX, signTextY, { align: 'center' });
-  doc.text(data.approver.position, signCenterX, signTextY + 5, { align: 'center' });
+  doc.addImage(
+    data.approver.signature,
+    'PNG',
+    signCenterX - signatureWidth / 2,
+    signImageY,
+    signatureWidth,
+    signatureHeight,
+  );
+  doc.text(
+    'Approved by :',
+    signCenterX - signatureWidth - 10,
+    signTextY - signatureHeight / 2,
+    { align: 'center' },
+  );
+  doc.text(`(${data.approver.name})`, signCenterX, signTextY, {
+    align: 'center',
+  });
+  doc.text(data.approver.position, signCenterX, signTextY + 5, {
+    align: 'center',
+  });
 
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
@@ -411,12 +460,21 @@ const generateReportE = async (data: CertTemplateE) => {
     doc.text(compayName, pageWidth - margin - compayNameWidth, margin);
     const pageNumber = `Page No. ${i} of ${totalPages}`;
     const pageNumberWidth = doc.getTextWidth(pageNumber);
-    doc.text(pageNumber, pageWidth - margin - pageNumberWidth, margin + lineHeight);
+    doc.text(
+      pageNumber,
+      pageWidth - margin - pageNumberWidth,
+      margin + lineHeight,
+    );
   }
 
-  const pdfBlob = doc.output('blob');
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, '_blank');
+  const pdfBase64 = btoa(
+    new Uint8Array(doc.output('arraybuffer')).reduce(
+      (data, byte) => data + String.fromCharCode(byte),
+      '',
+    ),
+  );
+
+  return pdfBase64;
 };
 
 export default generateReportE;

@@ -138,27 +138,27 @@ export const getReportDataB = async () => {
         file_name: "Test Report Name Batch 12345 10:00 (Rev.00)",
         is_accredited: isAccredited,
         header: {
-            report_heading: "Certificate of Analysis",
-            product_name: "M-150 150 ML.INDONESIA (NEWTON 2)",
-            lot_no: "040125 AG",
-            mfg_date: "04/01/2025",
-            best_before: "01/2027",
-            analytical_date: "05/01/2025",
-            no: "FGB2500112",
-            received_date: "05/01/2025",
-            report_date: "13/01/2025",
-            report_no: "FGB2500112",
-            reg_no: "14-2-00441-5-0003"
+            report_heading: "Certificate of Analysis", // request_sample -> request_detail -> report_heading (name)
+            product_name: "M-150 150 ML.INDONESIA (NEWTON 2)", // request_sample (sample_name)
+            lot_no: "040125 AG", // request_sample (batch_no)
+            mfg_date: "04/01/2025", // request_sample (sampling_date)
+            best_before: "01/2027", // request_sample (expiry_date)
+            analytical_date: "05/01/2025", 
+            no: "FGB2500112", // request_sample (sample_code)
+            received_date: "05/01/2025",  //request_sample -> request_detail (received_date)
+            report_date: "13/01/2025", // request_sample -> request_log (timestamp) โดย activity_request_id = "RELEASE"
+            report_no: "FGB2500112", // request_sample (sample_code)
+            reg_no: "14-2-00441-5-0003" // request_sample -> material (reg_no)
         },
         table_source: [
             {
-                test_items: "Physical/Chemical Test",
-                lod: "",
-                loq: "",
-                results: "",
-                specification: "",
-                unit: "",
-                method: "",
+                test_items: "Physical/Chemical Test", // microbiological_parameter or chemical_parameter (name)
+                lod: "", // microbiological_parameter or chemical_parameter -> chemical_sample_description or microbiology_sample_description (lod_value)
+                loq: "", // microbiological_parameter or chemical_parameter -> chemical_sample_description or microbiology_sample_description (loq_value)
+                results: "", // microbiological_parameter or chemical_parameter (final_result) != null make data "Passed" else make data "Not Passed" แต่หาก microbiological_parameter or chemical_parameter (decimal) have data get (decimal) instead of "Passed" or "Not Passed"
+                specification: "", // microbiological_parameter or chemical_parameter (spec)
+                unit: "", // microbiological_parameter or chemical_parameter -> unit (name)
+                method: "", // microbiological_parameter or chemical_parameter (method)
                 is_header: true,
                 is_special: false,
             },
@@ -393,7 +393,7 @@ export const getReportDataC = async () => {
         file_name: "Test Report Name Batch 12345 (Rev.00)",
         is_accredited: isAccredited,
         header: {
-            report_heading: "Test Report",
+            report_heading: "Test Report", 
             sample_name: "C-VITT LEMON VC1000 SR V3 140ML 1X3X10",
             sample_detail: "MFG AH 070525.02 BB070526",
             sample_description: "Dietary supplement",

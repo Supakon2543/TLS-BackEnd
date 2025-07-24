@@ -9,7 +9,7 @@ import {
   NotFoundException
 } from '@nestjs/common';
 import { ReportService } from './report.service';
-import { CertTemplateA } from '../certificate/materiaforgen/model';
+import { CertTemplateA, CertTemplateB } from '../certificate/materiaforgen/model';
 
 @Controller('report')
 export class ReportController {
@@ -63,6 +63,84 @@ export class ReportController {
       }
 
       const base64 = await this.certificateService.generateReportA(sampleId);
+      
+      if (!base64) {
+        throw new NotFoundException(`Could not generate report for sample ID: ${sampleId}`);
+      }
+
+      return { base64 };
+    } catch (error) {
+      // Handle specific error types
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+      // Handle database/service errors
+      if (error.message.includes('not found')) {
+        throw new NotFoundException(`Sample with ID ${sampleId} not found`);
+      }
+
+      // Handle other errors
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: 'Failed to generate report',
+          message: error.message,
+          timestamp: new Date().toISOString(),
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('data-b/:sampleId')
+  async getReportDataB(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<CertTemplateB> {
+    try {
+      // Validate sample ID
+      if (sampleId <= 0) {
+        throw new BadRequestException('Sample ID must be a positive number');
+      }
+
+      const reportData = await this.certificateService.getReportDataB(sampleId);
+      
+      if (!reportData) {
+        throw new NotFoundException(`Report data not found for sample ID: ${sampleId}`);
+      }
+
+      return reportData;
+    } catch (error) {
+      // Handle specific error types
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+      // Handle database/service errors
+      if (error.message.includes('not found')) {
+        throw new NotFoundException(`Sample with ID ${sampleId} not found`);
+      }
+
+      // Handle other errors
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: 'Failed to get report data',
+          message: error.message,
+          timestamp: new Date().toISOString(),
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('generate-b/:sampleId')
+  async generateReportB(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ base64: string }> {
+    try {
+      // Validate sample ID
+      if (sampleId <= 0) {
+        throw new BadRequestException('Sample ID must be a positive number');
+      }
+
+      const base64 = await this.certificateService.generateReportB(sampleId);
       
       if (!base64) {
         throw new NotFoundException(`Could not generate report for sample ID: ${sampleId}`);

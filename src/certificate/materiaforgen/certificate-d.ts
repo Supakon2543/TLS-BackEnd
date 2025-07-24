@@ -249,9 +249,12 @@ const generateReportD = async (data: CertTemplateD) => {
     doc.text(`${i} of ${totalPages}`, pageWidth - (margin * 2), 25);
   }
 
-  const pdfBlob = doc.output('blob');
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, '_blank');
+  const pdfBase64 = btoa(
+    new Uint8Array(doc.output('arraybuffer'))
+      .reduce((data, byte) => data + String.fromCharCode(byte), '')
+  );
+
+  return pdfBase64
 };
 
 export default generateReportD;
