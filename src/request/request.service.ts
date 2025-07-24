@@ -15,6 +15,7 @@ import { time } from 'console';
 import { request } from 'http';
 import { SaveRequestSampleDto } from 'src/request_sample/dto/save-request_sample.dto';
 import { SaveSampleDto } from './dto/save-sample.dto';
+import { AcceptRequestDto } from './dto/accept-request.dto';
 
 @Injectable()
 export class RequestService {
@@ -1200,7 +1201,7 @@ export class RequestService {
       };
     }
 
-    async accept(@Body() payload: any) {
+    async accept(@Body() payload: AcceptRequestDto) {
       // Log function call time
       const callTime = new Date();
       console.log('=== ACCEPT FUNCTION CALLED ===');
@@ -1217,19 +1218,43 @@ export class RequestService {
       console.log('Timestamp:', callTime.getTime());
       
       // Check if time is within 00:00 - 15:00 range
-      const thailandTime = new Date(callTime.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }));
-      const currentHour = thailandTime.getHours();
+      const thailandTime = new Date(callTime.toLocaleString('th-TH', { 
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }));
+      // Get Thailand time hour correctly
+      const thailandFormatter = new Intl.DateTimeFormat('th-TH', {
+        timeZone: 'Asia/Bangkok',
+        hour: '2-digit',
+        hour12: false,
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      const [hourStr] = thailandFormatter.formatToParts(callTime).filter(p => p.type === 'hour').map(p => p.value);
+      const currentHour = parseInt(hourStr, 10);
+
+      // For precise time string (HH:MM:SS)
+      const timeParts = thailandFormatter.formatToParts(callTime);
+      const hour = timeParts.find(p => p.type === 'hour')?.value ?? '00';
+      const minute = timeParts.find(p => p.type === 'minute')?.value ?? '00';
+      const second = timeParts.find(p => p.type === 'second')?.value ?? '00';
+      const timeString = `${hour}:${minute}:${second}`;
       const isWithinRange = currentHour >= 0 && currentHour <= 15;
-      
-      // More precise time range check (e.g., 00:00:00 - 15:00:00)
-      const timeString = thailandTime.toTimeString().slice(0, 8); // HH:MM:SS format
       const isWithinPreciseRange = timeString >= '00:00:00' && timeString <= '15:00:00';
 
+      console.log('=====================================');
+      console.log('Thailand Time:', thailandTime.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }));
       console.log('Current Hour (Thailand):', currentHour);
       console.log('Is within 00:00-15:00 range:', isWithinRange);
+      console.log('Is within precise range (00:00:00 - 15:00:00):', isWithinPreciseRange);
       console.log('=====================================');
 
-      const { request_id, request_sample, activity_request_id, review_role_id, user_id, remark } = payload;
+      const { request_id, request_sample, activity_request_id, review_role_id, user_id, lab_note, remark } = payload;
       this.clearZeroIdsAndDatesAndBy(request_sample);
       const request = await this.prisma.request.findUnique({
         where: { id: request_id },
@@ -1262,9 +1287,9 @@ export class RequestService {
           }
         } else if (review_role_id === 'LAB_HEAD') {
           new_review_role_id = 'LAB_OFF';
-        } else if (review_role_id === 'LAB_OFF') {
+        } /*else if (review_role_id === 'LAB_OFF') {
           new_review_role_id = 'LAB_LEAD';
-        }
+        }*/
       }
 
       // 1. Get all request_sample for this request and find the earliest due_date
@@ -1310,6 +1335,28 @@ export class RequestService {
         where: { request_id: request_id },
       });
 
+      // async function getNextSampleRunningNumber(prisma, type: string, year: string): Promise<number> {
+      //   // Use a transaction to lock the row and increment atomically
+      //   return await prisma.$transaction(async (tx) => {
+      //     // Try to update existing row
+      //     const updated = await tx.running_number.updateMany({
+      //       where: { type, year },
+      //       data: { last_number: { increment: 1 } },
+      //     });
+      //     if (updated.count === 0) {
+      //       // If not exist, create it
+      //       await tx.running_number.create({
+      //         data: { type, year, last_number: 1 },
+      //       });
+      //       return 1;
+      //     } else {
+      //       // Fetch the new value
+      //       const row = await tx.running_number.findUnique({ where: { type_year: { type, year } } });
+      //       return row?.last_number ?? 1;
+      //     }
+      //   });
+      // }
+
       await this.prisma.$transaction(async (tx) => {
         await tx.request.update({
           where: { id: request_id },
@@ -1318,6 +1365,7 @@ export class RequestService {
         await tx.request_detail.update({
           where: { id: request_detail?.id },
           data: {
+            lab_note: lab_note ?? request_detail?.lab_note ?? "",
             updated_by: user_id,
             updated_on: new Date(),
           },
@@ -1332,9 +1380,10 @@ export class RequestService {
             remark: remark,
           },
         });
-
+      });
+      
         // Upsert request_sample and request_sample_item if provided
-        if (request_sample && Array.isArray(request_sample)) {
+        if (request_sample && Array.isArray(request_sample) && activity_request_id === 'ACCEPT') {
           const now = new Date();
           
           // Prepare samples with correct request_id
@@ -1348,7 +1397,7 @@ export class RequestService {
           const sampleIdsInPayload = new Set(samples.filter(s => s.id && s.id !== 0).map(s => s.id));
 
           // Get all existing samples in DB for this request
-          const samplesInDb = await tx.request_sample.findMany({
+          const samplesInDb = await this.prisma.request_sample.findMany({
             where: { request_id: request_id },
           });
 
@@ -1356,187 +1405,264 @@ export class RequestService {
           for (const dbSample of samplesInDb) {
             if (!sampleIdsInPayload.has(dbSample.id)) {
               // Delete children first to avoid FK constraint errors
-              await tx.request_sample_item.deleteMany({ where: { request_sample_id: dbSample.id } });
-              await tx.request_sample_chemical.deleteMany({ where: { request_sample_id: dbSample.id } });
-              await tx.request_sample_microbiology.deleteMany({ where: { request_sample_id: dbSample.id } });
-              await tx.request_sample.delete({ where: { id: dbSample.id } });
+              await this.prisma.$transaction(async (tx) => {
+                await tx.request_sample_item.deleteMany({ where: { request_sample_id: dbSample.id } });
+                await tx.request_sample_chemical.deleteMany({ where: { request_sample_id: dbSample.id } });
+                await tx.request_sample_microbiology.deleteMany({ where: { request_sample_id: dbSample.id } });
+                await tx.request_sample.delete({ where: { id: dbSample.id } });
+              });
             }
+          }
+
+          // --- Find the latest running number for each type/year ---
+          // Group samples by type/year
+          const year = new Date().getFullYear().toString().slice(-2);
+          let type = '';
+          if (request?.request_type_id === 'REQUEST') type = 'Q';
+          else if (request?.request_type_id === 'ROUTINE') type = 'T';
+          else if (request?.request_type_id === 'QIP') type = 'E';
+          const prefix = type + year;
+
+          // Find the latest sample_code with this prefix
+          const lastSample = await this.prisma.request_sample.findFirst({
+            where: {
+              sample_code: {
+                startsWith: prefix,
+              },
+            },
+            orderBy: { sample_code: 'desc' },
+          });
+
+          let lastNumber = 0;
+          if (lastSample?.sample_code && lastSample.sample_code.length === 7) {
+            // Extract running number (last 5 digits)
+            lastNumber = parseInt(lastSample.sample_code.slice(-5), 10) || 0;
           }
 
           // Upsert samples and their children
+          let runningNumber = lastNumber;
+          // Upsert samples and their children
           for (const sample of samples) {
+            const tempSample = await this.prisma.request_sample.findUnique({
+              where: { id: sample.id && sample.id !== 0 ? sample.id : -1 },
+            });
+            let sampleUpdate = {
+              due_date: sample.due_date ?? null,
+              status_sample_id: tempSample?.status_sample_id ?? null,
+              sample_code: tempSample?.sample_code ?? '',
+            }
             if (activity_request_id === "ACCEPT") {
-              sample.status_sample_id = "TESTING";
+              sampleUpdate.status_sample_id = "TESTING";
+              if ((!sampleUpdate.sample_code || sampleUpdate.sample_code === '') && review_role_id === 'LAB_OFF') {
+                // const year = new Date().getFullYear().toString().slice(-2);
+                // let prefix = '';
+                // if (request?.request_type_id === 'REQUEST') prefix = 'Q' + year;
+                // else if (request?.request_type_id === 'ROUTINE') prefix = 'T' + year;
+                // else if (request?.request_type_id === 'QIP') prefix = 'E' + year;
+
+                // // Find the latest sample_code with this prefix
+                // await this.prisma.$transaction(async (tx) => {
+                //   const lastSample = await tx.request_sample.findFirst({
+                //     where: {
+                //       sample_code: {
+                //         startsWith: prefix,
+                //       },
+                //     },
+                //     orderBy: { created_on: 'desc' },
+                //   });
+                  
+
+                //   let lastNumber = 0;
+                //   if (lastSample?.sample_code && lastSample.sample_code.length === 7) {
+                //     // Extract running number (last 5 digits)
+                //     lastNumber = parseInt(lastSample.sample_code.slice(-5), 10) || 0;
+                //   }
+                //   sample.sample_code = prefix + (lastNumber + 1).toString().padStart(5, '0');
+                // });
+                runningNumber += 1;
+                sampleUpdate.sample_code = prefix + runningNumber.toString().padStart(5, '0');
+              }
+              // For each sample that needs a new code:
+              // const year = new Date().getFullYear().toString().slice(-2);
+              // let type = '';
+              // if (request?.request_type_id === 'REQUEST') type = 'Q';
+              // else if (request?.request_type_id === 'ROUTINE') type = 'T';
+              // else if (request?.request_type_id === 'QIP') type = 'E';
+
+              // const runningNumber = await getNextSampleRunningNumber(this.prisma, type, year);
+              // sample.sample_code = type + year + runningNumber.toString().padStart(5, '0');
             }
             const { request_sample_chemical, request_sample_microbiology, request_sample_item, ...sampleData } = sample;
 
-            // Upsert sample
-            const createdSample = await tx.request_sample.upsert({
-              where: { id: sample.id && sample.id !== 0 ? sample.id : -1 },
-              update: {
-                ...sampleData,
-                request_id: request_id,
-                updated_on: now,
-                updated_by: user_id,
-              },
-              create: {
-                ...sampleData,
-                request_id: request_id,
-                created_on: now,
-                created_by: user_id,
-                updated_on: now,
-                updated_by: user_id,
-              },
+            await this.prisma.$transaction(async (tx) => {
+              // Upsert sample
+              const createdSample = await tx.request_sample.upsert({
+                where: { id: sample.id && sample.id !== 0 ? sample.id : -1 },
+                update: {
+                  ...sampleUpdate,
+                  request_id: request_id,
+                  updated_on: now,
+                  updated_by: user_id,
+                },
+                create: {
+                  ...sampleUpdate,
+                  request_id: request_id,
+                  created_on: now,
+                  created_by: user_id,
+                  updated_on: now,
+                  updated_by: user_id,
+                },
+              });
+
+              const sampleId = createdSample.id;
+              
+              // Upsert and delete for request_sample_chemical
+              const chemicals = (request_sample_chemical ?? []).map(c => ({
+                ...c,
+                request_sample_id: sampleId,
+              }));
+
+              const chemicalsInDb = await tx.request_sample_chemical.findMany({
+                where: { request_sample_id: sampleId },
+              });
+
+              const chemicalIdsInPayload = new Set(chemicals.filter(c => c.id && c.id !== 0).map(c => c.id));
+
+              for (const dbChemical of chemicalsInDb) {
+                if (!chemicalIdsInPayload.has(dbChemical.id)) {
+                  await tx.request_sample_chemical.delete({ where: { id: dbChemical.id } });
+                }
+              }
+
+              for (const chemical of chemicals) {
+                const { id, ...chemicalData } = chemical;
+                if (chemical.id && chemical.id !== 0) {
+                  await tx.request_sample_chemical.upsert({
+                    where: { id: chemical.id },
+                    update: {
+                      ...chemical,
+                      request_sample_id: sampleId,
+                    },
+                    create: {
+                      ...chemicalData,
+                      request_sample_id: sampleId,
+                      created_on: now,
+                      created_by: user_id,
+                    },
+                  });
+                } else {
+                  await tx.request_sample_chemical.create({
+                    data: {
+                      ...chemicalData,
+                      request_sample_id: sampleId,
+                      created_on: now,
+                      created_by: user_id,
+                    },
+                  });
+                }
+              }
+
+              // Upsert and delete for request_sample_microbiology
+              const micro = (request_sample_microbiology ?? []).map(m => ({
+                ...m,
+                request_sample_id: sampleId,
+              }));
+
+              const microInDb = await tx.request_sample_microbiology.findMany({
+                where: { request_sample_id: sampleId },
+              });
+
+              const microIdsInPayload = new Set(micro.filter(m => m.id && m.id !== 0).map(m => m.id));
+
+              for (const dbMicro of microInDb) {
+                if (!microIdsInPayload.has(dbMicro.id)) {
+                  await tx.request_sample_microbiology.delete({ where: { id: dbMicro.id } });
+                }
+              }
+
+              for (const m of micro) {
+                const { id, ...microData } = m;
+                if (m.id && m.id !== 0) {
+                  await tx.request_sample_microbiology.upsert({
+                    where: { id: m.id },
+                    update: {
+                      ...m,
+                      request_sample_id: sampleId,
+                    },
+                    create: {
+                      ...microData,
+                      request_sample_id: sampleId,
+                      created_on: now,
+                      created_by: user_id,
+                    },
+                  });
+                } else {
+                  await tx.request_sample_microbiology.create({
+                    data: {
+                      ...microData,
+                      request_sample_id: sampleId,
+                      created_on: now,
+                      created_by: user_id,
+                    },
+                  });
+                }
+              }
+
+              // Upsert and delete for request_sample_item
+              const items = (request_sample_item ?? []).map(i => ({
+                ...i,
+                request_sample_id: sampleId,
+              }));
+              
+              const itemsInDb = await tx.request_sample_item.findMany({
+                where: { request_sample_id: sampleId },
+              });
+              
+              const itemIdsInPayload = new Set(items.filter(i => i.id && i.id !== 0).map(i => i.id));
+              
+              for (const dbItem of itemsInDb) {
+                if (!itemIdsInPayload.has(dbItem.id)) {
+                  await tx.request_sample_item.delete({ where: { id: dbItem.id } });
+                }
+              }
+              
+              for (const item of items) {
+                const { id, ...itemData } = item;
+                if (item.id && item.id !== 0) {
+                  await tx.request_sample_item.upsert({
+                    where: { id: item.id },
+                    update: {
+                      ...item,
+                      request_sample_id: sampleId,
+                      updated_on: now,
+                      updated_by: user_id,
+                    },
+                    create: {
+                      ...itemData,
+                      request_sample_id: sampleId,
+                      created_on: now,
+                      created_by: user_id,
+                      updated_on: now,
+                      updated_by: user_id,
+                    },
+                  });
+                } else {
+                  await tx.request_sample_item.create({
+                    data: {
+                      ...itemData,
+                      request_sample_id: sampleId,
+                      created_on: now,
+                      created_by: user_id,
+                      updated_on: now,
+                      updated_by: user_id,
+                    },
+                  });
+                }
+              }
             });
-
-            const sampleId = createdSample.id;
-            
-            // Upsert and delete for request_sample_chemical
-            const chemicals = (request_sample_chemical ?? []).map(c => ({
-              ...c,
-              request_sample_id: sampleId,
-            }));
-
-            const chemicalsInDb = await tx.request_sample_chemical.findMany({
-              where: { request_sample_id: sampleId },
-            });
-
-            const chemicalIdsInPayload = new Set(chemicals.filter(c => c.id && c.id !== 0).map(c => c.id));
-
-            for (const dbChemical of chemicalsInDb) {
-              if (!chemicalIdsInPayload.has(dbChemical.id)) {
-                await tx.request_sample_chemical.delete({ where: { id: dbChemical.id } });
-              }
-            }
-
-            for (const chemical of chemicals) {
-              const { id, ...chemicalData } = chemical;
-              if (chemical.id && chemical.id !== 0) {
-                await tx.request_sample_chemical.upsert({
-                  where: { id: chemical.id },
-                  update: {
-                    ...chemical,
-                    request_sample_id: sampleId,
-                  },
-                  create: {
-                    ...chemicalData,
-                    request_sample_id: sampleId,
-                    created_on: now,
-                    created_by: user_id,
-                  },
-                });
-              } else {
-                await tx.request_sample_chemical.create({
-                  data: {
-                    ...chemicalData,
-                    request_sample_id: sampleId,
-                    created_on: now,
-                    created_by: user_id,
-                  },
-                });
-              }
-            }
-
-            // Upsert and delete for request_sample_microbiology
-            const micro = (request_sample_microbiology ?? []).map(m => ({
-              ...m,
-              request_sample_id: sampleId,
-            }));
-
-            const microInDb = await tx.request_sample_microbiology.findMany({
-              where: { request_sample_id: sampleId },
-            });
-
-            const microIdsInPayload = new Set(micro.filter(m => m.id && m.id !== 0).map(m => m.id));
-
-            for (const dbMicro of microInDb) {
-              if (!microIdsInPayload.has(dbMicro.id)) {
-                await tx.request_sample_microbiology.delete({ where: { id: dbMicro.id } });
-              }
-            }
-
-            for (const m of micro) {
-              const { id, ...microData } = m;
-              if (m.id && m.id !== 0) {
-                await tx.request_sample_microbiology.upsert({
-                  where: { id: m.id },
-                  update: {
-                    ...m,
-                    request_sample_id: sampleId,
-                  },
-                  create: {
-                    ...microData,
-                    request_sample_id: sampleId,
-                    created_on: now,
-                    created_by: user_id,
-                  },
-                });
-              } else {
-                await tx.request_sample_microbiology.create({
-                  data: {
-                    ...microData,
-                    request_sample_id: sampleId,
-                    created_on: now,
-                    created_by: user_id,
-                  },
-                });
-              }
-            }
-
-            // Upsert and delete for request_sample_item
-            const items = (request_sample_item ?? []).map(i => ({
-              ...i,
-              request_sample_id: sampleId,
-            }));
-            
-            const itemsInDb = await tx.request_sample_item.findMany({
-              where: { request_sample_id: sampleId },
-            });
-            
-            const itemIdsInPayload = new Set(items.filter(i => i.id && i.id !== 0).map(i => i.id));
-            
-            for (const dbItem of itemsInDb) {
-              if (!itemIdsInPayload.has(dbItem.id)) {
-                await tx.request_sample_item.delete({ where: { id: dbItem.id } });
-              }
-            }
-            
-            for (const item of items) {
-              const { id, ...itemData } = item;
-              if (item.id && item.id !== 0) {
-                await tx.request_sample_item.upsert({
-                  where: { id: item.id },
-                  update: {
-                    ...item,
-                    request_sample_id: sampleId,
-                    updated_on: now,
-                    updated_by: user_id,
-                  },
-                  create: {
-                    ...itemData,
-                    request_sample_id: sampleId,
-                    created_on: now,
-                    created_by: user_id,
-                    updated_on: now,
-                    updated_by: user_id,
-                  },
-                });
-              } else {
-                await tx.request_sample_item.create({
-                  data: {
-                    ...itemData,
-                    request_sample_id: sampleId,
-                    created_on: now,
-                    created_by: user_id,
-                    updated_on: now,
-                    updated_by: user_id,
-                  },
-                });
-              }
-            }
           }
         }
-      });
+      // });
       if (activity_request_id === "CONFIRM") {
         const role = await this.prisma.user_role.findMany({
           where: { user_id: user_id, role_id: 'LAB_HEAD' },
