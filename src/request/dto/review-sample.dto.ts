@@ -1,11 +1,11 @@
 import { IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
-import { RequestListSaveSampleDto } from "./request-list-save-sample.dto";
+import { RequestListReviewSampleDto } from "./request-list-review-sample.dto";
 
-export class SaveSampleDto {
+export class ReviewSampleDto {
 
     @ValidateNested({ each: true })
     @IsOptional()
-    request: RequestListSaveSampleDto[];
+    request: RequestListReviewSampleDto[];
 
     @IsString()
     @IsOptional()

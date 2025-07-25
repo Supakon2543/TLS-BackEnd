@@ -2,7 +2,7 @@ import { IsNumber, IsOptional, IsString, MaxLength, ValidateNested } from "class
 import { CreateRequestSampleChemicalDto } from "src/request_sample_chemical/dto/create-request_sample_chemical.dto";
 import { CreateRequestSampleMicrobiologyDto } from "src/request_sample_microbiology/dto/create-request_sample_microbiology.dto";
 
-export class RequestListSampleDto {
+export class RequestListSaveSampleDto {
 
     @IsNumber()
     @IsOptional()

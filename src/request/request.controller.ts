@@ -7,6 +7,7 @@ import { SaveRequestDto } from './dto/save-request.dto';
 import { DuplicateRequestDto } from './dto/duplicate-request.dto';
 import { ListRequestDto } from './dto/list-request.dto';
 import { SaveSampleDto } from './dto/save-sample.dto';
+import { PartialTestDto } from './dto/partial-test.dto';
 
 @Controller('request')
 export class RequestController {
@@ -85,6 +86,12 @@ export class RequestController {
   @Post('list')
   async list(@Body() payload: ListRequestDto, @Res() res: Response) {
     const result = await this.requestService.list(payload);
+    return res.status(200).json(result);
+  }
+
+  @Post('partial/list')
+  async partial_test(@Body() payload: PartialTestDto, @Res() res: Response) {
+    const result = await this.requestService.partial_test(payload);
     return res.status(200).json(result);
   }
 
