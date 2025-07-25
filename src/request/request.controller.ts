@@ -71,6 +71,12 @@ export class RequestController {
     return res.status(200).json(result);
   }
 
+  @Post('sample/review')
+  async review_sample(@Body() payload: any, @Res() res: Response) {
+    const result = await this.requestService.review_sample(payload);
+    return res.status(200).json(result);
+  }
+
   @Post('duplicate')
   async duplicate(@Body() payload: DuplicateRequestDto, @Res() res: Response) {
     const result = await this.requestService.duplicate(payload);
