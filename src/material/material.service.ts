@@ -137,7 +137,7 @@ export class MaterialService {
     let { id, keyword, status, is_external } = params;
     
     // Return null object if id is 0 or null
-    if (id === '0' || id === null || id === undefined) {
+    if (id === '0') {
       return null;
     }
     
