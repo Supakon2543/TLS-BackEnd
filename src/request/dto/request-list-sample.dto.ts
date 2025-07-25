@@ -10,12 +10,16 @@ export class RequestListSampleDto {
 
     @IsString()
     @IsOptional()
+    lab_site_id: string;
+
+    @IsString()
+    @IsOptional()
     @MaxLength(10)
     sample_code: string;
 
     @ValidateNested({ each: true })
     @IsOptional()
-    request_sample_chemicals: CreateRequestSampleChemicalDto[];
+    request_sample_chemical: CreateRequestSampleChemicalDto[];
 
     @ValidateNested({ each: true })
     @IsOptional()

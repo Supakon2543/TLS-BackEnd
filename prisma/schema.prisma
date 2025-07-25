@@ -713,7 +713,7 @@ model request_sample {
   sample_description_id  String?   @db.VarChar(10)
   material_id            String?
   material_code          String?   @db.VarChar(20)
-  sample_code            String?   @db.VarChar(10)
+  sample_code            String?   @db.VarChar(10) @unique
   sample_name            String?   @db.VarChar(100)
   input_sample_name      String?   @db.VarChar(50)
   line_id                Int?
