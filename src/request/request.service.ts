@@ -17,6 +17,8 @@ import { SaveRequestSampleDto } from 'src/request_sample/dto/save-request_sample
 import { SaveSampleDto } from './dto/save-sample.dto';
 import { AcceptRequestDto } from './dto/accept-request.dto';
 import { In } from 'typeorm';
+import { ReviewSampleDto } from './dto/review-sample.dto';
+import { PartialTestDto } from './dto/partial-test.dto';
 
 @Injectable()
 export class RequestService {
@@ -44,14 +46,14 @@ export class RequestService {
           }
           // Set all date fields to null if input as ""
           if (
-            (key.endsWith('_date') || key.endsWith('_on') /*|| key.endsWith('_time')*/) &&
+            (key.endsWith('_date') || key.endsWith('_on') || key.endsWith('sample_code')) &&
             obj[key] === ""
           ) {
             obj[key] = null;
           }
           // Ensure all date fields are Date objects if not null
           if (
-            (key.endsWith('_date') || key.endsWith('_on') /*|| key.endsWith('_time')*/) &&
+            (key.endsWith('_date') || key.endsWith('_on') || key.endsWith('sample_code')) &&
             obj[key] !== null &&
             obj[key] !== undefined &&
             obj[key] !== ""
@@ -2040,6 +2042,69 @@ export class RequestService {
       return { message: 'Success' };
     }
 
+    async review_sample(@Body() payload: ReviewSampleDto) {
+      const { request, activity_request_id, user_id } = payload;
+      let new_status_request_id = '';
+      let new_status_sample_id = '';
+
+      // request is a list, and request.id can be duplicated
+      // Group sample_codes by request_id
+      const requestSampleCodeMap = new Map<number, Set<string>>();
+      (Array.isArray(request) ? request : [request]).forEach((r: any) => {
+        if (!r.id || !r.sample_code) return;
+        if (!requestSampleCodeMap.has(r.id)) {
+          requestSampleCodeMap.set(r.id, new Set());
+        }
+        requestSampleCodeMap.get(r.id)!.add(r.sample_code);
+      });
+
+      // For each unique request_id, check for 'TESTING' samples in DB, excluding those in the payload by sample_code
+      const dbTestingSamplesByRequest: Record<number, any[]> = {};
+      const dbWaitingSamplesByRequest: Record<number, any[]> = {};
+      for (const [reqId, sampleCodes] of requestSampleCodeMap.entries()) {
+        const dbTestingSamples = await this.prisma.request_sample.findMany({
+          where: {
+            request_id: reqId,
+            status_sample_id: 'TESTING',
+            NOT: sampleCodes.size > 0
+              ? Array.from(sampleCodes).map(code => ({ sample_code: code }))
+              : undefined,
+          },
+          select: { sample_code: true },
+        });
+        const dbWaitingSamples = await this.prisma.request_sample.findMany({
+          where: {
+            request_id: reqId,
+            status_sample_id: 'WAITING',
+            NOT: sampleCodes.size > 0
+              ? Array.from(sampleCodes).map(code => ({ sample_code: code }))
+              : undefined,
+          },
+          select: { sample_code: true },
+        });
+        dbTestingSamplesByRequest[reqId] = dbTestingSamples;
+        dbWaitingSamplesByRequest[reqId] = dbWaitingSamples;
+      }
+
+      // If you want a flag for any request_id that has 'TESTING' samples in DB (excluding payload)
+      const hasTestingInDbExcludingPayload = Object.values(dbTestingSamplesByRequest).some(arr => arr.length > 0);
+      const hasWaitingInDbExcludingPayload = Object.values(dbWaitingSamplesByRequest).some(arr => arr.length > 0);
+
+      if (activity_request_id === 'RELEASE') {
+        new_status_sample_id = 'RELEASE';
+        if (hasTestingInDbExcludingPayload) {
+          new_status_request_id = 'TESTING';
+        } else if (hasWaitingInDbExcludingPayload) {
+          new_status_request_id = 'WAITING';
+        } else {
+          new_status_request_id = 'RELEASE';
+        }
+      } else if (activity_request_id === 'REJECT_EDIT') {
+        new_status_request_id = 'TESTING';
+        new_status_sample_id = 'REJECT';
+      }
+    }
+
     async duplicate(@Query() payload: DuplicateRequestDto) {
       const { id, user_id } = payload;
 
@@ -2149,6 +2214,7 @@ export class RequestService {
         sample.created_on = new Date();
         sample.updated_on = new Date();
         sample.due_date = null; // Set to null or a default value if needed
+        sample.sample_code = null;
         const { request_sample_item, ...sampleData } = sample;
         const newSample = await this.prisma.request_sample.create({
           data: sampleData,
@@ -2293,6 +2359,121 @@ export class RequestService {
         status_sample_id: req.status_sample?.id ?? "",
         status_sample_name: req.status_sample?.name ?? "",
       }));
+    }
+
+    async partial_test(@Body() payload: PartialTestDto) {
+      const partial = await this.prisma.request_sample.findMany({
+        select: {
+          id: true,
+          material_id: true,
+          material: {
+            select: {
+              name: true,
+            },
+          },
+          sample_code: true,
+          batch_no: true,
+          status_sample_id: true,
+          status_sample: {
+            select: {
+              name: true,
+            },
+          },
+          request: {
+            select: {
+              id: true,
+              request_number: true,
+              lab_site_id: true,
+              lab_site: {
+                select: {
+                  name: true,
+                },
+              },
+              request_type_id: true,
+              request_type: {
+                select: {
+                  name: true,
+                },
+              },
+              status_request_id: true,
+              status_request: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+          request_sample_chemical: {
+            select: {
+              id: true,
+              request_sample_id: true,
+              chemical_parameter_id: true,
+              lab_result: true,
+              test_by: true,
+              test_date: true,
+              created_on: true,
+              created_by: true,
+            },
+          },
+          request_sample_microbiology: {
+            select: {
+              id: true,
+              request_sample_id: true,
+              microbiology_parameter_id: true,
+              lab_result: true,
+              test_by: true,
+              test_date: true,
+              created_on: true,
+              created_by: true,
+            },
+          },
+        },
+        orderBy: [
+          { request: { request_number: 'desc' } },
+          { sample_code: 'desc' }
+        ],
+      });
+      return partial.map(sample => {
+        return {
+          request_id: sample.request.id ?? 0,
+          request_number: sample.request.request_number ?? '',
+          request_sample_id: sample.id ?? 0,
+          material_code: sample.material_id ?? '',
+          material_name: sample.material?.name ?? '',
+          batch_no: sample.batch_no ?? '',
+          lab_site_id: sample.request.lab_site_id ?? '',
+          lab_site_name: sample.request.lab_site?.name ?? '',
+          sample_code: sample.sample_code ?? '',
+          request_type_id: sample.request.request_type_id ?? '',
+          request_type_name: sample.request.request_type?.name ?? '',
+          fill_amount: sample.request_sample_chemical.filter(chemical => chemical.lab_result !== '' && chemical.lab_result !== null).length + sample.request_sample_microbiology.filter(micro => micro.lab_result !== '' && micro.lab_result !== null).length,
+          total_amount: sample.request_sample_chemical.length + sample.request_sample_microbiology.length,
+          status_request_id: sample.request.status_request_id ?? '',
+          status_request_name: sample.request.status_request?.name ?? '',
+          status_sample_id: sample.status_sample_id ?? '',
+          status_sample_name: sample.status_sample?.name ?? '',
+          request_sample_chemical: (sample.request_sample_chemical ?? []).map(chemical => ({
+            id: chemical.id,
+            request_sample_id: chemical.request_sample_id,
+            chemical_parameter_id: chemical.chemical_parameter_id,
+            lab_result: chemical.lab_result,
+            test_by: chemical.test_by,
+            test_date: chemical.test_date,
+            created_on: chemical.created_on,
+            created_by: chemical.created_by,
+          })),
+          request_sample_microbiology: (sample.request_sample_microbiology ?? []).map(micro => ({
+            id: micro.id,
+            request_sample_id: micro.request_sample_id,
+            microbiology_parameter_id: micro.microbiology_parameter_id,
+            lab_result: micro.lab_result,
+            test_by: micro.test_by,
+            test_date: micro.test_date,
+            created_on: micro.created_on,
+            created_by: micro.created_by,
+          })),
+        };
+      });
     }
 
     async test(@Body() payload: { sender: string, subject: string, receivers: string, message: string }) {
