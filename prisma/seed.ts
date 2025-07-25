@@ -2741,7 +2741,6 @@ async function main() {
   await seedLocationEmailFromNew();
 
   await upsert_user_api();
-
   
 
   await createOrUpdateUser();

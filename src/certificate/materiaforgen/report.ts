@@ -393,13 +393,13 @@ export const getReportDataC = async () => {
         file_name: "Test Report Name Batch 12345 (Rev.00)",
         is_accredited: isAccredited,
         header: {
-            report_heading: "Test Report", 
-            sample_name: "C-VITT LEMON VC1000 SR V3 140ML 1X3X10",
-            sample_detail: "MFG AH 070525.02 BB070526",
-            sample_description: "Dietary supplement",
-            sample_condition: "Samples are contained in a glass bottle",
-            analysis_date: "07/05/2025",
-            customer_contact: "Refer as Lab Services Agreement (S-AY-Q-QCD-0115 Rev.02)",
+            report_heading: "Test Report",   // request_sample -> request_detail -> report_heading (name)
+            sample_name: "C-VITT LEMON VC1000 SR V3 140ML 1X3X10", // request_sample (sample_name)
+            sample_detail: "MFG AH 070525.02 BB070526",  // request_sample (Batch No)
+            sample_description: "Dietary supplement", // request_sample -> sample_description (name)
+            sample_condition: "Samples are contained in a glass bottle", // request_sample -> request_sample_item -> sample_condition (name)
+            analysis_date: "07/05/2025", // Datenow().tostring()
+            customer_contact: "Refer as Lab Services Agreement (S-AY-Q-QCD-0115 Rev.02)", 
             sample_code: "FGB2509663",
             received_date: "07/05/2025",
             report_date: "09/05/2025",
