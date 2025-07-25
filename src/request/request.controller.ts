@@ -6,6 +6,7 @@ import { UpdateRequestDto } from './dto/update-request.dto';
 import { SaveRequestDto } from './dto/save-request.dto';
 import { DuplicateRequestDto } from './dto/duplicate-request.dto';
 import { ListRequestDto } from './dto/list-request.dto';
+import { SaveSampleDto } from './dto/save-sample.dto';
 
 @Controller('request')
 export class RequestController {
@@ -60,6 +61,12 @@ export class RequestController {
   @Post('accept')
   async accept(@Body() payload: any, @Res() res: Response) {
     const result = await this.requestService.accept(payload);
+    return res.status(200).json(result);
+  }
+
+  @Post('sample/save')
+  async save_sample(@Body() payload: SaveSampleDto, @Res() res: Response) {
+    const result = await this.requestService.save_sample(payload);
     return res.status(200).json(result);
   }
 
