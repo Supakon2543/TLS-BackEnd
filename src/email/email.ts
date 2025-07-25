@@ -135,6 +135,8 @@ export async function sendMail(
   buttonUrl: string,
   request?: any,
   due_date?: string,
+  is_retain?: boolean,
+  is_more_than_one?: boolean,
 ) {
     let message = '';
     if (activity_request_id === 'SEND'){
@@ -143,7 +145,13 @@ export async function sendMail(
     } else if (activity_request_id === 'CONFIRM') {
       message = emailTemplate(name, 'คุณมีเอกสารใบส่งตัวอย่างรอพิจารณา กรุณากด Link ด้านล่าง เพื่อทวนสอบและอนุมัติ/พิจารณา', buttonUrl, 'รายละเอียดใบส่งตัวอย่าง');
     } else if (activity_request_id === 'ACCEPT') {
-      message = emailTemplate(name, `ใบส่งตัวอย่างเลขที่ ${request?.request_number} ของคุณได้รับเข้าระบบห้องปฏิบัติการเรียบร้อยแล้ว ห้องปฏิบัติการสามารถรายงานผลให้คุณได้ภายในวันที่ ${due_date}`, buttonUrl, '');
+      if (is_retain) {
+        message = emailTemplate(name, `คุณสามารถรับตัวอย่างของใบส่งตัวอย่างเลขที่ ${request?.request_number} ในวันที่ ${due_date} `, buttonUrl, '');
+      } else {
+        message = emailTemplate(name, `ใบส่งตัวอย่างเลขที่ ${request?.request_number} ของคุณได้รับเข้าระบบห้องปฏิบัติการเรียบร้อยแล้ว ห้องปฏิบัติการสามารถรายงานผลให้คุณได้ภายในวันที่ ${due_date}`, buttonUrl, '');
+      }
+    } else if (activity_request_id === 'SUBMIT') {
+      message = emailTemplate(name, `คุณมีเอกสารใบส่งตัวอย่างรอพิจารณา กรุณากด Link ด้านล่าง เพื่อทวนสอบและอนุมัติ/พิจารณา`, buttonUrl, (is_more_than_one ? '' : 'รายละเอียดใบส่งตัวอย่าง'));
     }
     if (process.env.SEND_EMAIL !== 'false') {
       return await axios.post(

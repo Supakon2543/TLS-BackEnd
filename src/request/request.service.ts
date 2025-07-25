@@ -16,6 +16,7 @@ import { request } from 'http';
 import { SaveRequestSampleDto } from 'src/request_sample/dto/save-request_sample.dto';
 import { SaveSampleDto } from './dto/save-sample.dto';
 import { AcceptRequestDto } from './dto/accept-request.dto';
+import { In } from 'typeorm';
 
 @Injectable()
 export class RequestService {
@@ -213,6 +214,7 @@ export class RequestService {
               batch_no: true,
               is_display_special: true,
               special_test_time: true,
+              packing_size: true,
               due_date: true,
               status_sample_id: true,
               note: true,
@@ -545,6 +547,7 @@ export class RequestService {
           batch_no: sample.batch_no ?? "",
           is_display_special: sample.is_display_special ?? false,
           special_test_time: sample.special_test_time ?? "",
+          packing_size: sample.packing_size ?? "",
           due_date: sample.due_date ?? "",
           status_sample_id: sample.status_sample_id ?? "",
           note: sample.note ?? "",
@@ -1267,6 +1270,8 @@ export class RequestService {
       let status_id = '';
       let status_sample_id = request?.status_sample_id ?? '';
       let new_review_role_id = review_role_id;
+      let new_lab_receiver_id = 0;
+      let new_received_date: Date | null = null;
       if (activity_request_id === 'RETURN') {
         status_id = 'REJECTED';
       } else if (activity_request_id === 'CONFIRM') {
@@ -1277,6 +1282,8 @@ export class RequestService {
       } else if (activity_request_id === 'ACCEPT') {
         status_id = 'TESTING';
         status_sample_id = 'TESTING';
+        new_lab_receiver_id = user_id;
+        new_received_date = new Date();
       }
       if (activity_request_id === 'CONFIRM' || activity_request_id === 'ACCEPT') {
         if (review_role_id === 'REQ_HEAD') {
@@ -1335,6 +1342,19 @@ export class RequestService {
         where: { request_id: request_id },
       });
 
+      const detailUpdate: {
+        lab_receiver_id?: number,
+        received_date?: Date | null,
+      } = {
+        lab_receiver_id: new_lab_receiver_id ?? 0,
+        received_date: new_received_date ?? null,
+      }
+      if (activity_request_id !== 'ACCEPT') {
+        // If ACCEPT, set lab_receiver_id and received_date
+        delete detailUpdate.lab_receiver_id;
+        delete detailUpdate.received_date;
+      }
+
       // async function getNextSampleRunningNumber(prisma, type: string, year: string): Promise<number> {
       //   // Use a transaction to lock the row and increment atomically
       //   return await prisma.$transaction(async (tx) => {
@@ -1365,6 +1385,7 @@ export class RequestService {
         await tx.request_detail.update({
           where: { id: request_detail?.id },
           data: {
+            ...detailUpdate,
             lab_note: lab_note ?? request_detail?.lab_note ?? "",
             updated_by: user_id,
             updated_on: new Date(),
@@ -1380,7 +1401,7 @@ export class RequestService {
             remark: remark,
           },
         });
-      });
+      // });
       
         // Upsert request_sample and request_sample_item if provided
         if (request_sample && Array.isArray(request_sample) && activity_request_id === 'ACCEPT') {
@@ -1397,7 +1418,7 @@ export class RequestService {
           const sampleIdsInPayload = new Set(samples.filter(s => s.id && s.id !== 0).map(s => s.id));
 
           // Get all existing samples in DB for this request
-          const samplesInDb = await this.prisma.request_sample.findMany({
+          const samplesInDb = await tx.request_sample.findMany({
             where: { request_id: request_id },
           });
 
@@ -1405,12 +1426,12 @@ export class RequestService {
           for (const dbSample of samplesInDb) {
             if (!sampleIdsInPayload.has(dbSample.id)) {
               // Delete children first to avoid FK constraint errors
-              await this.prisma.$transaction(async (tx) => {
+              // await this.prisma.$transaction(async (tx) => {
                 await tx.request_sample_item.deleteMany({ where: { request_sample_id: dbSample.id } });
                 await tx.request_sample_chemical.deleteMany({ where: { request_sample_id: dbSample.id } });
                 await tx.request_sample_microbiology.deleteMany({ where: { request_sample_id: dbSample.id } });
                 await tx.request_sample.delete({ where: { id: dbSample.id } });
-              });
+              // });
             }
           }
 
@@ -1424,14 +1445,46 @@ export class RequestService {
           const prefix = type + year;
 
           // Find the latest sample_code with this prefix
-          const lastSample = await this.prisma.request_sample.findFirst({
-            where: {
-              sample_code: {
-                startsWith: prefix,
-              },
-            },
-            orderBy: { sample_code: 'desc' },
-          });
+          // const lastSample = await tx.request_sample.findFirst({
+          //   where: {
+          //     sample_code: {
+          //       startsWith: prefix,
+          //     },
+          //   },
+          //   orderBy: { sample_code: 'desc' },
+          // });
+          // const lastSample = await this.prisma.$transaction(async (tx) => {
+            const likePrefix = `${prefix}%`;
+            const lastSample = await tx.$queryRawUnsafe<
+              { sample_code: string }
+            >(
+              `
+              SELECT sample_code
+              FROM "request_sample"
+              WHERE sample_code LIKE $1
+              ORDER BY sample_code DESC
+              LIMIT 1
+              FOR UPDATE
+              `,
+              likePrefix
+            );
+
+          //   return result[0] ?? null;
+          // });
+          // const result = await tx.$queryRawUnsafe<{ sample_code: string }[]>(
+          //   `
+          //   SELECT sample_code
+          //   FROM "request_sample"
+          //   WHERE sample_code LIKE $1
+          //   ORDER BY sample_code DESC
+          //   LIMIT 1
+          //   FOR UPDATE
+          //   `,
+          //   ${prefix}%
+          // );
+
+          // let lastCode = result[0]?.sample_code ?? `${prefix}000`;
+          // const nextCode = generateNextCode(lastCode); // e.g. SMP001 -> SMP002
 
           let lastNumber = 0;
           if (lastSample?.sample_code && lastSample.sample_code.length === 7) {
@@ -1443,7 +1496,7 @@ export class RequestService {
           let runningNumber = lastNumber;
           // Upsert samples and their children
           for (const sample of samples) {
-            const tempSample = await this.prisma.request_sample.findUnique({
+            const tempSample = await tx.request_sample.findUnique({
               where: { id: sample.id && sample.id !== 0 ? sample.id : -1 },
             });
             let sampleUpdate = {
@@ -1494,7 +1547,7 @@ export class RequestService {
             }
             const { request_sample_chemical, request_sample_microbiology, request_sample_item, ...sampleData } = sample;
 
-            await this.prisma.$transaction(async (tx) => {
+            // await this.prisma.$transaction(async (tx) => {
               // Upsert sample
               const createdSample = await tx.request_sample.upsert({
                 where: { id: sample.id && sample.id !== 0 ? sample.id : -1 },
@@ -1659,10 +1712,10 @@ export class RequestService {
                   });
                 }
               }
-            });
+            // });
           }
         }
-      // });
+      });
       if (activity_request_id === "CONFIRM") {
         const role = await this.prisma.user_role.findMany({
           where: { user_id: user_id, role_id: 'LAB_HEAD' },
@@ -1780,7 +1833,27 @@ export class RequestService {
           request,
           // You may want to update this to use the correct due_date from payload if needed
           request?.due_date?.toISOString().slice(0, 10) ?? '',
+          false
         );
+        if (request_detail?.sample_retaining_id === 1) {
+          const due_time = callTime.setDate(callTime.getDate() + 14);
+          await sendMail(
+            request?.requester?.email ?? '',
+            lab_lead_emails,
+            request?.requester?.fullname ?? '',
+            'ถึงกำหนดรับตัวอย่างคืน',
+            activity_request_id,
+            `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
+            request,
+            due_time.toLocaleString('th-TH', {
+              timeZone: 'Asia/Bangkok',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            } as Intl.DateTimeFormatOptions),
+            true,
+          );
+        }
       }
       return { message: 'Success' };
       console.log('request_id:', request_id);
@@ -1797,6 +1870,172 @@ export class RequestService {
       console.log('save_sample payload:', payload);
       this.clearZeroIdsAndDatesAndBy(request);
       console.log('save_sample request:', request);
+      let new_status_request_id = '';
+      let new_status_sample_id = '';
+
+      // request is a list, and request.id can be duplicated
+      // Group sample_codes by request_id
+      const requestSampleCodeMap = new Map<number, Set<string>>();
+      (Array.isArray(request) ? request : [request]).forEach((r: any) => {
+        if (!r.id || !r.sample_code) return;
+        if (!requestSampleCodeMap.has(r.id)) {
+          requestSampleCodeMap.set(r.id, new Set());
+        }
+        requestSampleCodeMap.get(r.id)!.add(r.sample_code);
+      });
+
+      // For each unique request_id, check for 'TESTING' samples in DB, excluding those in the payload by sample_code
+      const dbTestingSamplesByRequest: Record<number, any[]> = {};
+      for (const [reqId, sampleCodes] of requestSampleCodeMap.entries()) {
+        const dbTestingSamples = await this.prisma.request_sample.findMany({
+          where: {
+            request_id: reqId,
+            status_sample_id: 'TESTING',
+            NOT: sampleCodes.size > 0
+              ? Array.from(sampleCodes).map(code => ({ sample_code: code }))
+              : undefined,
+          },
+          select: { sample_code: true },
+        });
+        dbTestingSamplesByRequest[reqId] = dbTestingSamples;
+      }
+
+      // If you want a flag for any request_id that has 'TESTING' samples in DB (excluding payload)
+      const hasTestingInDbExcludingPayload = Object.values(dbTestingSamplesByRequest).some(arr => arr.length > 0);
+
+      if (activity_request_id === 'SUBMIT') {
+        new_status_sample_id = 'WAITING';
+        if (hasTestingInDbExcludingPayload) {
+          new_status_request_id = 'TESTING';
+        }
+        else {
+          new_status_request_id = 'RELEASE';
+        }
+      }
+      if (activity_request_id === 'SAVE') {
+        new_status_request_id = 'TESTING';
+      }
+      // else if (activity_request_id === 'SAVE') {
+      //   status_sample_id = 'TESTING';
+      //   status_request_id = 'TESTING';
+      // }
+      const requestUpdate: {
+        status_request_id?: string,
+        status_sample_id?: string,
+        updated_by: number,
+        updated_on: Date,
+      } = {
+        status_request_id: new_status_request_id,
+        status_sample_id: new_status_sample_id,
+        updated_by: user_id,
+        updated_on: new Date(),
+      };
+      const sampleUpdate: {
+        status_sample_id?: string,
+        updated_by: number,
+        updated_on: Date,
+      } = {
+        status_sample_id: new_status_sample_id,
+        updated_by: user_id,
+        updated_on: new Date(),
+      };
+      if (requestUpdate.status_sample_id === '') {
+        delete requestUpdate.status_sample_id; // Set to null if empty
+      }
+      if (requestUpdate.status_request_id === '') {
+        delete requestUpdate.status_request_id; // Set to null if empty
+      }
+      if (sampleUpdate.status_sample_id === '') {
+        delete sampleUpdate.status_sample_id; // Set to null if empty
+      }
+
+      await this.prisma.$transaction(async (tx) => {
+        // 1. Update request status
+        await Promise.all(request.map(async (req) => {
+          console.log('Updating request:', requestUpdate);
+          await tx.request.update({
+            where: { id: req.id },
+            data: {
+              ...requestUpdate
+            },
+          });
+
+        // 2. Update each sample
+          await tx.request_sample.update({
+            where: { sample_code: req.sample_code, request_id: req.id },
+            data: {
+              ...sampleUpdate
+            },
+          });
+
+          // 3. Update sample chemicals
+          if (Array.isArray(req.request_sample_chemical)) {
+            await Promise.all(
+              req.request_sample_chemical.map(chemical =>
+                tx.request_sample_chemical.update({
+                  where: { id: chemical.id },
+                  data: { ...chemical, test_date: new Date() },
+                })
+              )
+            );
+          }
+
+          // 4. Update sample microbiology
+          if (Array.isArray(req.request_sample_microbiology)) {
+            await Promise.all(
+              req.request_sample_microbiology.map(micro =>
+                tx.request_sample_microbiology.update({
+                  where: { id: micro.id },
+                  data: { ...micro, test_date: new Date() },
+                })
+              )
+            );
+          }
+
+        // 3. Log the activity
+          await tx.request_log.create({
+            data: {
+              request_id: req.id,
+              sample_code: req.sample_code,
+              status_request_id: new_status_request_id,
+              activity_request_id: activity_request_id,
+              user_id: user_id,
+              timestamp: new Date(),
+              remark: '',
+            },
+          });
+        }));
+      });
+
+      if (activity_request_id === 'SUBMIT') {
+        const user_location = await this.prisma.user_location.findMany({
+          where: { id: { in: request.map(req => req.lab_site_id) } },
+        });
+        let lab_leads: any[] = [];
+        if (user_location) {
+          lab_leads = await this.prisma.user.findMany({
+            where: { user_location_id: { in: user_location.map(loc => loc.id) }, user_role: { some: { role_id: 'LAB_LEAD' } } },
+            select: { email: true, fullname: true },
+          });
+        }
+        const lab_lead_emails = lab_leads.map(u => u.email).join(', ');
+        const lab_lead_names = lab_leads.map(u => u.fullname).join(', ');
+        await sendMail(
+          lab_lead_emails,
+          '',
+          lab_lead_names,
+          'ขออนุมัติใบส่งตัวอย่าง',
+          activity_request_id,
+          `${process.env.FRONTEND_URL}/request/${request[0].id}/detail`,
+          request,
+          // You may want to update this to use the correct due_date from payload if needed
+          '',
+          false,
+          request.length > 1
+        );
+      }
+
+      return { message: 'Success' };
     }
 
     async duplicate(@Query() payload: DuplicateRequestDto) {
@@ -1807,6 +2046,7 @@ export class RequestService {
         where: { id },
         include: {
           request_detail: true,
+          request_email: true,
           request_sample: {
             include: {
               request_sample_item: true,
@@ -1836,11 +2076,13 @@ export class RequestService {
         request: {
           ...original,
           request_detail: undefined,
+          request_email: undefined,
           request_sample: undefined,
         },
         request_detail: Array.isArray(original.request_detail)
           ? (original.request_detail[0] ?? {})
           : (original.request_detail ?? {}),
+        request_email: original.request_email ?? [],
         request_sample: (original.request_sample ?? []).map(sample => ({
           ...sample,
           request_sample_item: (sample.request_sample_item ?? []).map(item => ({ ...item })),
@@ -1850,6 +2092,7 @@ export class RequestService {
       // Remove IDs from all nested objects
       removeIds(temp.request);
       removeIds(temp.request_detail);
+      removeIds(temp.request_email);
       temp.request_sample.forEach(sample => {
         removeIds(sample);
         (sample.request_sample_item ?? []).forEach(removeIds);
@@ -1868,6 +2111,7 @@ export class RequestService {
       temp.request.review_role_id = null;
       temp.request.telephone = '';
       temp.request.request_number = null;
+      temp.request.due_date = null; // Set to null or a default value if needed
 
       // 3. Create the duplicated request
       const newRequest = await this.prisma.request.create({
@@ -1884,6 +2128,17 @@ export class RequestService {
         data: temp.request_detail,
       });
 
+      await Promise.all(temp.request_email.map(async email => {
+        await this.prisma.request_email.create({
+          data: {
+            ...email,
+            request_id: newRequest.id,
+            created_by: user_id,
+            created_on: new Date(),
+          },
+        });
+      }));
+
       // 5. Duplicate request_sample and request_sample_item
       for (const sample of temp.request_sample) {
         sample.request_id = newRequest.id;
@@ -1891,6 +2146,7 @@ export class RequestService {
         sample.updated_by = user_id;
         sample.created_on = new Date();
         sample.updated_on = new Date();
+        sample.due_date = null; // Set to null or a default value if needed
         const { request_sample_item, ...sampleData } = sample;
         const newSample = await this.prisma.request_sample.create({
           data: sampleData,
