@@ -8,6 +8,8 @@ import { DuplicateRequestDto } from './dto/duplicate-request.dto';
 import { ListRequestDto } from './dto/list-request.dto';
 import { SaveSampleDto } from './dto/save-sample.dto';
 import { PartialTestDto } from './dto/partial-test.dto';
+import { ReviewSampleDto } from './dto/review-sample.dto';
+import { EditSampleDto } from './dto/edit-sample.dto';
 
 @Controller('request')
 export class RequestController {
@@ -72,8 +74,14 @@ export class RequestController {
   }
 
   @Post('sample/review')
-  async review_sample(@Body() payload: any, @Res() res: Response) {
+  async review_sample(@Body() payload: ReviewSampleDto, @Res() res: Response) {
     const result = await this.requestService.review_sample(payload);
+    return res.status(200).json(result);
+  }
+
+  @Post('sample/edit')
+  async edit_sample(@Body() payload: EditSampleDto, @Res() res: Response) {
+    const result = await this.requestService.edit_sample(payload);
     return res.status(200).json(result);
   }
 
