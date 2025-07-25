@@ -1,6 +1,5 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import '../../pdf/AngsanaNew';
 import { convertImageToBase64 } from './convertImageToBase64';
 import { CertTemplateB } from './model';
 
@@ -379,9 +378,12 @@ const generateReportB = async (data: CertTemplateB) => {
     addFooter(i, totalPages);
   }
 
-  const pdfBlob = doc.output('blob');
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, '_blank');
+  const pdfBase64 = btoa(
+    new Uint8Array(doc.output('arraybuffer'))
+      .reduce((data, byte) => data + String.fromCharCode(byte), '')
+  );
+
+  return pdfBase64
 };
 
 export default generateReportB;
