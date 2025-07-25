@@ -19,6 +19,7 @@ import { AcceptRequestDto } from './dto/accept-request.dto';
 import { In } from 'typeorm';
 import { ReviewSampleDto } from './dto/review-sample.dto';
 import { PartialTestDto } from './dto/partial-test.dto';
+import { EditSampleDto } from './dto/edit-sample.dto';
 
 @Injectable()
 export class RequestService {
@@ -53,7 +54,7 @@ export class RequestService {
           }
           // Ensure all date fields are Date objects if not null
           if (
-            (key.endsWith('_date') || key.endsWith('_on') || key.endsWith('sample_code')) &&
+            (key.endsWith('_date') || key.endsWith('_on') /*|| key.endsWith('sample_code')*/) &&
             obj[key] !== null &&
             obj[key] !== undefined &&
             obj[key] !== ""
@@ -1891,6 +1892,9 @@ export class RequestService {
       // For each unique request_id, check for 'TESTING' samples in DB, excluding those in the payload by sample_code
       const dbTestingSamplesByRequest: Record<number, any[]> = {};
       for (const [reqId, sampleCodes] of requestSampleCodeMap.entries()) {
+        console.log('sampleCodes:', sampleCodes.size > 0
+              ? Array.from(sampleCodes).map(code => ({ sample_code: code }))
+              : undefined)
         const dbTestingSamples = await this.prisma.request_sample.findMany({
           where: {
             request_id: reqId,
@@ -2103,6 +2107,152 @@ export class RequestService {
         new_status_request_id = 'TESTING';
         new_status_sample_id = 'REJECT';
       }
+
+      const requestUpdate: {
+        status_request_id?: string,
+        status_sample_id?: string,
+        updated_by: number,
+        updated_on: Date,
+      } = {
+        status_request_id: new_status_request_id,
+        status_sample_id: new_status_sample_id,
+        updated_by: user_id,
+        updated_on: new Date(),
+      };
+      const sampleUpdate: {
+        status_sample_id?: string,
+        updated_by: number,
+        updated_on: Date,
+      } = {
+        status_sample_id: new_status_sample_id,
+        updated_by: user_id,
+        updated_on: new Date(),
+      };
+
+      // generate certificate and report if activity_request_id is 'RELEASE'
+
+      await this.prisma.$transaction(async (tx) => {
+        // 1. Update request status
+        await Promise.all(request.map(async (req) => {
+          console.log('Updating request:', requestUpdate);
+          await tx.request.update({
+            where: { id: req.id },
+            data: {
+              ...requestUpdate
+            },
+          });
+
+          // 2. Update each sample
+          await tx.request_sample.update({
+            where: { id: req.request_sample_id },
+            data: {
+              ...sampleUpdate,
+              note: req.note,
+            },
+          });
+
+          // 3. Log the activity
+          await tx.request_log.create({
+            data: {
+              request_id: req.id,
+              sample_code: req.sample_code,
+              status_request_id: new_status_request_id,
+              activity_request_id: activity_request_id,
+              user_id: user_id,
+              timestamp: new Date(),
+              remark: '',
+            },
+          });
+        }));
+      });
+
+      if (activity_request_id === 'RELEASE') {
+        // 1. Get all unique request_ids from the request list
+        const requestIds = Array.from(new Set(request.map(r => r.id)));
+
+        // 2. Fetch requester info and request_email for each request_id
+        const requesterAndEmails = await Promise.all(
+          requestIds.map(async (reqId) => {
+            const reqData = await this.prisma.request.findUnique({
+              where: { id: reqId },
+              select: {
+                requester: { select: { fullname: true, email: true } },
+                request_email: { select: { email: true } },
+              },
+            });
+            return {
+              requesterName: reqData?.requester?.fullname ?? '',
+              requesterEmail: reqData?.requester?.email ?? '',
+              requestEmails: (reqData?.request_email ?? []).map(e => e.email),
+            };
+          })
+        );
+
+        // 3. Collect all names and emails, distinct and join
+        const allNames = Array.from(new Set(requesterAndEmails.map(x => x.requesterName).filter(Boolean)));
+        const allEmails = Array.from(new Set(
+          requesterAndEmails
+            .map(x => [x.requesterEmail, ...x.requestEmails])
+            .flat()
+            .filter(Boolean)
+        ));
+        const namesString = allNames.join(', ');
+        const emailsString = allEmails.join(', ');
+
+        const user_location = await this.prisma.user_location.findMany({
+          where: { id: { in: request.map(req => req.lab_site_id) } },
+        });
+        let lab_leads: any[] = [];
+        let lab_heads: any[] = [];
+        if (user_location) {
+          lab_leads = await this.prisma.user.findMany({
+            where: { user_location_id: { in: user_location.map(loc => loc.id) }, user_role: { some: { role_id: 'LAB_LEAD' } } },
+            select: { email: true, fullname: true },
+          });
+          lab_heads = await this.prisma.user.findMany({
+            where: { user_location_id: { in: user_location.map(loc => loc.id) }, user_role: { some: { role_id: 'LAB_HEAD' } } },
+            select: { email: true, fullname: true },
+          });
+        }
+        const lab_lead_emails = lab_leads.map(u => u.email).join(', ');
+        const lab_lead_names = lab_leads.map(u => u.fullname).join(', ');
+        const lab_head_emails = lab_heads.map(u => u.email).join(', ');
+        const lab_head_names = lab_heads.map(u => u.fullname).join(', ');
+        const allLabEmails = Array.from(
+          new Set(
+            [lab_lead_emails, lab_head_emails]
+              .join(', ')
+              .split(',')
+              .map(e => e.trim())
+              .filter(Boolean)
+          )
+        ).join(', ');
+
+        await sendMail(
+          emailsString,
+          allLabEmails,
+          '',
+          'แจ้งผลการทดสอบ',
+          activity_request_id,
+          `${process.env.FRONTEND_URL}/request/${request[0].id}/detail`,
+          request,
+          // You may want to update this to use the correct due_date from payload if needed
+          '',
+          false,
+          false,
+        );
+      }
+
+      return { message: 'Success' };
+    }
+
+    async edit_sample(@Body() payload: EditSampleDto) {
+      const { request_id, lab_site_id, request_sample_id, sample_code, category_edit_id, edit_role_id, activity_request_id, remark, user_id } = payload;
+
+      // Validate and process the payload as needed
+      // ...
+
+      return { message: 'Success' };
     }
 
     async duplicate(@Query() payload: DuplicateRequestDto) {
