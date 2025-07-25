@@ -19,6 +19,7 @@ import { AcceptRequestDto } from './dto/accept-request.dto';
 import { In } from 'typeorm';
 import { ReviewSampleDto } from './dto/review-sample.dto';
 import { PartialTestDto } from './dto/partial-test.dto';
+import { EditSampleDto } from './dto/edit-sample.dto';
 
 @Injectable()
 export class RequestService {
@@ -53,7 +54,7 @@ export class RequestService {
           }
           // Ensure all date fields are Date objects if not null
           if (
-            (key.endsWith('_date') || key.endsWith('_on') || key.endsWith('sample_code')) &&
+            (key.endsWith('_date') || key.endsWith('_on') /*|| key.endsWith('sample_code')*/) &&
             obj[key] !== null &&
             obj[key] !== undefined &&
             obj[key] !== ""
@@ -1891,6 +1892,9 @@ export class RequestService {
       // For each unique request_id, check for 'TESTING' samples in DB, excluding those in the payload by sample_code
       const dbTestingSamplesByRequest: Record<number, any[]> = {};
       for (const [reqId, sampleCodes] of requestSampleCodeMap.entries()) {
+        console.log('sampleCodes:', sampleCodes.size > 0
+              ? Array.from(sampleCodes).map(code => ({ sample_code: code }))
+              : undefined)
         const dbTestingSamples = await this.prisma.request_sample.findMany({
           where: {
             request_id: reqId,
@@ -2238,6 +2242,15 @@ export class RequestService {
           false,
         );
       }
+
+      return { message: 'Success' };
+    }
+
+    async edit_sample(@Body() payload: EditSampleDto) {
+      const { request_id, lab_site_id, request_sample_id, sample_code, category_edit_id, edit_role_id, activity_request_id, remark, user_id } = payload;
+
+      // Validate and process the payload as needed
+      // ...
 
       return { message: 'Success' };
     }
