@@ -537,7 +537,7 @@ export class RequestService {
           created_on: attachment.created_on ?? "",
           created_by: attachment.created_by ?? 0,
         })),
-        request_sample: (request.request_sample ?? []).map(sample => ({
+        request_sample: await Promise.all((request.request_sample ?? []).map(async sample => ({
           id: sample.id ?? 0,
           request_id: sample.request_id ?? 0,
           sample_description_id: sample.sample_description_id ?? "",
@@ -569,7 +569,7 @@ export class RequestService {
           created_by: sample.created_by ?? 0,
           updated_on: sample.updated_on ?? "",
           updated_by: sample.updated_by ?? 0,
-          request_sample_chemical: (sample.request_sample_chemical ?? []).map(sample_chemical => ({
+          request_sample_chemical: await Promise.all((sample.request_sample_chemical ?? []).map(async sample_chemical => ({
             // parameter_id: sample_chemical.chemical_parameter?.id ?? 0,
             // name: sample_chemical.chemical_parameter?.name ?? "",
             // request_min: sample_chemical.chemical_parameter?.request_min ?? 0,
@@ -596,11 +596,15 @@ export class RequestService {
             chemical_parameter_id: sample_chemical.chemical_parameter_id ?? 0,
             lab_result: sample_chemical.lab_result ?? "",
             test_by: sample_chemical.test_by ?? 0,
+            test_by_name: await this.prisma.user.findUnique({
+              where: { id: sample_chemical.test_by ?? 0 },
+              select: { fullname: true },
+            }).then(user => user?.fullname ?? ""),
             test_date: sample_chemical.test_date ?? "",
             created_on: sample_chemical.created_on ?? "",
             created_by: sample_chemical.created_by ?? 0,
-          })),
-          request_sample_microbiology: (sample.request_sample_microbiology ?? []).map(sample_microbiology => ({
+          }))),
+          request_sample_microbiology: await Promise.all((sample.request_sample_microbiology ?? []).map(async sample_microbiology => ({
             // parameter_id: sample_microbiology.microbiology_parameter?.id ?? 0,
             // name: sample_microbiology.microbiology_parameter?.name ?? "",
             // request_min: sample_microbiology.microbiology_parameter?.request_min ?? 0,
@@ -627,10 +631,14 @@ export class RequestService {
             microbiology_parameter_id: sample_microbiology.microbiology_parameter_id ?? 0,
             lab_result: sample_microbiology.lab_result ?? "",
             test_by: sample_microbiology.test_by ?? 0,
+            test_by_name: await this.prisma.user.findUnique({
+              where: { id: sample_microbiology.test_by ?? 0 },
+              select: { fullname: true },
+            }).then(user => user?.fullname ?? ""),
             test_date: sample_microbiology.test_date ?? "",
             created_on: sample_microbiology.created_on ?? "",
             created_by: sample_microbiology.created_by ?? 0,
-          })),
+          }))),
           request_sample_item: (sample.request_sample_item ?? []).map(item => ({
             id: item.id ?? 0,
             request_sample_id: item.request_sample_id ?? 0,
@@ -647,7 +655,7 @@ export class RequestService {
             updated_on: item.updated_on ?? "",
             updated_by: item.updated_by ?? 0,
           })),
-        })),
+        }))),
         request_log: (request.request_log ?? []).map(log => ({
           id: log.id ?? 0,
           request_id: log.request_id ?? "",
@@ -2099,9 +2107,9 @@ export class RequestService {
         if (hasTestingInDbExcludingPayload) {
           new_status_request_id = 'TESTING';
         } else if (hasWaitingInDbExcludingPayload) {
-          new_status_request_id = 'WAITING';
-        } else {
           new_status_request_id = 'RELEASE';
+        } else {
+          new_status_request_id = 'COMPLETED';
         }
       } else if (activity_request_id === 'REJECT_EDIT') {
         new_status_request_id = 'TESTING';
