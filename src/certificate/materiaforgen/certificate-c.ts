@@ -1,6 +1,5 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import '../../pdf/AngsanaNew';
 import { convertImageToBase64 } from './convertImageToBase64';
 import { CertTemplateC } from './model';
 
@@ -32,22 +31,44 @@ const generateReportC = async (data: CertTemplateC) => {
   const addHeader = () => {
     doc.addImage(companyLogo, 'JPEG', margin, logoY, 25, 25);
     if (data.is_accredited) {
-      doc.addImage(ilacMRALogo, 'PNG', pageWidth - margin - (logoWidth * 2) - logoGap - 2, logoY, logoWidth, logoHeight);
-      doc.addImage(qaLogo, 'JPEG', pageWidth - margin - logoWidth - logoGap, logoY, logoWidth, logoHeight);
+      doc.addImage(
+        ilacMRALogo,
+        'PNG',
+        pageWidth - margin - logoWidth * 2 - logoGap - 2,
+        logoY,
+        logoWidth,
+        logoHeight,
+      );
+      doc.addImage(
+        qaLogo,
+        'JPEG',
+        pageWidth - margin - logoWidth - logoGap,
+        logoY,
+        logoWidth,
+        logoHeight,
+      );
 
       doc.setFont('AngsanaNew', 'normal');
       doc.setFontSize(12);
       const isoText = 'ISO/IEC 17025';
       const isoTextMaxWidth = 30;
       const isoTextWidth = doc.getTextWidth(isoText);
-      const isoTextX = pageWidth - margin - isoTextMaxWidth + ((isoTextMaxWidth - isoTextWidth) / 2);
+      const isoTextX =
+        pageWidth -
+        margin -
+        isoTextMaxWidth +
+        (isoTextMaxWidth - isoTextWidth) / 2;
       const isoTextY = 32;
       doc.text(isoText, isoTextX, isoTextY);
 
       const accreditNo = 'Accreditation No.1365/66';
       const accreditNoMaxWidth = 30;
       const accreditNoWidth = doc.getTextWidth(accreditNo);
-      const accreditNoX = pageWidth - margin - accreditNoMaxWidth + ((accreditNoMaxWidth - accreditNoWidth) / 2);
+      const accreditNoX =
+        pageWidth -
+        margin -
+        accreditNoMaxWidth +
+        (accreditNoMaxWidth - accreditNoWidth) / 2;
       const accreditNoY = 36;
       doc.text(accreditNo, accreditNoX, accreditNoY);
     }
@@ -85,7 +106,7 @@ const generateReportC = async (data: CertTemplateC) => {
 
     infoY += lineHeight;
     doc.setFont('AngsanaNew', 'normal');
-    
+
     doc.text('Sample Detail', info1LabelX, infoY);
     doc.text(':', info1ColonX, infoY);
     doc.text(data.header.sample_detail, info1ValueX, infoY);
@@ -143,43 +164,64 @@ const generateReportC = async (data: CertTemplateC) => {
     doc.text('Reg. No', info2LabelX, infoY);
     doc.text(':', info2ColonX, infoY);
     doc.text(data.header.reg_no, info2ValueX, infoY);
-  }
+  };
 
   const addFooter = (pageNumber: number, totalPages: number) => {
-    let footerY = 273; 
+    let footerY = 273;
     doc.setFontSize(10);
     doc.setFont('AngsanaNew', 'italic');
-    doc.text('The above results are valid only for the tested sample(s) as received and indicated in this report. No part of this report may be reproduced in any form without written consent from the laboratory.', margin, footerY);
+    doc.text(
+      'The above results are valid only for the tested sample(s) as received and indicated in this report. No part of this report may be reproduced in any form without written consent from the laboratory.',
+      margin,
+      footerY,
+    );
     footerY += 4;
-    doc.text('OSOTSPA PUBLIC COMPANY LIMITED strongly recommends that this report is not reproduced except in full.', margin, footerY);
-    
+    doc.text(
+      'OSOTSPA PUBLIC COMPANY LIMITED strongly recommends that this report is not reproduced except in full.',
+      margin,
+      footerY,
+    );
+
     footerY += 6;
     doc.setFontSize(12);
     doc.setFont('AngsanaNew', 'normal');
     doc.text(data.footer.form_id, margin, footerY);
     footerY += 4;
     doc.setFontSize(10);
-    doc.text(`Revision: ${data.footer.revision} Effective date: ${data.footer.effective_date}`, margin, footerY);
+    doc.text(
+      `Revision: ${data.footer.revision} Effective date: ${data.footer.effective_date}`,
+      margin,
+      footerY,
+    );
 
     const companyName = 'OSOTSPA PULBIC COMPANY LIMITED';
     const addressText = `: ${data.footer.address}`;
-    const maxAddressWidth = pageWidth - (margin + 80 + doc.getTextWidth(companyName)) - margin;
+    const maxAddressWidth =
+      pageWidth - (margin + 80 + doc.getTextWidth(companyName)) - margin;
     const addressLines = doc.splitTextToSize(addressText, maxAddressWidth);
 
     footerY -= 4;
     doc.setFont('AngsanaNew', 'bold');
     doc.text(companyName, margin + 80, footerY);
     doc.setFont('AngsanaNew', 'normal');
-    doc.text(addressLines[0], margin + 83 + doc.getTextWidth(companyName), footerY);
+    doc.text(
+      addressLines[0],
+      margin + 83 + doc.getTextWidth(companyName),
+      footerY,
+    );
 
     for (let i = 1; i < addressLines.length; i++) {
       footerY += 4;
       doc.text(addressLines[i], margin + 80, footerY);
     }
-    
+
     footerY += 4;
-    doc.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - (margin * 2), footerY);
-  }
+    doc.text(
+      `Page ${pageNumber} of ${totalPages}`,
+      pageWidth - margin * 2,
+      footerY,
+    );
+  };
 
   const tableY = 80;
   const headerHeight = tableY;
@@ -188,30 +230,32 @@ const generateReportC = async (data: CertTemplateC) => {
   if (data.is_accredited) {
     autoTable(doc, {
       startY: tableY,
-      head: [[
-        'Test items',
-        'LOD',
-        'LOQ (LOR)', 
-        'Results', 
-        'Specification',
-        'Unit',
-        'Method',
-      ]],
-      body: data.table_source.map(e => [
+      head: [
+        [
+          'Test items',
+          'LOD',
+          'LOQ (LOR)',
+          'Results',
+          'Specification',
+          'Unit',
+          'Method',
+        ],
+      ],
+      body: data.table_source.map((e) => [
         e.test_items,
         e.lod,
         e.loq,
         e.results,
         e.specification,
         e.unit,
-        e.method
+        e.method,
       ]),
       tableWidth: 190,
       margin: {
-        left: margin, 
-        right: margin, 
-        top: headerHeight, 
-        bottom: footerHeight
+        left: margin,
+        right: margin,
+        top: headerHeight,
+        bottom: footerHeight,
       },
       theme: 'plain',
       styles: {
@@ -257,31 +301,25 @@ const generateReportC = async (data: CertTemplateC) => {
       },
       didDrawPage: () => {
         addHeader();
-      }
+      },
     });
   } else {
     autoTable(doc, {
       startY: tableY,
-      head: [[
-        'Test items',
-        'Results', 
-        'Specification',
-        'Unit',
-        'Method',
-      ]],
-      body: data.table_source.map(e => [
+      head: [['Test items', 'Results', 'Specification', 'Unit', 'Method']],
+      body: data.table_source.map((e) => [
         e.test_items,
         e.results,
         e.specification,
         e.unit,
-        e.method
+        e.method,
       ]),
       tableWidth: 190,
       margin: {
-        left: margin, 
-        right: margin, 
-        top: headerHeight, 
-        bottom: footerHeight
+        left: margin,
+        right: margin,
+        top: headerHeight,
+        bottom: footerHeight,
       },
       theme: 'plain',
       styles: {
@@ -315,7 +353,7 @@ const generateReportC = async (data: CertTemplateC) => {
       },
       didDrawPage: () => {
         addHeader();
-      }
+      },
     });
   }
 
@@ -330,14 +368,19 @@ const generateReportC = async (data: CertTemplateC) => {
 
   let contentY = finalY + lineHeight;
 
-  if (spaceAfterTable < lineHeight + data.remark.length * (data.is_accredited ? 10 : 8) + signSectionHeight) {
+  if (
+    spaceAfterTable <
+    lineHeight +
+      data.remark.length * (data.is_accredited ? 10 : 8) +
+      signSectionHeight
+  ) {
     doc.addPage();
     addHeader();
     contentY = headerHeight + 5;
   }
 
   const contentValueX = 30;
-  if (data.decision !== "") {
+  if (data.decision !== '') {
     doc.setFont('AngsanaNew', 'normal');
     doc.setFontSize(12);
     doc.text('Decision', margin, contentY);
@@ -355,7 +398,7 @@ const generateReportC = async (data: CertTemplateC) => {
   if (data.remark.length === 0) {
     doc.text('-', contentValueX, contentY);
   } else {
-    data.remark.forEach(e => {
+    data.remark.forEach((e) => {
       doc.text(`${e.text}`, contentValueX, contentY);
       contentY += 4;
     });
@@ -363,12 +406,21 @@ const generateReportC = async (data: CertTemplateC) => {
 
   if (data.is_accredited) {
     contentY += 8;
-    doc.text('- The laboratory has been accepted as an accredited laboratory complying with the ISO/IEC 17025', contentValueX, contentY);
+    doc.text(
+      '- The laboratory has been accepted as an accredited laboratory complying with the ISO/IEC 17025',
+      contentValueX,
+      contentY,
+    );
     contentY += 4;
-    doc.text('- "*" : Test method is/are not covered complying with the ISO/IEC 17025', contentValueX, contentY);
+    doc.text(
+      '- "*" : Test method is/are not covered complying with the ISO/IEC 17025',
+      contentValueX,
+      contentY,
+    );
   }
 
-  const endReport = '-----------------------------------------------------------------End Report-----------------------------------------------------------------';
+  const endReport =
+    '-----------------------------------------------------------------End Report-----------------------------------------------------------------';
   const endReportWidth = doc.getTextWidth(endReport);
   const endReportX = (pageWidth - endReportWidth) / 2;
   contentY += 8;
@@ -378,13 +430,29 @@ const generateReportC = async (data: CertTemplateC) => {
   const signImageY = contentY + 10;
   const signTextY = signImageY + signatureHeight + 8;
 
-  doc.addImage(data.approver.signature, 'PNG', signCenterX - signatureWidth / 2, signImageY, signatureWidth, signatureHeight);
+  doc.addImage(
+    data.approver.signature,
+    'PNG',
+    signCenterX - signatureWidth / 2,
+    signImageY,
+    signatureWidth,
+    signatureHeight,
+  );
 
   doc.setFont('AngsanaNew', 'normal');
-  doc.text('......................................................................', signCenterX, signImageY + signatureHeight + 3, { align: 'center' });
+  doc.text(
+    '......................................................................',
+    signCenterX,
+    signImageY + signatureHeight + 3,
+    { align: 'center' },
+  );
 
-  doc.text(`( ${data.approver.name} )`, signCenterX, signTextY, { align: 'center' });
-  doc.text(data.approver.position, signCenterX, signTextY + 6, { align: 'center' });
+  doc.text(`( ${data.approver.name} )`, signCenterX, signTextY, {
+    align: 'center',
+  });
+  doc.text(data.approver.position, signCenterX, signTextY + 6, {
+    align: 'center',
+  });
 
   const totalPages = doc.getNumberOfPages();
 
@@ -393,9 +461,14 @@ const generateReportC = async (data: CertTemplateC) => {
     addFooter(i, totalPages);
   }
 
-  const pdfBlob = doc.output('blob');
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, '_blank');
+  const pdfBase64 = btoa(
+    new Uint8Array(doc.output('arraybuffer')).reduce(
+      (data, byte) => data + String.fromCharCode(byte),
+      '',
+    ),
+  );
+
+  return pdfBase64;
 };
 
 export default generateReportC;

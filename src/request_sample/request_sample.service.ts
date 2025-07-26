@@ -36,8 +36,8 @@ export class RequestSampleService {
           id: true,
           sample_code: true,
           sample_name: true,
-          material_code: true,
-          material_id: true, // Assuming this is the correct field
+          material_id: true,
+          material_code: true, // Assuming this is the correct field
           batch_no: true,
           request_id: true,
           // Join with request to get request type
@@ -138,7 +138,7 @@ export class RequestSampleService {
         console.log('Material ID:', materialId);
         const [chemicalParams, microbiologyParams] = await Promise.all([
           this.prisma.material_chemical.findMany({
-            where: { material_id: materialId }, // Assuming material_code is the material_id
+            where: { material_id: materialId }, // Assuming material_id is the material_id
             select: {
               chemical_parameter: {
                 select: {
@@ -149,7 +149,7 @@ export class RequestSampleService {
             },
           }),
           this.prisma.material_microbiology.findMany({
-            where: { material_id: materialId }, // Assuming material_code is the material_id
+            where: { material_id: materialId }, // Assuming material_id is the material_id
             select: {
               microbiology_parameter: {
                 select: {
@@ -176,7 +176,7 @@ export class RequestSampleService {
       const request_sample_item = result.request_sample_item.map((item) => ({
         sample_code: result.sample_code,
         sample_name: result.sample_name,
-        material_code: result.material_code,
+        material_id: result.material_id,
         batch_no: result.batch_no,
         log_date: log_date,
         lab_test_name: item.lab_test?.name || null,

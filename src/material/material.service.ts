@@ -135,6 +135,12 @@ export class MaterialService {
     is_external?: boolean;
   }) {
     let { id, keyword, status, is_external } = params;
+    
+    // Return null object if id is 0 or null
+    if (id === '0') {
+      return null;
+    }
+    
     if( typeof is_external === 'string') {
       is_external = is_external === 'true' || is_external === '1';
     }

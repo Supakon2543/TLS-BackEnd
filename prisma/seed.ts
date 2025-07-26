@@ -1912,6 +1912,127 @@ async function seedMaterialChemicalParameterFromNew() {
   );
 }
 
+async function seedMaterialMicrobiologyParameterFromNew() {
+  const fileName = 'Material_MicrobiologyParameter.xlsx';
+  const filePath = path.join(__dirname, 'staticfile', fileName);
+  const wb = xlsx.readFile(filePath);
+  const sheet = wb.SheetNames[0];
+  const rows = xlsx.utils.sheet_to_json<any>(wb.Sheets[sheet], {
+    defval: null,
+  });
+
+  let created = 0;
+  let updated = 0;
+  let skipped = 0;
+
+  for (const r of rows) {
+    try {
+      // ✅ Enhanced validation with type checking
+      if (!r.material_id || !r.microbiology_parameter_id) {
+        console.warn(
+          '⚠️ Skipping row with missing material_id or microbiology_parameter_id:',
+          r,
+        );
+        skipped++;
+        continue;
+      }
+
+      // ✅ Validate and convert material_id to string
+      let materialId: string;
+      try {
+        materialId = r.material_id.toString();
+        if (
+          !materialId ||
+          materialId === 'null' ||
+          materialId === 'undefined'
+        ) {
+          throw new Error('Invalid material_id');
+        }
+      } catch (e) {
+        console.warn(`⚠️ Invalid material_id format:`, r.material_id);
+        skipped++;
+        continue;
+      }
+
+      // ✅ Validate microbiology_parameter_id
+      let microbiologyParameterId: number | undefined;
+      if (r.microbiology_parameter_id != null && r.microbiology_parameter_id !== '') {
+        const microbiologyParameter = await prisma.microbiology_parameter.findFirst({
+          where: {
+            OR: [
+              { name: r.microbiology_parameter_id.toString() },
+              ...(isNaN(Number(r.microbiology_parameter_id))
+                ? []
+                : [{ id: Number(r.microbiology_parameter_id) }]),
+            ],
+          },
+          select: { id: true },
+        });
+
+        if (!microbiologyParameter) {
+          console.warn(
+            `⚠️ Microbiology parameter not found:`,
+            r.microbiology_parameter_id,
+          );
+          skipped++;
+          continue;
+        }
+
+        microbiologyParameterId = microbiologyParameter.id;
+      } else {
+        console.warn(
+          `⚠️ Invalid microbiology_parameter_id:`,
+          r.microbiology_parameter_id,
+        );
+        skipped++;
+        continue;
+      }
+
+      // Check if record exists
+      const existingRelation = await prisma.material_microbiology.findFirst({
+        where: {
+          material_id: materialId,
+          microbiology_parameter_id: microbiologyParameterId,
+        },
+      });
+
+      // ✅ Type-safe data object
+      const materialMicrobiologyData = {
+        material_id: materialId,
+        microbiology_parameter_id: microbiologyParameterId,
+      };
+
+      if (existingRelation) {
+        // Update existing record
+        await prisma.material_microbiology.update({
+          where: { id: existingRelation.id },
+          data: materialMicrobiologyData,
+        });
+        updated++;
+        console.log(
+          `✅ Updated: Material ${materialId} <-> Microbiology Parameter ${microbiologyParameterId}`,
+        );
+      } else {
+        // Create new record
+        await prisma.material_microbiology.create({
+          data: materialMicrobiologyData,
+        });
+        created++;
+        console.log(
+          `✅ Created: Material ${materialId} <-> Microbiology Parameter ${microbiologyParameterId}`,
+        );
+      }
+    } catch (e) {
+      console.error('❌ Failed to process material_microbiology:', r, e.message);
+      skipped++;
+    }
+  }
+
+  console.log(
+    `✅ material_microbiology seeded: ${created} created, ${updated} updated, ${skipped} skipped`,
+  );
+}
+
 async function seedEditCategoryFromNew() {
   const fileName = 'Edit_Category.xlsx';
   const filePath = path.join(__dirname, 'staticfile', fileName);
@@ -2608,6 +2729,7 @@ async function main() {
   await seedMicrobiologyParameterFromNew();
   await seedMaterialFromNew();
   await seedMaterialChemicalParameterFromNew();
+  await seedMaterialMicrobiologyParameterFromNew();
   await seedEditCategoryFromNew();
   await seedUserLocation();
   await seedLocationFromNew();
@@ -2619,7 +2741,6 @@ async function main() {
   await seedLocationEmailFromNew();
 
   await upsert_user_api();
-
   
 
   await createOrUpdateUser();
