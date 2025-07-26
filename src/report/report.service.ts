@@ -297,7 +297,7 @@ export class ReportService {
     }
   }
 
-  async generateReportA(sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
+  async generateReportA(sampleId: number): Promise<{ filename: string; path: string; revision: number }> {
     try {
       // Get the report data first
       const reportData = await this.getReportDataA(sampleId);
@@ -322,10 +322,11 @@ export class ReportService {
       }
 
       // Get revision number
-      const revisionNumber = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+      const revisionString = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+      const revisionNumber = parseInt(revisionString.replace('Rev.', ''), 10);
 
       // Create filename with revision
-      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertA_${revisionNumber}.pdf`;
+      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertA_${revisionString}.pdf`;
       
       // Save to S3
       const s3Path = await this.savePdfToS3(
@@ -624,7 +625,7 @@ export class ReportService {
     }
   }
 
-  async generateReportB(sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
+  async generateReportB(sampleId: number): Promise<{ filename: string; path: string; revision: number }> {
     try {
       // Get the report data first
       const reportData = await this.getReportDataB(sampleId);
@@ -648,10 +649,11 @@ export class ReportService {
       }
 
       // Get revision number
-      const revisionNumber = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+      const revisionString = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+      const revisionNumber = parseInt(revisionString.replace('Rev.', ''), 10);
 
       // Create filename with revision
-      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertB_${revisionNumber}.pdf`;
+      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertB_${revisionString}.pdf`;
 
       // Save to S3
       const s3Path = await this.savePdfToS3(
@@ -940,7 +942,7 @@ export class ReportService {
     }
   }
 
-  async generateReportC(sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
+  async generateReportC(sampleId: number): Promise<{ filename: string; path: string; revision: number }> {
     try {
       // Get the report data first
       const reportData = await this.getReportDataC(sampleId);
@@ -964,10 +966,11 @@ export class ReportService {
       }
 
       // Get revision number
-      const revisionNumber = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+      const revisionString = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+      const revisionNumber = parseInt(revisionString.replace('Rev.', ''), 10);
 
       // Create filename with revision
-      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertC_${revisionNumber}.pdf`;
+      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertC_${revisionString}.pdf`;
 
       // Save to S3
       const s3Path = await this.savePdfToS3(
@@ -1117,7 +1120,7 @@ export class ReportService {
     }
   }
 
-  async generateReportD(sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
+  async generateReportD(sampleId: number): Promise<{ filename: string; path: string; revision: number }> {
     try {
       // Get the report data first
       const reportData = await this.getReportDataD(sampleId);
@@ -1141,10 +1144,11 @@ export class ReportService {
       }
 
       // Get revision number
-      const revisionNumber = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+      const revisionString = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+      const revisionNumber = parseInt(revisionString.replace('Rev.', ''), 10);
 
       // Create filename with revision
-      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertD_${revisionNumber}.pdf`;
+      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertD_${revisionString}.pdf`;
 
       // Save to S3
       const s3Path = await this.savePdfToS3(
@@ -1314,7 +1318,7 @@ export class ReportService {
     }
   }
 
-  async generateReportE(sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
+  async generateReportE(sampleId: number): Promise<{ filename: string; path: string; revision: number }> {
     try {
       // Get the report data first
       const reportData = await this.getReportDataE(sampleId);
@@ -1338,10 +1342,11 @@ export class ReportService {
       }
 
       // Get revision number
-      const revisionNumber = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+      const revisionString = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+      const revisionNumber = parseInt(revisionString.replace('Rev.', ''), 10);
 
       // Create filename with revision
-      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertE_${revisionNumber}.pdf`;
+      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertE_${revisionString}.pdf`;
 
       // Save to S3
       const s3Path = await this.savePdfToS3(
