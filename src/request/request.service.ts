@@ -20,6 +20,7 @@ import { In } from 'typeorm';
 import { ReviewSampleDto } from './dto/review-sample.dto';
 import { PartialTestDto } from './dto/partial-test.dto';
 import { EditSampleDto } from './dto/edit-sample.dto';
+import { ReportService } from 'src/report/report.service';
 
 @Injectable()
 export class RequestService {
@@ -31,7 +32,10 @@ export class RequestService {
       // },
   });
   
-  constructor(private readonly prisma: PrismaService){}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly certificateService: ReportService,
+  ) {}
     clearZeroIdsAndDatesAndBy(obj: any) {
       if (Array.isArray(obj)) {
         obj.forEach((item) => this.clearZeroIdsAndDatesAndBy(item));
@@ -777,6 +781,12 @@ export class RequestService {
             request.request_number = prefix + (lastNumber + 1).toString().padStart(4, "0");
           }
         }
+
+        else if (request_log.activity_request_id === "ACCEPT_EDIT") {
+          request.status_request_id = "TESTING";
+          request.review_role_id = "LAB_OFF";
+          request_log.status_request_id = "TESTING";
+        }
   
         // 1. Upsert main request and get the id
         const mainRequest = await tx.request.upsert({
@@ -1018,6 +1028,7 @@ export class RequestService {
 
         // 5. Upsert samples and their children
         for (const sample of samples) {
+          sample.status_sample_id = request_log.activity_request_id === "ACCEPT_EDIT" && sample.status_sample_id === "EDIT" ? "TESTING" : sample.status_sample_id;
           const { request_sample_item, request_sample_chemical, request_sample_microbiology, ...sampleData } = sample;
 
           // Upsert sample
@@ -1177,8 +1188,18 @@ export class RequestService {
         // record.request = { connect: { id: requestId } };
         record.user_id = request_log.user_id;
         console.log('record:', record);
-        if (record) {
+        if (record && record.activity_request_id !== "ACCEPT_EDIT") {
           await tx.request_log.create({ data: record });
+        }
+        else if (record && record.activity_request_id === "ACCEPT_EDIT") {
+          await Promise.all(request_sample.filter(sample => sample.status_sample_id === "EDIT").map(async (sample) => {
+            await tx.request_log.create({
+              data: { 
+                ...record,
+                sample_code: sample.sample_code ?? "",
+              },
+            });
+          }));
         }
         const requester = await tx.user.findUnique({
           where: { id: request.requester_id },
@@ -1980,7 +2001,8 @@ export class RequestService {
           await tx.request_sample.update({
             where: { sample_code: req.sample_code, request_id: req.id },
             data: {
-              ...sampleUpdate
+              ...sampleUpdate,
+              is_parameter_completed: req.request_sample_chemical.filter(chemical => chemical.lab_result !== '' && chemical.lab_result !== null).length + req.request_sample_microbiology.filter(micro => micro.lab_result !== '' && micro.lab_result !== null).length === req.request_sample_chemical.length + req.request_sample_microbiology.length,
             },
           });
 
@@ -2058,6 +2080,21 @@ export class RequestService {
       const { request, activity_request_id, user_id } = payload;
       let new_status_request_id = '';
       let new_status_sample_id = '';
+      let report: {
+        certificate_name: string,
+        path: string,
+        revision: number,
+        certificate_name_2: string,
+        path_2: string,
+        revision_2: number,
+      } = {
+        certificate_name: '',
+        path: '',
+        revision: 0,
+        certificate_name_2: '',
+        path_2: '',
+        revision_2: 0,
+      };
 
       // request is a list, and request.id can be duplicated
       // Group sample_codes by request_id
@@ -2111,6 +2148,79 @@ export class RequestService {
         } else {
           new_status_request_id = 'COMPLETED';
         }
+        await Promise.all(request.map(async (req) => {
+          const sampleChemical = await this.prisma.request_sample_chemical.findMany({
+            where: { request_sample_id: req.request_sample_id },
+          });
+          const sampleMicrobiology = await this.prisma.request_sample_microbiology.findMany({
+            where: { request_sample_id: req.request_sample_id },
+          });
+          if (
+            req.request_type_id === 'ROUTINE' &&
+            req.test_report_format_id === 'FULL' &&
+            req.is_display_special === false
+          ) {
+            // certificate a
+            const temp = await this.certificateService.generateReportA(req.request_sample_id);
+            report.certificate_name = temp.filename;
+            report.path = temp.path;
+            report.revision = temp.revision;
+          } else if (
+            req.request_type_id === 'ROUTINE' &&
+            req.test_report_format_id === 'FULL' &&
+            req.is_display_special === true
+          ) {
+            // certificate b
+            const temp = await this.certificateService.generateReportB(req.request_sample_id);
+            report.certificate_name = temp.filename;
+            report.path = temp.path;
+            report.revision = temp.revision;
+          } else if (
+            req.request_type_id === 'REQUEST' &&
+            req.test_report_format_id === 'FULL'
+          ) {
+            // certificate c
+            const temp = await this.certificateService.generateReportC(req.request_sample_id);
+            report.certificate_name = temp.filename;
+            report.path = temp.path;
+            report.revision = temp.revision;
+          } else if (
+            req.request_type_id === 'REQUEST' &&
+            req.test_report_format_id === 'SIMPLE'
+          ) {
+            if (Array.isArray(sampleChemical) && sampleChemical.length > 0) {
+              // certificate d
+              const temp = await this.certificateService.generateReportD(req.request_sample_id);
+              report.certificate_name = temp.filename;
+              report.path = temp.path;
+              report.revision = temp.revision;
+            }
+            if (Array.isArray(sampleMicrobiology) && sampleMicrobiology.length > 0) {
+              // certificate e
+              const temp = await this.certificateService.generateReportE(req.request_sample_id);
+              report.certificate_name_2 = temp.filename;
+              report.path_2 = temp.path;
+              report.revision_2 = temp.revision;
+            }
+          } else if (
+            req.test_report_format_id === 'STAB'
+          ) {
+            // certificate f
+            // const temp = await this.certificateService.generateReportF(req.request_sample_id);
+            // report.certificate_name = temp.filename;
+            // report.path = temp.path;
+            // report.revision = temp.revision;
+          } else if (
+            req.request_type_id === 'ROUTINE' &&
+            req.test_report_format_id === 'SIMPLE'
+          ) {
+            // certificate g
+            // const temp = await this.certificateService.generateReportG(req.request_sample_id);
+            // report.certificate_name = temp.filename;
+            // report.path = temp.path;
+            // report.revision = temp.revision;
+          }
+        }));
       } else if (activity_request_id === 'REJECT_EDIT') {
         new_status_request_id = 'TESTING';
         new_status_sample_id = 'REJECT';
@@ -2128,10 +2238,22 @@ export class RequestService {
         updated_on: new Date(),
       };
       const sampleUpdate: {
+        certificate_name: string,
+        path: string,
+        revision: number,
+        certificate_name_2: string,
+        path_2: string,
+        revision_2: number,
         status_sample_id?: string,
         updated_by: number,
         updated_on: Date,
       } = {
+        certificate_name: report.certificate_name,
+        path: report.path,
+        revision: report.revision,
+        certificate_name_2: report.certificate_name_2,
+        path_2: report.path_2,
+        revision_2: report.revision_2,
         status_sample_id: new_status_sample_id,
         updated_by: user_id,
         updated_on: new Date(),
@@ -2686,6 +2808,7 @@ export class RequestService {
           },
           sample_code: true,
           batch_no: true,
+          is_display_special: true,
           status_sample_id: true,
           status_sample: {
             select: {
@@ -2706,6 +2829,11 @@ export class RequestService {
               request_type: {
                 select: {
                   name: true,
+                },
+              },
+              request_detail: {
+                select: {
+                  test_report_format_id: true,
                 },
               },
               status_request_id: true,
@@ -2759,6 +2887,8 @@ export class RequestService {
           sample_code: sample.sample_code ?? '',
           request_type_id: sample.request.request_type_id ?? '',
           request_type_name: sample.request.request_type?.name ?? '',
+          test_report_format_id: sample.request.request_detail[0].test_report_format_id ?? '',
+          is_display_special: sample.is_display_special ?? false,
           fill_amount: sample.request_sample_chemical.filter(chemical => chemical.lab_result !== '' && chemical.lab_result !== null).length + sample.request_sample_microbiology.filter(micro => micro.lab_result !== '' && micro.lab_result !== null).length,
           total_amount: sample.request_sample_chemical.length + sample.request_sample_microbiology.length,
           status_request_id: sample.request.status_request_id ?? '',

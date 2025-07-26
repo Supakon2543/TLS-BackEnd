@@ -1,6 +1,4 @@
-import { IsNumber, IsOptional, IsString, MaxLength, ValidateNested } from "class-validator";
-import { CreateRequestSampleChemicalDto } from "src/request_sample_chemical/dto/create-request_sample_chemical.dto";
-import { CreateRequestSampleMicrobiologyDto } from "src/request_sample_microbiology/dto/create-request_sample_microbiology.dto";
+import { IsBoolean, IsNumber, IsOptional, IsString, MaxLength } from "class-validator";
 
 export class RequestListReviewSampleDto {
 
@@ -12,6 +10,14 @@ export class RequestListReviewSampleDto {
     @IsOptional()
     lab_site_id: string;
 
+    @IsString()
+    @IsOptional()
+    request_type_id: string;
+
+    @IsString()
+    @IsOptional()
+    test_report_format_id: string;
+
     @IsNumber()
     @IsOptional()
     request_sample_id: number;
@@ -20,6 +26,10 @@ export class RequestListReviewSampleDto {
     @IsOptional()
     @MaxLength(10)
     sample_code: string;
+
+    @IsBoolean()
+    @IsOptional()
+    is_display_special: boolean;
 
     @IsString()
     @IsOptional()
