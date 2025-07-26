@@ -132,7 +132,7 @@ export class RequestSampleService {
             .map((item) => item.microbiology_parameter?.name),
         ];
 
-        parameterText = parameterList.join(',');
+        parameterText = parameterList.join(', ');
       } else {
         const materialId = result.material_id ?? '';
         console.log('Material ID:', materialId);
@@ -169,7 +169,7 @@ export class RequestSampleService {
           ),
         ];
 
-        parameterText = parameterList.join(',');
+        parameterText = parameterList.join(', ');
       }
 
       // Step 5: Build response array based on request_sample_item count
