@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { convertImageToBase64 } from './convertImageToBase64';
 import { CertTemplateA } from './model';
+import './AngsanaNew';
 
 const generateReportA = async (data: CertTemplateA) => {
   const doc = new jsPDF({
