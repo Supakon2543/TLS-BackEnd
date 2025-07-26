@@ -2344,13 +2344,20 @@ export class RequestService {
           });
         }
         else {
+          const whereClause: any = { request_id };
+          
+          // Only filter by status_sample_id if activity_request_id is CANCEL_EDIT or CONFIRM_EDIT
+          if (activity_request_id === 'CANCEL_EDIT' || activity_request_id === 'CONFIRM_EDIT') {
+            whereClause.status_sample_id = 'EDIT';
+          }
+          
           await tx.request_sample.updateMany({
-            where: { request_id },
+            where: whereClause,
             data: sampleUpdate,
           });
           // Fetch all samples for this request
           const samples = await tx.request_sample.findMany({
-            where: { request_id },
+            where: whereClause,
             select: { sample_code: true },
           });
 
