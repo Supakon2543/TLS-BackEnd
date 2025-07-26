@@ -55,20 +55,20 @@ export class ReportController {
   }
 
   @Get('generate-a/:sampleId')
-  async generateReportA(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ base64: string }> {
+  async generateReportA(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
     try {
       // Validate sample ID
       if (sampleId <= 0) {
         throw new BadRequestException('Sample ID must be a positive number');
       }
 
-      const base64 = await this.certificateService.generateReportA(sampleId);
+      const result = await this.certificateService.generateReportA(sampleId);
       
-      if (!base64) {
+      if (!result) {
         throw new NotFoundException(`Could not generate report for sample ID: ${sampleId}`);
       }
 
-      return { base64 };
+      return result;
     } catch (error) {
       // Handle specific error types
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
@@ -133,20 +133,20 @@ export class ReportController {
   }
 
   @Get('generate-b/:sampleId')
-  async generateReportB(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ base64: string }> {
+  async generateReportB(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
     try {
       // Validate sample ID
       if (sampleId <= 0) {
         throw new BadRequestException('Sample ID must be a positive number');
       }
 
-      const base64 = await this.certificateService.generateReportB(sampleId);
+      const result = await this.certificateService.generateReportB(sampleId);
       
-      if (!base64) {
+      if (!result) {
         throw new NotFoundException(`Could not generate report for sample ID: ${sampleId}`);
       }
 
-      return { base64 };
+      return result;
     } catch (error) {
       // Handle specific error types
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
@@ -211,20 +211,20 @@ export class ReportController {
   }
 
   @Get('generate-c/:sampleId')
-  async generateReportC(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ base64: string }> {
+  async generateReportC(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
     try {
       // Validate sample ID
       if (sampleId <= 0) {
         throw new BadRequestException('Sample ID must be a positive number');
       }
 
-      const base64 = await this.certificateService.generateReportC(sampleId);
+      const result = await this.certificateService.generateReportC(sampleId);
       
-      if (!base64) {
+      if (!result) {
         throw new NotFoundException(`Could not generate report for sample ID: ${sampleId}`);
       }
 
-      return { base64 };
+      return result;
     } catch (error) {
       // Handle specific error types
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
@@ -289,20 +289,20 @@ export class ReportController {
   }
 
   @Get('generate-d/:sampleId')
-  async generateReportD(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ base64: string }> {
+  async generateReportD(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
     try {
       // Validate sample ID
       if (sampleId <= 0) {
         throw new BadRequestException('Sample ID must be a positive number');
       }
 
-      const base64 = await this.certificateService.generateReportD(sampleId);
+      const result = await this.certificateService.generateReportD(sampleId);
       
-      if (!base64) {
+      if (!result) {
         throw new NotFoundException(`Could not generate report for sample ID: ${sampleId}`);
       }
 
-      return { base64 };
+      return result;
     } catch (error) {
       // Handle specific error types
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
@@ -367,20 +367,20 @@ export class ReportController {
   }
 
   @Get('generate-e/:sampleId')
-  async generateReportE(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ base64: string }> {
+  async generateReportE(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
     try {
       // Validate sample ID
       if (sampleId <= 0) {
         throw new BadRequestException('Sample ID must be a positive number');
       }
 
-      const base64 = await this.certificateService.generateReportE(sampleId);
+      const result = await this.certificateService.generateReportE(sampleId);
       
-      if (!base64) {
+      if (!result) {
         throw new NotFoundException(`Could not generate report for sample ID: ${sampleId}`);
       }
 
-      return { base64 };
+      return result;
     } catch (error) {
       // Handle specific error types
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
