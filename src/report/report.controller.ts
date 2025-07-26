@@ -55,7 +55,7 @@ export class ReportController {
   }
 
   @Get('generate-a/:sampleId')
-  async generateReportA(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
+  async generateReportA(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: number }> {
     try {
       // Validate sample ID
       if (sampleId <= 0) {
@@ -133,7 +133,7 @@ export class ReportController {
   }
 
   @Get('generate-b/:sampleId')
-  async generateReportB(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
+  async generateReportB(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: number }> {
     try {
       // Validate sample ID
       if (sampleId <= 0) {
@@ -211,7 +211,7 @@ export class ReportController {
   }
 
   @Get('generate-c/:sampleId')
-  async generateReportC(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
+  async generateReportC(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: number }> {
     try {
       // Validate sample ID
       if (sampleId <= 0) {
@@ -289,7 +289,7 @@ export class ReportController {
   }
 
   @Get('generate-d/:sampleId')
-  async generateReportD(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
+  async generateReportD(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: number }> {
     try {
       // Validate sample ID
       if (sampleId <= 0) {
@@ -367,7 +367,7 @@ export class ReportController {
   }
 
   @Get('generate-e/:sampleId')
-  async generateReportE(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
+  async generateReportE(@Param('sampleId', ParseIntPipe) sampleId: number): Promise<{ filename: string; path: string; revision: number }> {
     try {
       // Validate sample ID
       if (sampleId <= 0) {
