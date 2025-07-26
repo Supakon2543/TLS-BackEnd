@@ -7,14 +7,21 @@ import generateReportB from '../certificate/materiaforgen/certificate-b';
 import generateReportC from '../certificate/materiaforgen/certificate-c';
 import generateReportD from '../certificate/materiaforgen/certificate-d';
 import generateReportE from '../certificate/materiaforgen/certificate-e';
+import { S3Client, PutObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class ReportService {
+  private readonly s3 = new S3Client({
+    region: process.env.AWS_REGION,
+  });
+  
   constructor(private readonly prisma: PrismaService) {} 
+
+  
 
   async getReportDataA(sampleId: number): Promise<CertTemplateA> {
     try {
-      // Get signature image
+      // Get signature image for Report A
       const signatureBase64 = await convertImageToBase64(
         './images/signature.png', // Adjust the path as needed
       );
@@ -236,9 +243,12 @@ export class ReportService {
         });
       }
 
+      // Get revision number based on existing files in S3
+      const revisionNumber = await this.getRevisionNumber(sampleData.request.id, sampleId);
+
       // Build the response data with proper null safety
       const data: CertTemplateA = {
-        file_name: `${sampleData.sample_name} ${sampleData.batch_no} (Rev.00)`,
+        file_name: `${sampleData.sample_name} ${sampleData.batch_no} (${revisionNumber.toString().padStart(2, '0')})`,
         is_accredited: false, // You may want to get this from database
         header: {
           // Fix: Add proper null safety for request_detail
@@ -287,15 +297,49 @@ export class ReportService {
     }
   }
 
-  async generateReportA(sampleId: number): Promise<string> {
+  async generateReportA(sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
     try {
       // Get the report data first
       const reportData = await this.getReportDataA(sampleId);
-      
-      // Generate the PDF and return base64
+      console.log(reportData);
+
+      // Generate the PDF and get base64
       const pdfBase64 = await generateReportA(reportData);
       
-      return pdfBase64;
+      // Get sample data to extract request_id
+      const sampleInfo = await this.prisma.request_sample.findUnique({
+        where: { id: sampleId },
+        select: {
+          request_id: true,
+          sample_code: true,
+          sample_name: true,
+          batch_no: true,
+        },
+      });
+
+      if (!sampleInfo) {
+        throw new Error(`Sample with ID ${sampleId} not found`);
+      }
+
+      // Get revision number
+      const revisionNumber = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+
+      // Create filename with revision
+      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertA_${revisionNumber}.pdf`;
+      
+      // Save to S3
+      const s3Path = await this.savePdfToS3(
+        pdfBase64,
+        sampleInfo.request_id,
+        sampleId,
+        filename
+      );
+      
+      return { 
+        filename: filename,
+        path: s3Path,
+        revision: revisionNumber
+      };
     } catch (error) {
       console.error('Error generating report A:', error);
       throw new Error(`Failed to generate report A: ${error.message}`);
@@ -528,9 +572,12 @@ export class ReportService {
         });
       }
 
+      // Get revision number based on existing files in S3
+      const revisionNumber = await this.getRevisionNumber(sampleData.request.id, sampleId);
+      
       // Build the response data with proper null safety for Certificate B
       const data: CertTemplateB = {
-        file_name: `${sampleData.sample_name} ${sampleData.batch_no} (Rev.00)`,
+        file_name: `${sampleData.sample_name} ${sampleData.batch_no} (${revisionNumber.toString().padStart(2, '0')})`,
         is_accredited: false, // You may want to get this from database
         header: {
           // Fix: Add proper null safety for request_detail
@@ -577,15 +624,48 @@ export class ReportService {
     }
   }
 
-  async generateReportB(sampleId: number): Promise<string> {
+  async generateReportB(sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
     try {
       // Get the report data first
       const reportData = await this.getReportDataB(sampleId);
       
-      // Generate the PDF and return base64
+      // Generate the PDF and get base64
       const pdfBase64 = await generateReportB(reportData);
       
-      return pdfBase64;
+      // Get sample data to extract request_id
+      const sampleInfo = await this.prisma.request_sample.findUnique({
+        where: { id: sampleId },
+        select: {
+          request_id: true,
+          sample_code: true,
+          sample_name: true,
+          batch_no: true,
+        },
+      });
+
+      if (!sampleInfo) {
+        throw new Error(`Sample with ID ${sampleId} not found`);
+      }
+
+      // Get revision number
+      const revisionNumber = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+
+      // Create filename with revision
+      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertB_${revisionNumber}.pdf`;
+
+      // Save to S3
+      const s3Path = await this.savePdfToS3(
+        pdfBase64,
+        sampleInfo.request_id,
+        sampleId,
+        filename
+      );
+      
+      return { 
+        filename: filename,
+        path: s3Path,
+        revision: revisionNumber
+      };
     } catch (error) {
       console.error('Error generating report B:', error);
       throw new Error(`Failed to generate report B: ${error.message}`);
@@ -807,9 +887,12 @@ export class ReportService {
         });
       });
 
+      // Get revision number based on existing files in S3
+      const revisionNumber = await this.getRevisionNumber(sampleData.request.id, sampleId);
+
       // Build Certificate C data (uses HeaderCertA like Certificate A)
       const data: CertTemplateC = {
-        file_name: `${sampleData.sample_name} ${sampleData.batch_no} (Rev.00)`,
+        file_name: `${sampleData.sample_name} ${sampleData.batch_no} (${revisionNumber.toString().padStart(2, '0')})`,
         is_accredited: false,
         header: {
           report_heading:
@@ -857,15 +940,48 @@ export class ReportService {
     }
   }
 
-  async generateReportC(sampleId: number): Promise<string> {
+  async generateReportC(sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
     try {
       // Get the report data first
       const reportData = await this.getReportDataC(sampleId);
       
-      // Generate the PDF and return base64
+      // Generate the PDF and get base64
       const pdfBase64 = await generateReportC(reportData);
       
-      return pdfBase64;
+      // Get sample data to extract request_id
+      const sampleInfo = await this.prisma.request_sample.findUnique({
+        where: { id: sampleId },
+        select: {
+          request_id: true,
+          sample_code: true,
+          sample_name: true,
+          batch_no: true,
+        },
+      });
+
+      if (!sampleInfo) {
+        throw new Error(`Sample with ID ${sampleId} not found`);
+      }
+
+      // Get revision number
+      const revisionNumber = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+
+      // Create filename with revision
+      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertC_${revisionNumber}.pdf`;
+
+      // Save to S3
+      const s3Path = await this.savePdfToS3(
+        pdfBase64,
+        sampleInfo.request_id,
+        sampleId,
+        filename
+      );
+      
+      return { 
+        filename: filename,
+        path: s3Path,
+        revision: revisionNumber
+      };
     } catch (error) {
       console.error('Error generating report C:', error);
       throw new Error(`Failed to generate report C: ${error.message}`);
@@ -889,6 +1005,7 @@ export class ReportService {
           batch_no: true,
           request: {
             select: {
+              id: true,
               request_number: true,
               request_detail: {
                 select: {
@@ -960,8 +1077,11 @@ export class ReportService {
       // Get lab site address
       const labSiteAddress = this.getLabSiteAddress('AY'); // Default to AY or determine from data
 
+      // Get revision number based on existing files in S3
+      const revisionNumber = await this.getRevisionNumber(sampleData.request.id, sampleId);
+
       const data: CertTemplateD = {
-        file_name: `${sampleData.sample_name} ${sampleData.batch_no} (Rev.00)`,
+        file_name: `${sampleData.sample_name} ${sampleData.batch_no} (${revisionNumber.toString().padStart(2, '0')})`,
         header: {
           received_by: 'Lab Services', // You may want to get this from database
           received_date:
@@ -997,15 +1117,48 @@ export class ReportService {
     }
   }
 
-  async generateReportD(sampleId: number): Promise<string> {
+  async generateReportD(sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
     try {
       // Get the report data first
       const reportData = await this.getReportDataD(sampleId);
       
-      // Generate the PDF and return base64
+      // Generate the PDF and get base64
       const pdfBase64 = await generateReportD(reportData);
       
-      return pdfBase64;
+      // Get sample data to extract request_id
+      const sampleInfo = await this.prisma.request_sample.findUnique({
+        where: { id: sampleId },
+        select: {
+          request_id: true,
+          sample_code: true,
+          sample_name: true,
+          batch_no: true,
+        },
+      });
+
+      if (!sampleInfo) {
+        throw new Error(`Sample with ID ${sampleId} not found`);
+      }
+
+      // Get revision number
+      const revisionNumber = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+
+      // Create filename with revision
+      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertD_${revisionNumber}.pdf`;
+
+      // Save to S3
+      const s3Path = await this.savePdfToS3(
+        pdfBase64,
+        sampleInfo.request_id,
+        sampleId,
+        filename
+      );
+      
+      return { 
+        filename: filename,
+        path: s3Path,
+        revision: revisionNumber
+      };
     } catch (error) {
       console.error('Error generating report D:', error);
       throw new Error(`Failed to generate report D: ${error.message}`);
@@ -1029,6 +1182,7 @@ export class ReportService {
           batch_no: true,
           request: {
             select: {
+              id: true,
               request_number: true,
               requester: {
                 select: {
@@ -1117,8 +1271,11 @@ export class ReportService {
       // Get lab site address
       const labSiteAddress = this.getLabSiteAddress('AY');
 
+      // Get revision number based on existing files in S3
+      const revisionNumber = await this.getRevisionNumber(sampleData.request.id, sampleId);
+
       const data: CertTemplateE = {
-        file_name: `${sampleData.sample_name} ${sampleData.batch_no} (Rev.00)`,
+        file_name: `${sampleData.sample_name} ${sampleData.batch_no} (${revisionNumber.toString().padStart(2, '0')})`,
         header: {
           request_no: sampleData.request?.request_number || '',
           request_by: sampleData.request?.requester?.fullname || '',
@@ -1157,15 +1314,48 @@ export class ReportService {
     }
   }
 
-  async generateReportE(sampleId: number): Promise<string> {
+  async generateReportE(sampleId: number): Promise<{ filename: string; path: string; revision: string }> {
     try {
       // Get the report data first
       const reportData = await this.getReportDataE(sampleId);
       
-      // Generate the PDF and return base64
+      // Generate the PDF and get base64
       const pdfBase64 = await generateReportE(reportData);
       
-      return pdfBase64;
+      // Get sample data to extract request_id
+      const sampleInfo = await this.prisma.request_sample.findUnique({
+        where: { id: sampleId },
+        select: {
+          request_id: true,
+          sample_code: true,
+          sample_name: true,
+          batch_no: true,
+        },
+      });
+
+      if (!sampleInfo) {
+        throw new Error(`Sample with ID ${sampleId} not found`);
+      }
+
+      // Get revision number
+      const revisionNumber = await this.getRevisionNumber(sampleInfo.request_id, sampleId);
+
+      // Create filename with revision
+      const filename = `${sampleInfo.sample_name}_${sampleInfo.batch_no}_CertE_${revisionNumber}.pdf`;
+
+      // Save to S3
+      const s3Path = await this.savePdfToS3(
+        pdfBase64,
+        sampleInfo.request_id,
+        sampleId,
+        filename
+      );
+      
+      return { 
+        filename: filename,
+        path: s3Path,
+        revision: revisionNumber
+      };
     } catch (error) {
       console.error('Error generating report E:', error);
       throw new Error(`Failed to generate report E: ${error.message}`);
@@ -1173,6 +1363,63 @@ export class ReportService {
   }
 
   //test
+  
+  // Helper method to count existing files in S3 location for revision numbering
+  private async getRevisionNumber(requestId: number, sampleId: number): Promise<string> {
+    try {
+      // Create S3 prefix to search for existing files
+      const s3Prefix = `tls/${process.env.ENVNAME}/request/${requestId}/certificate/${sampleId}/`;
+      
+      // List objects with the prefix
+      const listCommand = new ListObjectsV2Command({
+        Bucket: process.env.AWS_S3_BUCKET!,
+        Prefix: s3Prefix,
+      });
+      
+      const response = await this.s3.send(listCommand);
+      const fileCount = response.Contents?.length || 0;
+      
+      // Format revision number with leading zero (Rev.00, Rev.01, etc.)
+      const revisionNumber = fileCount.toString().padStart(2, '0');
+      return `Rev.${revisionNumber}`;
+    } catch (error) {
+      console.error('Error getting revision number from S3:', error);
+      // Return Rev.00 as fallback
+      return 'Rev.00';
+    }
+  }
+  
+  // Helper method to save PDF to S3
+  private async savePdfToS3(
+    pdfBase64: string,
+    requestId: number,
+    sampleId: number,
+    filename: string
+  ): Promise<string> {
+    try {
+      // Convert base64 to buffer
+      const buffer = Buffer.from(pdfBase64, 'base64');
+      
+      // Create S3 key following the pattern: tls/[env]/request/[requestid]/certificate/[request_sampleid]/filename
+      const s3Key = `tls/${process.env.ENVNAME}/request/${requestId}/certificate/${sampleId}/${filename}`;
+      
+      // Upload to S3
+      await this.s3.send(
+        new PutObjectCommand({
+          Bucket: process.env.AWS_S3_BUCKET!,
+          Key: s3Key,
+          Body: buffer,
+          ContentType: 'application/pdf',
+        }),
+      );
+      
+      // Return the S3 path
+      return `/${s3Key}`;
+    } catch (error) {
+      console.error('Error saving PDF to S3:', error);
+      throw new Error(`Failed to save PDF to S3: ${error.message}`);
+    }
+  }
   
 
 
