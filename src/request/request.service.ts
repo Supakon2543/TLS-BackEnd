@@ -2256,9 +2256,157 @@ export class RequestService {
 
     async edit_sample(@Body() payload: EditSampleDto) {
       const { request_id, lab_site_id, request_sample_id, sample_code, category_edit_id, edit_role_id, activity_request_id, remark, user_id } = payload;
+      let new_status_request_id = '';
+      let new_status_sample_id = '';
+      let new_edit_role_id = '';
+      let sampleUpdate: {
+        status_sample_id?: string,
+        edit_role_id?: string,
+        category_edit_id?: number | null,
+        updated_by: number,
+        updated_on: Date,
+      } = {
+        status_sample_id: new_status_sample_id,
+        edit_role_id: edit_role_id,
+        category_edit_id: category_edit_id,
+        updated_by: user_id,
+        updated_on: new Date(),
+      };
+      
+      if (activity_request_id === 'REQUEST_EDIT') {
+        new_status_sample_id = 'EDIT';
+        new_status_request_id = 'REVIEW';
+        new_edit_role_id = 'LAB_HEAD';
+      } else if (activity_request_id === 'CONFIRM_EDIT') {
+        new_status_sample_id = 'EDIT';
+        new_status_request_id = 'REVIEW';
+        new_edit_role_id = 'LAB_OFF';
+        delete sampleUpdate.category_edit_id; // Remove if not needed
+      } else if (activity_request_id === 'CANCEL_EDIT') {
+        new_status_sample_id = 'RELEASE';
+        sampleUpdate.category_edit_id = null; // Reset category_edit_id
+        // Build base where clause for both statuses
+        let whereTesting: any = { request_id };
+        let whereWaiting: any = { request_id };
 
-      // Validate and process the payload as needed
-      // ...
+        if (request_sample_id !== 0) {
+          // Exclude the current sample
+          whereTesting = { ...whereTesting, status_sample_id: 'TESTING', id: { not: request_sample_id } };
+          whereWaiting = { ...whereWaiting, status_sample_id: 'WAITING', id: { not: request_sample_id } };
+        } else {
+          // Only consider samples that are not in 'EDIT' status
+          whereTesting = { ...whereTesting, status_sample_id: 'TESTING', NOT: { status_sample_id: 'EDIT' } };
+          whereWaiting = { ...whereWaiting, status_sample_id: 'WAITING', NOT: { status_sample_id: 'EDIT' } };
+        }
+
+        const [testingSamples, waitingSamples] = await Promise.all([
+          this.prisma.request_sample.findFirst({ where: whereTesting }),
+          this.prisma.request_sample.findFirst({ where: whereWaiting }),
+        ]);
+
+        const hasTesting = !!testingSamples;
+        const hasWaiting = !!waitingSamples;
+
+        new_status_request_id = hasTesting ? 'TESTING' : (hasWaiting ? 'RELEASE' : 'COMPLETED');
+      }
+      sampleUpdate.status_sample_id = new_status_sample_id;
+      sampleUpdate.edit_role_id = new_edit_role_id;
+
+      await this.prisma.$transaction(async (tx) => {
+        // 1. Update request status
+        await tx.request.update({
+          where: { id: request_id },
+          data: {
+            status_request_id: new_status_request_id,
+            updated_by: user_id,
+            updated_on: new Date(),
+          },
+        });
+
+        // 2. Update sample status
+        if (request_sample_id !== 0) {
+          await tx.request_sample.update({
+            where: { id: request_sample_id },
+            data: {
+              ...sampleUpdate
+            },
+          });
+          await tx.request_log.create({
+            data: {
+              request_id: request_id,
+              sample_code: sample_code,
+              status_request_id: new_status_request_id,
+              activity_request_id: activity_request_id,
+              user_id: user_id,
+              timestamp: new Date(),
+              remark: remark,
+            },
+          });
+        }
+        else {
+          await tx.request_sample.updateMany({
+            where: { request_id },
+            data: sampleUpdate,
+          });
+          // Fetch all samples for this request
+          const samples = await tx.request_sample.findMany({
+            where: { request_id },
+            select: { sample_code: true },
+          });
+
+          // Create a log for each sample
+          await Promise.all(samples.map(sample =>
+            tx.request_log.create({
+              data: {
+                request_id: request_id,
+                sample_code: sample.sample_code,
+                status_request_id: new_status_request_id,
+                activity_request_id: activity_request_id,
+                user_id: user_id,
+                timestamp: new Date(),
+                remark: remark,
+              },
+            })
+          ));
+        }
+      });
+
+      if (activity_request_id === 'REQUEST_EDIT' || activity_request_id === 'CONFIRM_EDIT') {
+        const user_location = await this.prisma.user_location.findUnique({
+          where: { id: lab_site_id },
+        });
+        if (user_location) {
+          // LAB_HEAD
+          const lab_heads = await this.prisma.user.findMany({
+            where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_HEAD' } } },
+            select: { email: true, fullname: true },
+          });
+          // LAB_LEAD
+          const lab_leads = await this.prisma.user.findMany({
+            where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_LEAD' } } },
+            select: { email: true, fullname: true },
+          });
+          // LAB_OFF
+          const lab_officers = await this.prisma.user.findMany({
+            where: { user_location_id: user_location.id, user_role: { some: { role_id: 'LAB_OFF' } } },
+            select: { email: true, fullname: true },
+          });
+          const lab_officer_emails = lab_officers.map(u => u.email).join(', ');
+          const lab_head_emails = lab_heads.map(u => u.email).join(', ');
+          const lab_lead_emails = lab_leads.map(u => u.email).join(', ');
+          const lab_head_names = lab_heads.map(u => u.fullname).join(', ');
+          const lab_lead_names = lab_leads.map(u => u.fullname).join(', ');
+          const lab_officer_names = lab_officers.map(u => u.fullname).join(', ');
+          await sendMail(
+            activity_request_id === 'REQUEST_EDIT' ? lab_head_emails : lab_officer_emails,
+            lab_lead_emails,
+            activity_request_id === 'REQUEST_EDIT' ? lab_head_names : lab_officer_names,
+            activity_request_id === 'REQUEST_EDIT' ? 'ขออนุมัติทำการทดสอบนอกเวลาทำการ' : 'ขออนุมัติใบส่งตัวอย่าง',
+            activity_request_id,
+            `${process.env.FRONTEND_URL}/request/${request_id}/detail`,
+          );
+        }
+      }
 
       return { message: 'Success' };
     }

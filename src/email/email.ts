@@ -1,4 +1,5 @@
 import axios from 'axios';
+import e from 'express';
 // import * as nodemailer from 'nodemailer';
 
 const emailTemplate = (
@@ -154,6 +155,8 @@ export async function sendMail(
       message = emailTemplate(name, `คุณมีเอกสารใบส่งตัวอย่างรอพิจารณา กรุณากด Link ด้านล่าง เพื่อทวนสอบและอนุมัติ/พิจารณา`, buttonUrl, (is_more_than_one ? '' : 'รายละเอียดใบส่งตัวอย่าง'));
     } else if (activity_request_id === 'RELEASE') {
       message = emailTemplate('ลูกค้าผู้ส่งตัวอย่าง', `ห้องปฏิบัติการขอรายงานผลทดสอบของเอกสารใบส่งตัวอย่างเลขที่ ${request?.request_number} รายละเอียดตามเอกสารแนบ`, buttonUrl, '');
+    } else if (activity_request_id === 'REQUEST_EDIT' || activity_request_id === 'CONFIRM_EDIT') {
+      message = emailTemplate(name, 'คุณมีเอกสารใบส่งตัวอย่างรอพิจารณา กรุณากด Link ด้านล่าง เพื่อทวนสอบและอนุมัติ/พิจารณา', buttonUrl, 'รายละเอียดใบส่งตัวอย่าง');
     }
     if (process.env.SEND_EMAIL !== 'false') {
       return await axios.post(
